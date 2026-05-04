@@ -32,6 +32,7 @@ public static class DependencyInjection
             });
 
             services.AddScoped<IOrganizationReadRepository, OrganizationReadRepository>();
+            services.AddScoped<IOrganizationWriteRepository, OrganizationWriteRepository>();
         }
 
         return services;

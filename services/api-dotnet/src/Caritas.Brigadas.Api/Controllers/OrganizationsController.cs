@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Caritas.Brigadas.Api.Controllers;
 
 /// <summary>
-/// Endpoints de lectura para organizaciones institucionales.
+/// Endpoints para organizaciones institucionales.
 /// </summary>
 [ApiController]
 [Route("api/v1/organizations")]
@@ -33,12 +33,7 @@ public sealed class OrganizationsController : ControllerBase
 
         if (repository is null)
         {
-            var error = ApiErrorResponse.Create(
-                "database_not_configured",
-                "Database access is not configured for this environment.",
-                HttpContext.GetCorrelationId());
-
-            return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
+            return DatabaseNotConfigured();
         }
 
         var organizations = await repository.ListAsync(cancellationToken);
@@ -63,12 +58,7 @@ public sealed class OrganizationsController : ControllerBase
 
         if (repository is null)
         {
-            var error = ApiErrorResponse.Create(
-                "database_not_configured",
-                "Database access is not configured for this environment.",
-                HttpContext.GetCorrelationId());
-
-            return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
+            return DatabaseNotConfigured();
         }
 
         var organization = await repository.GetByIdAsync(
@@ -88,5 +78,61 @@ public sealed class OrganizationsController : ControllerBase
         return Ok(ApiResponse<OrganizationSummaryDto>.Ok(
             organization,
             HttpContext.GetCorrelationId()));
+    }
+
+    /// <summary>
+    /// Crea una organización institucional.
+    /// </summary>
+    [HttpPost]
+    [ProducesResponseType(typeof(ApiResponse<OrganizationSummaryDto>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    public async Task<IActionResult> CreateAsync(
+        [FromBody] CreateOrganizationRequest request,
+        CancellationToken cancellationToken)
+    {
+        var repository = _serviceProvider.GetService<IOrganizationWriteRepository>();
+
+        if (repository is null)
+        {
+            return DatabaseNotConfigured();
+        }
+
+        try
+        {
+            var organization = await repository.CreateAsync(
+                request,
+                cancellationToken);
+
+            var response = ApiResponse<OrganizationSummaryDto>.Ok(
+                organization,
+                HttpContext.GetCorrelationId(),
+                "Organization created successfully.");
+
+            return CreatedAtAction(
+                nameof(GetByIdAsync),
+                new { organizationId = organization.Id },
+                response);
+        }
+        catch (InvalidOperationException exception)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.Conflict,
+                exception.Message,
+                HttpContext.GetCorrelationId());
+
+            return Conflict(error);
+        }
+    }
+
+    private ObjectResult DatabaseNotConfigured()
+    {
+        var error = ApiErrorResponse.Create(
+            "database_not_configured",
+            "Database access is not configured for this environment.",
+            HttpContext.GetCorrelationId());
+
+        return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
