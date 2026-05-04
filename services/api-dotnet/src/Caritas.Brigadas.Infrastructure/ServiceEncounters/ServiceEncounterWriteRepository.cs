@@ -136,19 +136,18 @@ public sealed class ServiceEncounterWriteRepository : IServiceEncounterWriteRepo
             throw new InvalidOperationException("A service encounter with the same folio already exists.");
         }
 
-        var duplicateActiveEncounter = await _dbContext.ServiceEncounters
+        var duplicateEncounter = await _dbContext.ServiceEncounters
             .AsNoTracking()
             .AnyAsync(
                 encounter =>
                     encounter.VisitId == request.VisitId &&
                     encounter.ServiceId == service.Id &&
-                    !encounter.IsDeleted &&
-                    encounter.IsActive,
+                    !encounter.IsDeleted,
                 cancellationToken);
 
-        if (duplicateActiveEncounter)
+        if (duplicateEncounter)
         {
-            throw new InvalidOperationException("This visit already has an active encounter for the selected service.");
+            throw new InvalidOperationException("This visit already has an encounter for the selected service.");
         }
 
         var encounter = new ServiceEncounter(
