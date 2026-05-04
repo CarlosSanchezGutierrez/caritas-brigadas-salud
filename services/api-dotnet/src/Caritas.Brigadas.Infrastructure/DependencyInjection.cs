@@ -2,6 +2,7 @@
 using Caritas.Brigadas.Application.Communities;
 using Caritas.Brigadas.Application.MobileUnits;
 using Caritas.Brigadas.Application.Organizations;
+using Caritas.Brigadas.Application.Patients;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Application.Services;
 using Caritas.Brigadas.Application.Users;
@@ -9,6 +10,7 @@ using Caritas.Brigadas.Infrastructure.Brigades;
 using Caritas.Brigadas.Infrastructure.Communities;
 using Caritas.Brigadas.Infrastructure.MobileUnits;
 using Caritas.Brigadas.Infrastructure.Organizations;
+using Caritas.Brigadas.Infrastructure.Patients;
 using Caritas.Brigadas.Infrastructure.Persistence;
 using Caritas.Brigadas.Infrastructure.Security;
 using Caritas.Brigadas.Infrastructure.Services;
@@ -66,6 +68,9 @@ public static class DependencyInjection
             services.AddScoped<IBrigadeWriteRepository, BrigadeWriteRepository>();
             services.AddScoped<IBrigadeServiceReadRepository, BrigadeServiceReadRepository>();
             services.AddScoped<IBrigadeServiceAssignmentRepository, BrigadeServiceAssignmentRepository>();
+
+            services.AddScoped<IPatientReadRepository, PatientReadRepository>();
+            services.AddScoped<IPatientWriteRepository, PatientWriteRepository>();
         }
 
         return services;
