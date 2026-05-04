@@ -1,9 +1,11 @@
 ﻿using Caritas.Brigadas.Application.Organizations;
 using Caritas.Brigadas.Application.Security;
+using Caritas.Brigadas.Application.Services;
 using Caritas.Brigadas.Application.Users;
 using Caritas.Brigadas.Infrastructure.Organizations;
 using Caritas.Brigadas.Infrastructure.Persistence;
 using Caritas.Brigadas.Infrastructure.Security;
+using Caritas.Brigadas.Infrastructure.Services;
 using Caritas.Brigadas.Infrastructure.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -44,6 +46,9 @@ public static class DependencyInjection
             services.AddScoped<ISecuritySeedRepository, SecuritySeedRepository>();
             services.AddScoped<ISecurityReadRepository, SecurityReadRepository>();
             services.AddScoped<IUserRoleAssignmentRepository, UserRoleAssignmentRepository>();
+
+            services.AddScoped<IServiceReadRepository, ServiceReadRepository>();
+            services.AddScoped<IServiceSeedRepository, ServiceSeedRepository>();
         }
 
         return services;
