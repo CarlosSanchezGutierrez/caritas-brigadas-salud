@@ -5,6 +5,7 @@ using Caritas.Brigadas.Application.Organizations;
 using Caritas.Brigadas.Application.PatientVisits;
 using Caritas.Brigadas.Application.Patients;
 using Caritas.Brigadas.Application.Security;
+using Caritas.Brigadas.Application.ServiceEncounters;
 using Caritas.Brigadas.Application.Services;
 using Caritas.Brigadas.Application.Users;
 using Caritas.Brigadas.Infrastructure.Brigades;
@@ -15,6 +16,7 @@ using Caritas.Brigadas.Infrastructure.PatientVisits;
 using Caritas.Brigadas.Infrastructure.Patients;
 using Caritas.Brigadas.Infrastructure.Persistence;
 using Caritas.Brigadas.Infrastructure.Security;
+using Caritas.Brigadas.Infrastructure.ServiceEncounters;
 using Caritas.Brigadas.Infrastructure.Services;
 using Caritas.Brigadas.Infrastructure.Users;
 using Microsoft.EntityFrameworkCore;
@@ -76,6 +78,9 @@ public static class DependencyInjection
 
             services.AddScoped<IPatientVisitReadRepository, PatientVisitReadRepository>();
             services.AddScoped<IPatientVisitWriteRepository, PatientVisitWriteRepository>();
+
+            services.AddScoped<IServiceEncounterReadRepository, ServiceEncounterReadRepository>();
+            services.AddScoped<IServiceEncounterWriteRepository, ServiceEncounterWriteRepository>();
         }
 
         return services;
