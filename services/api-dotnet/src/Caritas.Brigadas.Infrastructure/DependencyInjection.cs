@@ -64,6 +64,8 @@ public static class DependencyInjection
 
             services.AddScoped<IBrigadeReadRepository, BrigadeReadRepository>();
             services.AddScoped<IBrigadeWriteRepository, BrigadeWriteRepository>();
+            services.AddScoped<IBrigadeServiceReadRepository, BrigadeServiceReadRepository>();
+            services.AddScoped<IBrigadeServiceAssignmentRepository, BrigadeServiceAssignmentRepository>();
         }
 
         return services;
