@@ -1,5 +1,6 @@
 ﻿using Caritas.Brigadas.Application.Brigades;
 using Caritas.Brigadas.Application.Communities;
+using Caritas.Brigadas.Application.FormTemplates;
 using Caritas.Brigadas.Application.MobileUnits;
 using Caritas.Brigadas.Application.Organizations;
 using Caritas.Brigadas.Application.PatientVisits;
@@ -10,6 +11,7 @@ using Caritas.Brigadas.Application.Services;
 using Caritas.Brigadas.Application.Users;
 using Caritas.Brigadas.Infrastructure.Brigades;
 using Caritas.Brigadas.Infrastructure.Communities;
+using Caritas.Brigadas.Infrastructure.FormTemplates;
 using Caritas.Brigadas.Infrastructure.MobileUnits;
 using Caritas.Brigadas.Infrastructure.Organizations;
 using Caritas.Brigadas.Infrastructure.PatientVisits;
@@ -81,6 +83,9 @@ public static class DependencyInjection
 
             services.AddScoped<IServiceEncounterReadRepository, ServiceEncounterReadRepository>();
             services.AddScoped<IServiceEncounterWriteRepository, ServiceEncounterWriteRepository>();
+
+            services.AddScoped<IFormTemplateReadRepository, FormTemplateReadRepository>();
+            services.AddScoped<IFormTemplateSeedRepository, FormTemplateSeedRepository>();
         }
 
         return services;
