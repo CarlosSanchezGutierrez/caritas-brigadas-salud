@@ -452,3 +452,16 @@ Validar reportes.
 Validar auditoría.
 
 Confirmar cierre local del backend.
+Backend Demo Script for Partner Presentation
+
+Archivo:
+
+docs/BACKEND_DEMO_SCRIPT_PARTNER_PRESENTATION.md
+
+Uso:
+
+Preparar demostración técnica.
+Explicar el flujo al socio formador.
+Mostrar seguridad, reportes y auditoría.
+
+Evitar prometer producción prematuramente.
