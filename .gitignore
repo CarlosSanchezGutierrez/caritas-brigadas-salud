@@ -1,0 +1,324 @@
+﻿# ============================================================
+# Cáritas Brigadas de Salud
+# Monorepo: Next.js + ASP.NET Core + SQL Server + SwiftUI + Flutter
+# ============================================================
+
+# ============================================================
+# Sistema operativo
+# ============================================================
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ============================================================
+# Editores / IDEs
+# ============================================================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.swp
+*.swo
+
+# Visual Studio
+.vs/
+_ReSharper*/
+*.DotSettings.user
+
+# ============================================================
+# Logs
+# ============================================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ============================================================
+# Variables de entorno y secretos
+# ============================================================
+.env
+.env.*
+!.env.example
+!.env.template
+
+*.pem
+*.key
+*.pfx
+*.p12
+*.crt
+*.cer
+*.der
+*.jks
+*.keystore
+secrets/
+.secret/
+.credentials/
+credentials.json
+
+# Azure / cloud / deployment local
+.azure/
+.vercel/
+.netlify/
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+
+# ============================================================
+# Node / Next.js / TypeScript
+# ============================================================
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+apps/web-next/.next/
+apps/web-next/out/
+apps/web-next/build/
+apps/web-next/dist/
+apps/web-next/.turbo/
+apps/web-next/coverage/
+apps/web-next/playwright-report/
+apps/web-next/test-results/
+
+.next/
+out/
+dist/
+build/
+coverage/
+.turbo/
+
+*.tsbuildinfo
+
+# ============================================================
+# ASP.NET Core / .NET
+# ============================================================
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+
+*.dll
+*.exe
+*.pdb
+*.cache
+*.nupkg
+*.snupkg
+
+TestResults/
+*.coverage
+*.coveragexml
+*.trx
+
+# Configuración local sensible de .NET
+appsettings.Local.json
+appsettings.*.Local.json
+appsettings.*.local.json
+appsettings.Production.json
+appsettings.Staging.json
+
+# ============================================================
+# SQL Server / base de datos
+# ============================================================
+*.mdf
+*.ldf
+*.ndf
+*.bak
+*.trn
+*.bacpac
+*.dacpac
+*.sqlplan
+
+database/local/
+database/backups/
+database/exports/
+database/temp/
+
+# Mantener scripts SQL, migraciones y seeds sintéticos
+!database/**/*.sql
+!database/**/migrations/**
+!database/**/seed-synthetic/**
+
+# ============================================================
+# Flutter / Dart / Android
+# ============================================================
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+apps/android-flutter/.dart_tool/
+apps/android-flutter/build/
+apps/android-flutter/.flutter-plugins
+apps/android-flutter/.flutter-plugins-dependencies
+apps/android-flutter/.packages
+
+# Android / Gradle
+.gradle/
+**/android/.gradle/
+**/android/app/build/
+**/android/build/
+**/android/local.properties
+
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Android signing secrets
+**/android/key.properties
+**/android/*.jks
+**/android/*.keystore
+
+# ============================================================
+# iOS / Swift / Xcode
+# ============================================================
+DerivedData/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+Build/
+.swiftpm/
+.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# CocoaPods, si algún día se usa
+Pods/
+
+# Fastlane output
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output/
+
+# iOS signing secrets
+*.mobileprovision
+*.provisionprofile
+*.developerprofile
+*.certSigningRequest
+
+# ============================================================
+# Archivos generados por herramientas
+# ============================================================
+generated/
+.codegen/
+openapi-generated/
+swagger-generated/
+
+# Si se decide commitear clientes generados, quitar estas líneas.
+contracts/openapi/generated/
+contracts/schemas/generated/
+
+# ============================================================
+# Reportes, exportaciones y datos sensibles
+# ============================================================
+exports/
+reports/generated/
+reports/private/
+tmp/
+temp/
+
+*.csv
+*.xlsx
+*.xls
+
+# PDFs privados/exportados no deben entrar por default.
+*.pdf
+
+# Excepciones: permitir documentación y plantillas institucionales si se agregan intencionalmente.
+!docs/**/*.pdf
+!docs/**/*.xlsx
+!docs/**/*.csv
+!contracts/**/*.json
+!contracts/**/*.yaml
+!contracts/**/*.yml
+
+# ============================================================
+# Datos reales: nunca commitear
+# ============================================================
+real-data/
+production-data/
+patient-data/
+sensitive-data/
+phi/
+pii/
+firmas/
+signatures/
+documents/private/
+uploads/private/
+
+# ============================================================
+# Python / notebooks para analytics
+# ============================================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+analytics/.venv/
+analytics/data/raw/
+analytics/data/private/
+analytics/data/production/
+analytics/data/sensitive/
+analytics/outputs/
+analytics/models/
+
+# Permitir datos sintéticos
+!analytics/data/synthetic/
+!database/seed-synthetic/
+
+# ============================================================
+# Testing
+# ============================================================
+.nyc_output/
+playwright-report/
+test-results/
+cypress/videos/
+cypress/screenshots/
+
+# ============================================================
+# Paquetes comprimidos y temporales
+# ============================================================
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+*.tmp
+*.temp
+
+# ============================================================
+# Archivos de bloqueo importantes que SÍ deben versionarse
+# ============================================================
+!package-lock.json
+!pnpm-lock.yaml
+!yarn.lock
+!apps/android-flutter/pubspec.lock
