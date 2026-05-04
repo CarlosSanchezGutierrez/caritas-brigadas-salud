@@ -7,6 +7,8 @@ namespace Caritas.Brigadas.Infrastructure.Persistence;
 
 public sealed class CaritasDbContext : DbContext
 {
+    public DbSet<ConsentDocument> ConsentDocuments { get; set; } = null!;
+
     public CaritasDbContext(DbContextOptions<CaritasDbContext> options)
         : base(options)
     {
@@ -401,3 +403,4 @@ public sealed class CaritasDbContext : DbContext
         entity.HasIndex(x => x.IsDeleted);
     }
 }
+
