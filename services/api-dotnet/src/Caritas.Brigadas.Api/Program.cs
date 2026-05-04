@@ -2,6 +2,7 @@
 using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Api.Middleware;
 using Caritas.Brigadas.Contracts.Api;
+using Caritas.Brigadas.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
 const string CorsPolicyName = "ConfiguredOrigins";
@@ -76,6 +77,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCaritasSwagger();
 builder.Services.AddProblemDetails();
