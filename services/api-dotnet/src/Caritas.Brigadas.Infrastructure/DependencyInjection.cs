@@ -1,4 +1,6 @@
-﻿using Caritas.Brigadas.Infrastructure.Persistence;
+﻿using Caritas.Brigadas.Application.Organizations;
+using Caritas.Brigadas.Infrastructure.Organizations;
+using Caritas.Brigadas.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +30,8 @@ public static class DependencyInjection
                             errorNumbersToAdd: null);
                     });
             });
+
+            services.AddScoped<IOrganizationReadRepository, OrganizationReadRepository>();
         }
 
         return services;
