@@ -77,7 +77,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddCaritasSwagger();
 builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks();
 
@@ -96,8 +96,7 @@ var enableSwaggerInDevelopment = builder.Configuration
 
 if (app.Environment.IsDevelopment() && enableSwaggerInDevelopment)
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseCaritasSwagger();
 }
 
 app.UseHttpsRedirection();
@@ -127,7 +126,8 @@ app.MapGet("/", (HttpContext httpContext) =>
         httpContext.GetCorrelationId()));
 })
 .WithName("Root")
-.WithTags("System");
+.WithTags("System")
+.Produces<ApiResponse<object>>(StatusCodes.Status200OK);
 
 app.Run();
 
