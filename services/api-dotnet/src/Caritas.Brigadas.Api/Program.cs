@@ -1,4 +1,8 @@
 ﻿using System.Text.Json.Serialization;
+using Caritas.Brigadas.Api.Extensions;
+using Caritas.Brigadas.Api.Middleware;
+using Caritas.Brigadas.Contracts.Api;
+using Microsoft.AspNetCore.Mvc;
 
 const string CorsPolicyName = "ConfiguredOrigins";
 
@@ -20,6 +24,30 @@ builder.Services
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.WriteIndented = false;
     });
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var details = context.ModelState
+            .Where(entry => entry.Value?.Errors.Count > 0)
+            .SelectMany(entry => entry.Value!.Errors.Select(error => new ApiErrorDetail(
+                entry.Key,
+                string.IsNullOrWhiteSpace(error.ErrorMessage)
+                    ? "Invalid value."
+                    : error.ErrorMessage,
+                ApiErrorCodes.ValidationError)))
+            .ToArray();
+
+        var response = ApiErrorResponse.Create(
+            ApiErrorCodes.ValidationError,
+            "Validation failed.",
+            context.HttpContext.TraceIdentifier,
+            details);
+
+        return new BadRequestObjectResult(response);
+    };
+});
 
 builder.Services.AddCors(options =>
 {
@@ -55,7 +83,8 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-app.UseExceptionHandler();
+app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 if (!app.Environment.IsDevelopment())
 {
@@ -82,16 +111,20 @@ app.MapControllers();
 app.MapHealthChecks("/health/live");
 app.MapHealthChecks("/health/ready");
 
-app.MapGet("/", () =>
+app.MapGet("/", (HttpContext httpContext) =>
 {
-    return Results.Ok(new
+    var payload = new
     {
         service = "caritas-brigadas-api",
         name = "Cáritas Brigadas de Salud API",
         status = "running",
         environment = app.Environment.EnvironmentName,
         timestampUtc = DateTimeOffset.UtcNow
-    });
+    };
+
+    return Results.Ok(ApiResponse<object>.Ok(
+        payload,
+        httpContext.GetCorrelationId()));
 })
 .WithName("Root")
 .WithTags("System");
