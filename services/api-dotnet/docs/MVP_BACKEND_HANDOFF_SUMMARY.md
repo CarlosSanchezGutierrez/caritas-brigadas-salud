@@ -436,3 +436,9 @@ Agregar filtros/paginación de auditoría.
 Auditar updates/deletes cuando existan.
 
 Definir retención y privacidad de auditoría.
+Documento final de cierre técnico
+
+El cierre técnico de seguridad y auditoría del MVP backend está documentado en:
+
+docs/FINAL_MVP_BACKEND_SECURITY_AUDIT_HANDOFF.md
+
