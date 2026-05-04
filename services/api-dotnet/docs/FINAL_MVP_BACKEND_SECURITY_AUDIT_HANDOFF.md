@@ -319,3 +319,9 @@ Endpoints protegidos rechazan requests sin auth.
 Endpoints protegidos aceptan headers dev válidos.
 git status queda limpio.
 Todo está en origin/develop.
+Checklist final de verificación
+
+La verificación final del backend está documentada en:
+
+docs/FINAL_BACKEND_VERIFICATION_CHECKLIST.md
+

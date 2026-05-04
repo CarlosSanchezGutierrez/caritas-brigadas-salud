@@ -434,3 +434,21 @@ Resumen de auditoría.
 Explicación para socio formador, GitHub y CV.
 
 Pendientes antes de producción.
+Final Backend Verification Checklist
+
+Archivo:
+
+docs/FINAL_BACKEND_VERIFICATION_CHECKLIST.md
+
+Uso:
+
+Validar build.
+Validar tests.
+Validar migraciones.
+Validar API local.
+Validar smoke test.
+Validar autorización.
+Validar reportes.
+Validar auditoría.
+
+Confirmar cierre local del backend.
