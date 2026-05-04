@@ -110,10 +110,7 @@ public sealed class OrganizationsController : ControllerBase
                 HttpContext.GetCorrelationId(),
                 "Organization created successfully.");
 
-            return CreatedAtAction(
-                nameof(GetByIdAsync),
-                new { organizationId = organization.Id },
-                response);
+            return Created($"/api/v1/organizations/{organization.Id}", response);
         }
         catch (InvalidOperationException exception)
         {
@@ -136,3 +133,4 @@ public sealed class OrganizationsController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
+
