@@ -1,6 +1,8 @@
 ﻿using Caritas.Brigadas.Application.Organizations;
+using Caritas.Brigadas.Application.Users;
 using Caritas.Brigadas.Infrastructure.Organizations;
 using Caritas.Brigadas.Infrastructure.Persistence;
+using Caritas.Brigadas.Infrastructure.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +35,9 @@ public static class DependencyInjection
 
             services.AddScoped<IOrganizationReadRepository, OrganizationReadRepository>();
             services.AddScoped<IOrganizationWriteRepository, OrganizationWriteRepository>();
+
+            services.AddScoped<IUserReadRepository, UserReadRepository>();
+            services.AddScoped<IUserWriteRepository, UserWriteRepository>();
         }
 
         return services;
