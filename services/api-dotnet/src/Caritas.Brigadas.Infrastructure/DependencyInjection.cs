@@ -42,6 +42,8 @@ public static class DependencyInjection
             services.AddScoped<IUserWriteRepository, UserWriteRepository>();
 
             services.AddScoped<ISecuritySeedRepository, SecuritySeedRepository>();
+            services.AddScoped<ISecurityReadRepository, SecurityReadRepository>();
+            services.AddScoped<IUserRoleAssignmentRepository, UserRoleAssignmentRepository>();
         }
 
         return services;
