@@ -458,3 +458,4 @@ Write-Host "BrigadeId:      $brigadeId"
 Write-Host "PatientId:      $patientId"
 Write-Host "VisitId:        $visitId"
 Write-Host "EncounterId:    $encounterId"
+
