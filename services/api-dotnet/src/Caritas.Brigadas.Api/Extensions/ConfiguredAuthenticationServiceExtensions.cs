@@ -1,4 +1,8 @@
 ﻿using Caritas.Brigadas.Api.Options;
+using Caritas.Brigadas.Api.Security;
+using Caritas.Brigadas.Application.Security;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Caritas.Brigadas.Api.Extensions;
 
@@ -51,8 +55,59 @@ public static class ConfiguredAuthenticationServiceExtensions
                 CaritasAuthenticationModes.JwtBearer,
                 StringComparison.OrdinalIgnoreCase))
         {
-            throw new NotSupportedException(
-                "JWT Bearer authentication mode is configured but the JWT handler has not been implemented yet.");
+            services
+                .AddAuthentication(authenticationOptions =>
+                {
+                    authenticationOptions.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    authenticationOptions.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(jwtOptions =>
+                {
+                    jwtOptions.Authority = options.Authority;
+                    jwtOptions.Audience = options.Audience;
+                    jwtOptions.RequireHttpsMetadata = options.RequireHttpsMetadata;
+
+                    jwtOptions.MapInboundClaims = false;
+
+                    jwtOptions.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ClockSkew = TimeSpan.FromMinutes(2),
+                        NameClaimType = "name",
+                        RoleClaimType = CurrentUserClaimTypes.RoleCode
+                    };
+
+                    if (!string.IsNullOrWhiteSpace(options.ValidIssuer))
+                    {
+                        jwtOptions.TokenValidationParameters.ValidIssuer = options.ValidIssuer;
+                    }
+
+                    var validAudiences = new List<string>();
+
+                    if (!string.IsNullOrWhiteSpace(options.Audience))
+                    {
+                        validAudiences.Add(options.Audience);
+                    }
+
+                    if (options.ValidAudiences is { Length: > 0 })
+                    {
+                        validAudiences.AddRange(
+                            options.ValidAudiences
+                                .Where(audience => !string.IsNullOrWhiteSpace(audience))
+                                .Select(audience => audience.Trim()));
+                    }
+
+                    jwtOptions.TokenValidationParameters.ValidAudiences = validAudiences
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToArray();
+                });
+
+            services.AddAuthorization();
+
+            return services;
         }
 
         throw new InvalidOperationException(

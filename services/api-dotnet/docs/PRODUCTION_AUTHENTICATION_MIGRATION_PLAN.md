@@ -354,3 +354,33 @@ El siguiente bloque de código debería ser:
 feat(api): add authentication options configuration
 
 Ese bloque debe ser pequeño y no debe cambiar comportamiento funcional todavía.
+
+## Estado del esqueleto JWT Bearer
+
+El backend ya cuenta con configuración inicial de JWT Bearer mediante:
+
+```text
+src/Caritas.Brigadas.Api/Extensions/ConfiguredAuthenticationServiceExtensions.cs
+
+Estado:
+
+Implementado como skeleton configurable.
+
+El modo JwtBearer ya puede configurarse con:
+
+Authentication:Mode
+Authentication:Authority
+Authentication:Audience
+Authentication:RequireHttpsMetadata
+Authentication:ValidIssuer
+Authentication:ValidAudiences
+
+Pendiente:
+
+Conectar proveedor real.
+Definir issuer real.
+Definir audience real.
+Validar tokens reales.
+Agregar pruebas de integración HTTP con token firmado.
+
+Definir transformación de claims si el proveedor no emite user_id, organization_id, role_code y permission_code.
