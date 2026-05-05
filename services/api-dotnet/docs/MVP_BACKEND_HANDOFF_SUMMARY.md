@@ -397,3 +397,42 @@ Exportación de reportes.
 Asignación de roles.
 
 Sync batches.
+22. Estado actual de auditoría formal
+
+El backend ya cuenta con una primera auditoría formal.
+
+Implementado:
+
+Entidad AuditLog.
+Configuración EF Core.
+Migración AddAuditLogs.
+Repositorio de escritura.
+Servicio IAuditLogger.
+Códigos de acción.
+Auditoría de reportes.
+Auditoría de escrituras clínicas.
+Auditoría de escrituras operativas.
+Tests unitarios de auditoría.
+
+Acciones sensibles auditadas:
+
+Creación de pacientes.
+Creación de visitas.
+Creación de atenciones.
+Creación de formularios respondidos.
+Creación de consentimientos.
+Exportación CSV.
+Consulta de reportes.
+Creación de usuarios.
+Asignación de roles.
+Configuración de servicios.
+Creación de brigadas.
+Sync batches.
+
+Pendiente:
+
+Validar auditoría dentro del smoke test.
+Agregar filtros/paginación de auditoría.
+Auditar updates/deletes cuando existan.
+
+Definir retención y privacidad de auditoría.

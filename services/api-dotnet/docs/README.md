@@ -405,3 +405,17 @@ Explicar capacidades funcionales.
 Explicar estado de autorización.
 
 Identificar pendientes antes de producción.
+Audit Logging Implementation Status
+
+Archivo:
+
+docs/AUDIT_LOGGING_IMPLEMENTATION_STATUS.md
+
+Uso:
+
+Revisar entidad formal de auditoría.
+Revisar acciones auditadas.
+Revisar filtros automáticos.
+Revisar limitaciones pendientes.
+
+Preparar validación en smoke test.

@@ -651,3 +651,13 @@ La implementación actual de autorización está resumida en:
 docs/AUTHORIZATION_IMPLEMENTATION_STATUS.md
 
 Este documento debe revisarse antes de avanzar a autenticación productiva con JWT/OIDC.
+Estado de auditoría formal
+
+La implementación actual de auditoría formal está documentada en:
+
+docs/AUDIT_LOGGING_IMPLEMENTATION_STATUS.md
+
+Estado:
+
+Auditoría formal inicial implementada para MVP local.
+
