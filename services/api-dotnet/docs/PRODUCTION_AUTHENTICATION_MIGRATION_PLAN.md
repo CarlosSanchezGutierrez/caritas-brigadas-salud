@@ -384,3 +384,9 @@ Validar tokens reales.
 Agregar pruebas de integración HTTP con token firmado.
 
 Definir transformación de claims si el proveedor no emite user_id, organization_id, role_code y permission_code.
+Variables de entorno documentadas
+
+Las variables de entorno de autenticación están documentadas en:
+
+docs/AUTHENTICATION_ENVIRONMENT_VARIABLES.md
+

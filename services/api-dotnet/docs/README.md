@@ -378,3 +378,17 @@ Definir variables de entorno.
 Evitar que DevelopmentAuthenticationHandler llegue a producción.
 
 Preparar integración futura con proveedor de identidad.
+Authentication Environment Variables
+
+Archivo:
+
+docs/AUTHENTICATION_ENVIRONMENT_VARIABLES.md
+
+Uso:
+
+Configurar autenticación local.
+Configurar JWT Bearer en staging/producción.
+Documentar headers de desarrollo.
+Documentar claims esperados.
+
+Documentar variables de entorno.
