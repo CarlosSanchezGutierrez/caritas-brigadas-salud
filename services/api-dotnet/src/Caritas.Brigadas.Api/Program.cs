@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCurrentUserContext();
 builder.Services.AddDevelopmentAuthentication(builder.Environment);
 builder.Services.AddPermissionAuthorization();
+builder.Services.AddOrganizationAccessEnforcement();
 
 builder.Configuration.AddJsonFile(
     "appsettings.Local.json",
@@ -140,6 +141,7 @@ app.Run();
 public partial class Program
 {
 }
+
 
 
 
