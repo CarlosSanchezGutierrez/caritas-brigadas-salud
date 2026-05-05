@@ -1,4 +1,5 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+﻿using Microsoft.AspNetCore.Authorization;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.Security;
@@ -28,6 +29,7 @@ public sealed class SecuritySeedController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<SecuritySeedResultDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.RolesAssign)]
     public async Task<IActionResult> SeedDefaultsAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -66,3 +68,6 @@ public sealed class SecuritySeedController : ControllerBase
         }
     }
 }
+
+
+

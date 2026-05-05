@@ -1,7 +1,7 @@
 ﻿param(
     [string] $BaseUrl = "https://localhost:7044",
-    [string] $OrganizationId = "",
-    [string] $UserId = ""
+    [string] $OrganizationId = "4df92032-4a1c-4cf2-b48f-15b570cd073a",
+    [string] $UserId = "76279895-817d-47d2-b5c2-2a1e306db4f9"
 )
 
 $ErrorActionPreference = "Stop"
@@ -477,6 +477,7 @@ Write-Host "BrigadeId:      $brigadeId"
 Write-Host "PatientId:      $patientId"
 Write-Host "VisitId:        $visitId"
 Write-Host "EncounterId:    $encounterId"
+
 
 
 

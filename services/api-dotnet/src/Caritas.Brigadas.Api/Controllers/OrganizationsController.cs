@@ -1,4 +1,6 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+﻿using Microsoft.AspNetCore.Authorization;
+using Caritas.Brigadas.Application.Security;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Organizations;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.Organizations;
@@ -27,6 +29,7 @@ public sealed class OrganizationsController : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<OrganizationSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.OrganizationsRead)]
     public async Task<IActionResult> ListAsync(CancellationToken cancellationToken)
     {
         var repository = _serviceProvider.GetService<IOrganizationReadRepository>();
@@ -50,6 +53,7 @@ public sealed class OrganizationsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<OrganizationSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.OrganizationsRead)]
     public async Task<IActionResult> GetByIdAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -88,6 +92,7 @@ public sealed class OrganizationsController : ControllerBase
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.OrganizationsWrite)]
     public async Task<IActionResult> CreateAsync(
         [FromBody] CreateOrganizationRequest request,
         CancellationToken cancellationToken)
@@ -133,4 +138,7 @@ public sealed class OrganizationsController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
+
+
+
 

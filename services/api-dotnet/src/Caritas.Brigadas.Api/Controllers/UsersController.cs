@@ -1,4 +1,6 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+﻿using Microsoft.AspNetCore.Authorization;
+using Caritas.Brigadas.Application.Security;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Users;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.Users;
@@ -26,6 +28,7 @@ public sealed class UsersController : ControllerBase
     [HttpGet("api/v1/organizations/{organizationId:guid}/users")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<UserSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.UsersRead)]
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -53,6 +56,7 @@ public sealed class UsersController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<UserSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.UsersRead)]
     public async Task<IActionResult> GetByIdAsync(
         Guid userId,
         CancellationToken cancellationToken)
@@ -92,6 +96,7 @@ public sealed class UsersController : ControllerBase
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.UsersWrite)]
     public async Task<IActionResult> CreateAsync(
         Guid organizationId,
         [FromBody] CreateUserRequest request,
@@ -148,3 +153,6 @@ public sealed class UsersController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
+
+
+
