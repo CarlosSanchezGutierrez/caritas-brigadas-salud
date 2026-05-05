@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Caritas.Brigadas.Api.Extensions;
+using Caritas.Brigadas.Application.Audit;
 using Caritas.Brigadas.Application.Reports;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Contracts.Api;
@@ -28,11 +29,10 @@ public sealed class ReportsController : ControllerBase
     /// Obtiene resumen operativo general de una organización.
     /// </summary>
     [HttpGet("summary")]
+    [Authorize(Policy = PermissionCodes.ReportsRead)]
     [ProducesResponseType(typeof(ApiResponse<OrganizationReportSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
-    [Authorize(Policy = PermissionCodes.ReportsRead)]
-
     public async Task<IActionResult> GetSummaryAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -47,6 +47,13 @@ public sealed class ReportsController : ControllerBase
         try
         {
             var summary = await repository.GetOrganizationSummaryAsync(
+                organizationId,
+                cancellationToken);
+
+            await LogReportAccessAsync(
+                organizationId,
+                AuditActionCodes.ReportSummaryRead,
+                "OrganizationReportSummary",
                 organizationId,
                 cancellationToken);
 
@@ -69,12 +76,11 @@ public sealed class ReportsController : ControllerBase
     /// Exporta el resumen operativo general de una organización en CSV.
     /// </summary>
     [HttpGet("summary.csv")]
+    [Authorize(Policy = PermissionCodes.ReportsExport)]
     [Produces("text/csv")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
-    [Authorize(Policy = PermissionCodes.ReportsExport)]
-
     public async Task<IActionResult> ExportSummaryCsvAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -89,6 +95,13 @@ public sealed class ReportsController : ControllerBase
         try
         {
             var summary = await repository.GetOrganizationSummaryAsync(
+                organizationId,
+                cancellationToken);
+
+            await LogReportAccessAsync(
+                organizationId,
+                AuditActionCodes.ReportSummaryExport,
+                "OrganizationReportSummaryCsv",
                 organizationId,
                 cancellationToken);
 
@@ -113,6 +126,29 @@ public sealed class ReportsController : ControllerBase
 
             return NotFound(error);
         }
+    }
+
+    private async Task LogReportAccessAsync(
+        Guid organizationId,
+        string action,
+        string entityName,
+        Guid entityId,
+        CancellationToken cancellationToken)
+    {
+        var auditLogger = _serviceProvider.GetService<IAuditLogger>();
+
+        if (auditLogger is null)
+        {
+            return;
+        }
+
+        await auditLogger.LogAsync(
+            organizationId,
+            action,
+            entityName,
+            entityId,
+            detailsJson: null,
+            cancellationToken);
     }
 
     private static string BuildSummaryCsv(OrganizationReportSummaryDto summary)
@@ -177,4 +213,3 @@ public sealed class ReportsController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
-
