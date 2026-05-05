@@ -120,6 +120,7 @@ Archivo:
 
 ```text
 docs/SECURITY_HARDENING_CHECKLIST.md
+ENFORCED_ENDPOINT_SECURITY_STATUS.md
 ```
 
 Uso:
@@ -258,7 +259,8 @@ Para alguien nuevo en el proyecto:
 1. `BACKEND_ARCHITECTURE_OVERVIEW.md`
 2. `ENDPOINT_INVENTORY.md`
 3. `MVP_LOCAL_VALIDATION_CHECKLIST.md`
-4. `SECURITY_HARDENING_CHECKLIST.md`
+4. `SECURITY_HARDENING_CHECKLIST.md
+ENFORCED_ENDPOINT_SECURITY_STATUS.md`
 
 Para validar técnicamente:
 
@@ -270,7 +272,8 @@ Para preparar presentación:
 
 1. `BACKEND_ARCHITECTURE_OVERVIEW.md`
 2. `ENDPOINT_INVENTORY.md`
-3. `SECURITY_HARDENING_CHECKLIST.md`
+3. `SECURITY_HARDENING_CHECKLIST.md
+ENFORCED_ENDPOINT_SECURITY_STATUS.md`
 
 ## 7. Estado del MVP backend local
 
@@ -346,3 +349,4 @@ Sistema listo para datos reales
 Sistema inmune a ataques
 Sistema con operación offline completa
 ```
+

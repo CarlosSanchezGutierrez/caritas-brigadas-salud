@@ -609,3 +609,38 @@ Incorrecto:
 - Prometer cumplimiento legal sin revisión.
 - Usar datos reales en ambiente local.
 - Exponer endpoints sensibles sin autenticación.
+Estado de enforcement actual
+
+El backend ya cuenta con enforcement progresivo de autorización por policies.
+
+Protegidos actualmente:
+
+Reports.
+Audit logs.
+Patients.
+Patient visits.
+Service encounters.
+Form templates.
+Form responses.
+Consent documents.
+Services.
+Communities.
+Mobile units.
+Brigades.
+Brigade services.
+Organizations.
+Users.
+Security.
+Sync batches.
+
+Documento específico:
+
+docs/ENFORCED_ENDPOINT_SECURITY_STATUS.md
+
+Pendiente crítico:
+
+Validación sistemática de acceso por organización.
+Autenticación productiva vía JWT/OIDC.
+Auditoría formal de escritura.
+
+Tests de integración 401/403/200 sobre endpoints reales.
