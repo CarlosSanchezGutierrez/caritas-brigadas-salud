@@ -10,6 +10,7 @@ public static class CurrentUserServiceExtensions
     {
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserContext, HttpCurrentUserContext>();
+        services.AddScoped<IOrganizationAccessAuthorizer, OrganizationAccessAuthorizer>();
 
         return services;
     }
