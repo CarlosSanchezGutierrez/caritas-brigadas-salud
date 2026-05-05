@@ -51,6 +51,25 @@ function Invoke-Api {
         )
     }
 
+    $effectiveUserId = [string]$script:UserId
+    $effectiveOrganizationId = [string]$script:OrganizationId
+
+    if (-not [string]::IsNullOrWhiteSpace($effectiveUserId) -and
+        -not [string]::IsNullOrWhiteSpace($effectiveOrganizationId)) {
+        $args += @(
+            "-H",
+            "X-Dev-User-Id: $effectiveUserId",
+            "-H",
+            "X-Dev-Organization-Id: $effectiveOrganizationId",
+            "-H",
+            "X-Dev-Roles: SUPER_ADMIN",
+            "-H",
+            "X-Dev-Name: Smoke Test User",
+            "-H",
+            "X-Dev-Email: smoke.test@caritas.local"
+        )
+    }
+
     try {
         $raw = & curl.exe @args
 
@@ -458,4 +477,5 @@ Write-Host "BrigadeId:      $brigadeId"
 Write-Host "PatientId:      $patientId"
 Write-Host "VisitId:        $visitId"
 Write-Host "EncounterId:    $encounterId"
+
 
