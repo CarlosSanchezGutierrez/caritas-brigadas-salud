@@ -109,8 +109,10 @@ public static class DependencyInjection
             services.AddScoped<ISyncBatchWriteRepository, SyncBatchWriteRepository>();
 
             services.AddScoped<IAuditLogReadRepository, AuditLogReadRepository>();
+            services.AddScoped<IAuditLogWriteRepository, AuditLogWriteRepository>();
         }
 
         return services;
     }
 }
+
