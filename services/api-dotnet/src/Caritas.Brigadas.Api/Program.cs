@@ -10,7 +10,7 @@ const string CorsPolicyName = "ConfiguredOrigins";
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCurrentUserContext();
 builder.Services.AddCaritasAuthenticationOptions(builder.Configuration);
-builder.Services.AddDevelopmentAuthentication(builder.Environment);
+builder.Services.AddConfiguredAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddPermissionAuthorization();
 builder.Services.AddOrganizationAccessEnforcement();
 
@@ -142,6 +142,7 @@ app.Run();
 public partial class Program
 {
 }
+
 
 
 
