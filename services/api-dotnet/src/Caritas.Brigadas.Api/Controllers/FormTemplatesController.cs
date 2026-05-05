@@ -1,7 +1,9 @@
 ﻿using Caritas.Brigadas.Api.Extensions;
+using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Application.FormTemplates;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.FormTemplates;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Caritas.Brigadas.Api.Controllers;
@@ -26,6 +28,8 @@ public sealed class FormTemplatesController : ControllerBase
     [HttpGet("api/v1/organizations/{organizationId:guid}/form-templates")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<FormTemplateSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.FormTemplatesRead)]
+
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -90,6 +94,8 @@ public sealed class FormTemplatesController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<FormTemplateSeedResultDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.FormTemplatesSeed)]
+
     public async Task<IActionResult> SeedDefaultsAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -133,3 +139,7 @@ public sealed class FormTemplatesController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
+
+
+
+

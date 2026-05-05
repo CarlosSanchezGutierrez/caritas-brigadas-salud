@@ -1,8 +1,10 @@
 ﻿using Caritas.Brigadas.Api.Extensions;
+using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Application.PatientVisits;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.PatientVisits;
 using Caritas.Brigadas.Domain.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Caritas.Brigadas.Api.Controllers;
@@ -27,6 +29,8 @@ public sealed class PatientVisitsController : ControllerBase
     [HttpGet("api/v1/organizations/{organizationId:guid}/patient-visits")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<PatientVisitSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.PatientVisitsRead)]
+
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -93,6 +97,8 @@ public sealed class PatientVisitsController : ControllerBase
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.PatientVisitsWrite)]
+
     public async Task<IActionResult> CreateAsync(
         Guid organizationId,
         [FromBody] CreatePatientVisitRequest request,
@@ -158,3 +164,7 @@ public sealed class PatientVisitsController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
+
+
+
+

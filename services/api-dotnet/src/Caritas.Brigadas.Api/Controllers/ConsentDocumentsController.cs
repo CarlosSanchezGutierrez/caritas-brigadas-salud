@@ -1,8 +1,10 @@
 ﻿using Caritas.Brigadas.Api.Extensions;
+using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Application.ConsentDocuments;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.ConsentDocuments;
 using Caritas.Brigadas.Domain.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Caritas.Brigadas.Api.Controllers;
@@ -27,6 +29,8 @@ public sealed class ConsentDocumentsController : ControllerBase
     [HttpGet("api/v1/organizations/{organizationId:guid}/consent-documents")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<ConsentDocumentSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.ConsentDocumentsRead)]
+
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -93,6 +97,8 @@ public sealed class ConsentDocumentsController : ControllerBase
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.ConsentDocumentsWrite)]
+
     public async Task<IActionResult> CreateAsync(
         Guid organizationId,
         [FromBody] CreateConsentDocumentRequest request,
@@ -158,3 +164,7 @@ public sealed class ConsentDocumentsController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
+
+
+
+

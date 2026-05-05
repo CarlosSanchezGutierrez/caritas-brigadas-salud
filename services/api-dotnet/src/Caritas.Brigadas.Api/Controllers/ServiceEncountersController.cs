@@ -1,8 +1,10 @@
 ﻿using Caritas.Brigadas.Api.Extensions;
+using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Application.ServiceEncounters;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.ServiceEncounters;
 using Caritas.Brigadas.Domain.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Caritas.Brigadas.Api.Controllers;
@@ -27,6 +29,8 @@ public sealed class ServiceEncountersController : ControllerBase
     [HttpGet("api/v1/organizations/{organizationId:guid}/service-encounters")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<ServiceEncounterSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.ServiceEncountersRead)]
+
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -93,6 +97,8 @@ public sealed class ServiceEncountersController : ControllerBase
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.ServiceEncountersWrite)]
+
     public async Task<IActionResult> CreateAsync(
         Guid organizationId,
         [FromBody] CreateServiceEncounterRequest request,
@@ -158,3 +164,7 @@ public sealed class ServiceEncountersController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
+
+
+
+
