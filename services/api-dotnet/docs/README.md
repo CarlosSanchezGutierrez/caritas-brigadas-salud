@@ -350,3 +350,17 @@ Sistema inmune a ataques
 Sistema con operación offline completa
 ```
 
+Authorization Implementation Status
+
+Archivo:
+
+docs/AUTHORIZATION_IMPLEMENTATION_STATUS.md
+
+Uso:
+
+Revisar el estado real de autenticación de desarrollo.
+Revisar policies por permiso.
+Revisar validación por organización.
+Revisar tests de autorización.
+
+Identificar pendientes para JWT/OIDC productivo.

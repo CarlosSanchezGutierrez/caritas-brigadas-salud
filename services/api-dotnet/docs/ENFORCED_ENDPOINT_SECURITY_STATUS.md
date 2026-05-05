@@ -225,3 +225,21 @@ Evitar acceso cruzado entre organizaciones.
 Centralizar validación de organizationId.
 Preparar comportamiento 403.
 Mantener excepción controlada para SUPER_ADMIN.
+23. Organization access enforcement
+
+Además de policies por permiso, el backend ya cuenta con validación global de acceso por organización.
+
+Componente:
+
+OrganizationAccessActionFilter
+
+Regla:
+
+Si el endpoint tiene organizationId en ruta, el usuario actual debe pertenecer a esa organización.
+SUPER_ADMIN puede cruzar organizaciones.
+Si no cumple, responde 403 Forbidden.
+
+Estado:
+
+Implementado
+

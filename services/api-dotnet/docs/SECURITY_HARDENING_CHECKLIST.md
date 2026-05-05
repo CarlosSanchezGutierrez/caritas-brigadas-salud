@@ -644,3 +644,10 @@ Autenticación productiva vía JWT/OIDC.
 Auditoría formal de escritura.
 
 Tests de integración 401/403/200 sobre endpoints reales.
+Documento de estado de autorización
+
+La implementación actual de autorización está resumida en:
+
+docs/AUTHORIZATION_IMPLEMENTATION_STATUS.md
+
+Este documento debe revisarse antes de avanzar a autenticación productiva con JWT/OIDC.
