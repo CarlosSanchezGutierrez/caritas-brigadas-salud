@@ -8,10 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Caritas.Brigadas.Api.Controllers;
 
-/// <summary>
-/// Endpoints de consulta de auditoría.
-/// </summary>
 [ApiController]
+[Route("api/v1")]
 [Produces("application/json")]
 public sealed class AuditLogsController : ControllerBase
 {
@@ -22,14 +20,10 @@ public sealed class AuditLogsController : ControllerBase
         _serviceProvider = serviceProvider;
     }
 
-    /// <summary>
-    /// Lista eventos de auditoría de una organización.
-    /// </summary>
-    [HttpGet("api/v1/organizations/{organizationId:guid}/audit-logs")]
+    [HttpGet("organizations/{organizationId:guid}/audit-logs")]
+    [Authorize(Policy = PermissionCodes.AuditLogsRead)]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<AuditLogSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
-    [Authorize(Policy = PermissionCodes.AuditLogsRead)]
-
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -41,24 +35,20 @@ public sealed class AuditLogsController : ControllerBase
             return DatabaseNotConfigured();
         }
 
-        var logs = await repository.ListByOrganizationAsync(
+        var auditLogs = await repository.ListByOrganizationAsync(
             organizationId,
             cancellationToken);
 
         return Ok(ApiResponse<IReadOnlyCollection<AuditLogSummaryDto>>.Ok(
-            logs,
+            auditLogs,
             HttpContext.GetCorrelationId()));
     }
 
-    /// <summary>
-    /// Obtiene un evento de auditoría por identificador.
-    /// </summary>
-    [HttpGet("api/v1/audit-logs/{auditLogId:guid}")]
+    [HttpGet("audit-logs/{auditLogId:guid}")]
+    [Authorize(Policy = PermissionCodes.AuditLogsRead)]
     [ProducesResponseType(typeof(ApiResponse<AuditLogSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
-    [Authorize(Policy = PermissionCodes.AuditLogsRead)]
-
     public async Task<IActionResult> GetByIdAsync(
         Guid auditLogId,
         CancellationToken cancellationToken)
@@ -70,23 +60,25 @@ public sealed class AuditLogsController : ControllerBase
             return DatabaseNotConfigured();
         }
 
-        var log = await repository.GetByIdAsync(
-            auditLogId,
-            cancellationToken);
+        try
+        {
+            var auditLog = await repository.GetByIdAsync(
+                auditLogId,
+                cancellationToken);
 
-        if (log is null)
+            return Ok(ApiResponse<AuditLogSummaryDto>.Ok(
+                auditLog,
+                HttpContext.GetCorrelationId()));
+        }
+        catch (KeyNotFoundException exception)
         {
             var error = ApiErrorResponse.Create(
                 ApiErrorCodes.NotFound,
-                "Audit log was not found.",
+                exception.Message,
                 HttpContext.GetCorrelationId());
 
             return NotFound(error);
         }
-
-        return Ok(ApiResponse<AuditLogSummaryDto>.Ok(
-            log,
-            HttpContext.GetCorrelationId()));
     }
 
     private ObjectResult DatabaseNotConfigured()
@@ -99,4 +91,3 @@ public sealed class AuditLogsController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
-
