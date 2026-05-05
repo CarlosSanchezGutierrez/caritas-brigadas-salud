@@ -264,3 +264,136 @@ y después:
 
 formal audit logging
 
+
+## 15. Estado actual de autenticación y autorización
+
+El backend ya avanzó de un MVP funcional abierto a un MVP local con enforcement de seguridad aplicado.
+
+Actualmente cuenta con:
+
+- Contexto de usuario actual.
+- Constantes de roles.
+- Constantes de permisos.
+- Claims estándar.
+- Authentication handler de desarrollo.
+- Configuración de modos de autenticación.
+- Skeleton de JWT Bearer.
+- Policies por permiso.
+- Authorization handler por permiso.
+- Validación global de acceso por organización.
+- Endpoints protegidos con `[Authorize(Policy = ...)]`.
+- Smoke test actualizado con headers de desarrollo.
+- Tests unitarios de autorización.
+- Tests de filtro de organización.
+- Tests de integración HTTP para 401/403/pipeline de auth.
+
+## 16. Endpoints protegidos actualmente
+
+Ya tienen protección por permisos:
+
+- Organizations.
+- Users.
+- Security.
+- Services.
+- Communities.
+- Mobile units.
+- Brigades.
+- Brigade services.
+- Patients.
+- Patient visits.
+- Service encounters.
+- Form templates.
+- Form responses.
+- Consent documents.
+- Reports.
+- Reports CSV export.
+- Sync batches.
+- Audit logs.
+
+Endpoints públicos o permitidos en Development:
+
+- `GET /api/v1/health`.
+- Swagger en `Development`.
+
+## 17. Validación por organización
+
+Además de permisos, el backend ya cuenta con un filtro global de acceso por organización:
+
+```text
+OrganizationAccessActionFilter
+
+Regla actual:
+
+Si la ruta contiene organizationId, el usuario autenticado debe pertenecer a esa organización.
+SUPER_ADMIN puede cruzar organizaciones.
+Si no cumple, se responde 403 Forbidden.
+
+Esto reduce el riesgo de acceso cruzado entre organizaciones.
+
+18. Estado de autenticación productiva
+
+La autenticación productiva todavía no está conectada a un proveedor real.
+
+Ya existe:
+
+Authentication__Mode.
+Development.
+JwtBearer.
+Disabled.
+Skeleton de JWT Bearer.
+Validación de configuración.
+Documentación de variables de entorno.
+
+Pendiente:
+
+Elegir proveedor real.
+Configurar issuer real.
+Configurar audience real.
+Validar token real.
+Definir transformación de claims.
+Decidir si permisos viven en JWT o se consultan desde base de datos.
+Probar integración HTTP con bearer token firmado.
+19. Cómo explicarlo técnicamente
+
+Versión corta:
+
+El backend ya no es solamente funcional; ahora tiene una primera capa real de autorización. Los endpoints principales están protegidos por policies de permisos, existe validación por organización y el sistema está preparado para migrar de autenticación local por headers a JWT/OIDC productivo.
+
+Versión prudente:
+
+La seguridad actual es adecuada para validación local y demostración técnica, pero todavía no debe usarse con datos reales hasta conectar autenticación productiva, reforzar auditoría, validar tokens reales, revisar privacidad y completar hardening.
+20. Nuevo criterio de cierre local
+
+Esta etapa se considera cerrada localmente cuando:
+
+dotnet build pasa.
+dotnet test pasa.
+API corre en Development.
+Smoke test pasa con headers dev.
+Endpoints protegidos devuelven 401 sin autenticación.
+Endpoints protegidos devuelven 403 sin permiso suficiente.
+Endpoints protegidos aceptan SUPER_ADMIN en Development.
+Validación por organización devuelve 403 cuando corresponde.
+Documentación de auth está actualizada.
+git status queda limpio.
+21. Siguiente fase recomendada
+
+Ya no conviene seguir agregando endpoints operativos sin cerrar seguridad base.
+
+Siguiente fase técnica recomendada:
+
+formal audit logging
+
+Motivo:
+
+Ahora que ya hay usuario autenticado, permisos y organización, el siguiente paso lógico es registrar acciones sensibles:
+
+Creación de pacientes.
+Creación de visitas.
+Creación de atenciones.
+Creación de respuestas de formularios.
+Creación de consentimientos.
+Exportación de reportes.
+Asignación de roles.
+
+Sync batches.

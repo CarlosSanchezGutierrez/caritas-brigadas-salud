@@ -598,3 +598,43 @@ La arquitectura va por buen camino si:
 - La documentación está actualizada.
 - Cada bloque se commitea por unidad lógica.
 - No se mezclan features grandes sin validación.
+21. Estado de autorización actual
+
+La arquitectura backend ya incluye una capa de autorización aplicada sobre endpoints principales.
+
+Componentes:
+
+ICurrentUserContext
+HttpCurrentUserContext
+PermissionCodes
+RoleCodes
+DevelopmentAuthenticationHandler
+PermissionRequirement
+PermissionAuthorizationHandler
+OrganizationAccessAuthorizer
+OrganizationAccessActionFilter
+
+Flujo actual:
+
+Request
+  -> Authentication
+  -> ClaimsPrincipal
+  -> CurrentUserContext
+  -> Permission policy
+  -> Organization access filter
+  -> Controller
+  -> Repository
+  -> Database
+
+Estado:
+
+Implementado para MVP local.
+
+Pendiente para producción:
+
+JWT/OIDC real
+Proveedor de identidad
+Claims reales
+Auditoría formal
+Hardening completo
+

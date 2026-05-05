@@ -392,3 +392,16 @@ Documentar headers de desarrollo.
 Documentar claims esperados.
 
 Documentar variables de entorno.
+MVP Backend Handoff Summary
+
+Archivo:
+
+docs/MVP_BACKEND_HANDOFF_SUMMARY.md
+
+Uso:
+
+Resumir estado entregable del backend.
+Explicar capacidades funcionales.
+Explicar estado de autorización.
+
+Identificar pendientes antes de producción.
