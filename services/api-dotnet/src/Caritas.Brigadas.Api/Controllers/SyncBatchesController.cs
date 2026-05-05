@@ -1,4 +1,6 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+﻿using Microsoft.AspNetCore.Authorization;
+using Caritas.Brigadas.Application.Security;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Sync;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.Sync;
@@ -27,6 +29,8 @@ public sealed class SyncBatchesController : ControllerBase
     [HttpGet("api/v1/organizations/{organizationId:guid}/sync-batches")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<SyncBatchSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.SyncBatchesRead)]
+
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -93,6 +97,8 @@ public sealed class SyncBatchesController : ControllerBase
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.SyncBatchesWrite)]
+
     public async Task<IActionResult> CreateAsync(
         Guid organizationId,
         [FromBody] CreateSyncBatchRequest request,
@@ -158,3 +164,4 @@ public sealed class SyncBatchesController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
+
