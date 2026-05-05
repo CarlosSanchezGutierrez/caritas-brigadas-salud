@@ -1,8 +1,10 @@
 ﻿using System.Text;
 using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Reports;
+using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.Reports;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Caritas.Brigadas.Api.Controllers;
@@ -29,6 +31,8 @@ public sealed class ReportsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<OrganizationReportSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.ReportsRead)]
+
     public async Task<IActionResult> GetSummaryAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -69,6 +73,8 @@ public sealed class ReportsController : ControllerBase
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.ReportsExport)]
+
     public async Task<IActionResult> ExportSummaryCsvAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -171,3 +177,4 @@ public sealed class ReportsController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
+

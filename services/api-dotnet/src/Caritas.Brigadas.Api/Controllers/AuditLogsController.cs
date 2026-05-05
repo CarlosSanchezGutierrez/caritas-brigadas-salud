@@ -1,7 +1,9 @@
 ﻿using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Audit;
+using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.Audit;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Caritas.Brigadas.Api.Controllers;
@@ -26,6 +28,8 @@ public sealed class AuditLogsController : ControllerBase
     [HttpGet("api/v1/organizations/{organizationId:guid}/audit-logs")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<AuditLogSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.AuditLogsRead)]
+
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -53,6 +57,8 @@ public sealed class AuditLogsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<AuditLogSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.AuditLogsRead)]
+
     public async Task<IActionResult> GetByIdAsync(
         Guid auditLogId,
         CancellationToken cancellationToken)
@@ -93,3 +99,4 @@ public sealed class AuditLogsController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
+
