@@ -284,3 +284,10 @@ Endpoints protegidos rechazan requests sin headers.
 Endpoints protegidos aceptan headers dev válidos.
 Documentación está actualizada.
 git status queda limpio.
+Plan de migración a autenticación productiva
+
+La migración de autenticación de desarrollo a JWT/OIDC está definida en:
+
+docs/PRODUCTION_AUTHENTICATION_MIGRATION_PLAN.md
+
+La autorización actual por policies debe mantenerse. Solo debe cambiar la fuente de identidad.

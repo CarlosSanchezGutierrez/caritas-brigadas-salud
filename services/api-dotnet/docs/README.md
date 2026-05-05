@@ -364,3 +364,17 @@ Revisar validación por organización.
 Revisar tests de autorización.
 
 Identificar pendientes para JWT/OIDC productivo.
+Production Authentication Migration Plan
+
+Archivo:
+
+docs/PRODUCTION_AUTHENTICATION_MIGRATION_PLAN.md
+
+Uso:
+
+Planear migración de headers de desarrollo a JWT/OIDC.
+Definir claims mínimos.
+Definir variables de entorno.
+Evitar que DevelopmentAuthenticationHandler llegue a producción.
+
+Preparar integración futura con proveedor de identidad.
