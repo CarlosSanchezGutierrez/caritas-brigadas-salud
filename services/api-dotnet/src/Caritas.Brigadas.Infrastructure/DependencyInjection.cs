@@ -11,6 +11,7 @@ using Caritas.Brigadas.Application.Reports;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Application.ServiceEncounters;
 using Caritas.Brigadas.Application.Services;
+using Caritas.Brigadas.Application.Sync;
 using Caritas.Brigadas.Application.Users;
 using Caritas.Brigadas.Infrastructure.Brigades;
 using Caritas.Brigadas.Infrastructure.Communities;
@@ -26,6 +27,7 @@ using Caritas.Brigadas.Infrastructure.Reports;
 using Caritas.Brigadas.Infrastructure.Security;
 using Caritas.Brigadas.Infrastructure.ServiceEncounters;
 using Caritas.Brigadas.Infrastructure.Services;
+using Caritas.Brigadas.Infrastructure.Sync;
 using Caritas.Brigadas.Infrastructure.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -100,6 +102,9 @@ public static class DependencyInjection
             services.AddScoped<IConsentDocumentWriteRepository, ConsentDocumentWriteRepository>();
 
             services.AddScoped<IReportReadRepository, ReportReadRepository>();
+
+            services.AddScoped<ISyncBatchReadRepository, SyncBatchReadRepository>();
+            services.AddScoped<ISyncBatchWriteRepository, SyncBatchWriteRepository>();
         }
 
         return services;
