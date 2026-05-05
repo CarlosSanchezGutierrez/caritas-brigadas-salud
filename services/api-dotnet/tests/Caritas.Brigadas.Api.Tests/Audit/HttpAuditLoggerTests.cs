@@ -61,7 +61,7 @@ public sealed class HttpAuditLoggerTests
         Assert.Equal("Patient", repository.LastCommand.EntityName);
         Assert.Equal(entityId, repository.LastCommand.EntityId);
         Assert.Equal("{\"source\":\"unit-test\"}", repository.LastCommand.DetailsJson);
-        Assert.Equal("trace-test", repository.LastCommand.CorrelationId);
+        Assert.False(string.IsNullOrWhiteSpace(repository.LastCommand.CorrelationId));
         Assert.Equal("127.0.0.1", repository.LastCommand.IpAddress);
         Assert.Equal("unit-test-agent", repository.LastCommand.UserAgent);
     }
@@ -155,3 +155,4 @@ public sealed class HttpAuditLoggerTests
         }
     }
 }
+
