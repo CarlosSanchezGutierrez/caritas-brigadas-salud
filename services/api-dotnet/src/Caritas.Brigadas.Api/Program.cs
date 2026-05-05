@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 const string CorsPolicyName = "ConfiguredOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddCurrentUserContext();
 
 builder.Configuration.AddJsonFile(
     "appsettings.Local.json",
@@ -136,3 +137,4 @@ app.Run();
 public partial class Program
 {
 }
+
