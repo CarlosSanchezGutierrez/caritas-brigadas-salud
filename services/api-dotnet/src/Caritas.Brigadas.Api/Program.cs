@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCurrentUserContext();
 builder.Services.AddAuditLogging();
 builder.Services.AddClinicalWriteAudit();
+builder.Services.AddOperationalWriteAudit();
 builder.Services.AddCaritasAuthenticationOptions(builder.Configuration);
 builder.Services.AddConfiguredAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddPermissionAuthorization();
@@ -144,6 +145,7 @@ app.Run();
 public partial class Program
 {
 }
+
 
 
 
