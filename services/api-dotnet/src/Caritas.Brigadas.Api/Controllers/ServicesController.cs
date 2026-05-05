@@ -1,4 +1,6 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+﻿using Microsoft.AspNetCore.Authorization;
+using Caritas.Brigadas.Application.Security;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Services;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.Services;
@@ -27,6 +29,7 @@ public sealed class ServicesController : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<ServiceSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.ServicesRead)]
     public async Task<IActionResult> ListAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -54,6 +57,7 @@ public sealed class ServicesController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<ServiceSeedResultDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.ServicesSeed)]
     public async Task<IActionResult> SeedDefaultsAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -97,3 +101,6 @@ public sealed class ServicesController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
+
+
+

@@ -1,4 +1,6 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+﻿using Microsoft.AspNetCore.Authorization;
+using Caritas.Brigadas.Application.Security;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Communities;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.Communities;
@@ -27,6 +29,7 @@ public sealed class CommunitiesController : ControllerBase
     [HttpGet("api/v1/organizations/{organizationId:guid}/communities")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<CommunitySummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.CommunitiesRead)]
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -54,6 +57,7 @@ public sealed class CommunitiesController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<CommunitySummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.CommunitiesRead)]
     public async Task<IActionResult> GetByIdAsync(
         Guid communityId,
         CancellationToken cancellationToken)
@@ -93,6 +97,7 @@ public sealed class CommunitiesController : ControllerBase
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.CommunitiesWrite)]
     public async Task<IActionResult> CreateAsync(
         Guid organizationId,
         [FromBody] CreateCommunityRequest request,
@@ -158,3 +163,6 @@ public sealed class CommunitiesController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
+
+
+

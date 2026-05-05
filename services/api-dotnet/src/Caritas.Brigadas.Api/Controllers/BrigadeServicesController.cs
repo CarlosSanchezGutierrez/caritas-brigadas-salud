@@ -1,4 +1,6 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+﻿using Microsoft.AspNetCore.Authorization;
+using Caritas.Brigadas.Application.Security;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Brigades;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.Brigades;
@@ -28,6 +30,7 @@ public sealed class BrigadeServicesController : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<BrigadeServiceAssignmentDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.BrigadeServicesRead)]
     public async Task<IActionResult> ListAsync(
         Guid brigadeId,
         CancellationToken cancellationToken)
@@ -57,6 +60,7 @@ public sealed class BrigadeServicesController : ControllerBase
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.BrigadeServicesWrite)]
     public async Task<IActionResult> AssignAsync(
         Guid brigadeId,
         [FromBody] AssignBrigadeServiceRequest request,
@@ -122,3 +126,6 @@ public sealed class BrigadeServicesController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
+
+
+

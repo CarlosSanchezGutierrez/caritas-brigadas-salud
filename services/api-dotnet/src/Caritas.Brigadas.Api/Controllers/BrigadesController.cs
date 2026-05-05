@@ -1,4 +1,6 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+﻿using Microsoft.AspNetCore.Authorization;
+using Caritas.Brigadas.Application.Security;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Brigades;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.Brigades;
@@ -27,6 +29,7 @@ public sealed class BrigadesController : ControllerBase
     [HttpGet("api/v1/organizations/{organizationId:guid}/brigades")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<BrigadeSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.BrigadesRead)]
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -54,6 +57,7 @@ public sealed class BrigadesController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<BrigadeSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.BrigadesRead)]
     public async Task<IActionResult> GetByIdAsync(
         Guid brigadeId,
         CancellationToken cancellationToken)
@@ -93,6 +97,7 @@ public sealed class BrigadesController : ControllerBase
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.BrigadesWrite)]
     public async Task<IActionResult> CreateAsync(
         Guid organizationId,
         [FromBody] CreateBrigadeRequest request,
@@ -158,3 +163,6 @@ public sealed class BrigadesController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
+
+
+
