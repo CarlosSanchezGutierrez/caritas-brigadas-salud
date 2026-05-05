@@ -9,6 +9,7 @@ const string CorsPolicyName = "ConfiguredOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCurrentUserContext();
+builder.Services.AddDevelopmentAuthentication(builder.Environment);
 
 builder.Configuration.AddJsonFile(
     "appsettings.Local.json",
@@ -106,6 +107,7 @@ app.UseHttpsRedirection();
 
 app.UseCors(CorsPolicyName);
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
@@ -137,4 +139,5 @@ app.Run();
 public partial class Program
 {
 }
+
 
