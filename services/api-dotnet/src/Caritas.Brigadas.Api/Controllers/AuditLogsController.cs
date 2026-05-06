@@ -66,8 +66,12 @@ public sealed class AuditLogsController : ControllerBase
                 auditLogId,
                 cancellationToken);
 
-            return Ok(ApiResponse<AuditLogSummaryDto>.Ok(
-                auditLog,
+            
+        if (auditLog is null)
+        {
+            return NotFound();
+        }
+return Ok(ApiResponse<AuditLogSummaryDto>.Ok(auditLog!,
                 HttpContext.GetCorrelationId()));
         }
         catch (KeyNotFoundException exception)

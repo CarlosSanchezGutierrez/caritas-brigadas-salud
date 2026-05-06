@@ -46,7 +46,7 @@ public sealed class EndpointAuthorizationIntegrationTests :
         var organizationId = Guid.NewGuid();
 
         var response = await client.GetAsync(
-            $"/api/v1/organizations/{organizationId}/reports/summary");
+            $"/api/v1/organizations/{organizationId}/reports/summary", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }

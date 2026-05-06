@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Caritas.Brigadas.Api.Audit;
 using Caritas.Brigadas.Api.Security;
 using Caritas.Brigadas.Application.Audit;
@@ -52,7 +52,7 @@ public sealed class HttpAuditLoggerTests
             AuditActionCodes.PatientCreate,
             "Patient",
             entityId,
-            "{\"source\":\"unit-test\"}");
+            "{\"source\":\"unit-test\"}", TestContext.Current.CancellationToken);
 
         Assert.NotNull(repository.LastCommand);
         Assert.Equal(organizationId, repository.LastCommand!.OrganizationId);
@@ -87,7 +87,7 @@ public sealed class HttpAuditLoggerTests
         await logger.LogAsync(
             Guid.NewGuid(),
             AuditActionCodes.ReportSummaryRead,
-            "Report");
+            "Report", TestContext.Current.CancellationToken);
     }
 
     [Fact]
