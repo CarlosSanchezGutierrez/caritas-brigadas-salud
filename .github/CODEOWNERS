@@ -1,0 +1,11 @@
+# Repository ownership baseline
+# Update this file when institutional maintainers are formally assigned.
+
+* @CarlosSanchezGutierrez
+
+.github/ @CarlosSanchezGutierrez
+docs/ @CarlosSanchezGutierrez
+scripts/ @CarlosSanchezGutierrez
+services/api-dotnet/ @CarlosSanchezGutierrez
+apps/web-next/ @CarlosSanchezGutierrez
+docker-compose.local.yml @CarlosSanchezGutierrez
