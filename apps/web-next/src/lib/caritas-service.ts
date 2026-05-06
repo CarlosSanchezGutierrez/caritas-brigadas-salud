@@ -1,6 +1,6 @@
-﻿import { caritasApiGet } from "@/lib/caritas-api";
+import { getApiAuthHeaders } from "@/lib/auth-headers";
+import { caritasApiGet } from "@/lib/caritas-api";
 import { API_BASE_URL, DEV_ORGANIZATION_ID } from "@/lib/config";
-import { getDevelopmentAuthHeaders } from "@/lib/dev-auth";
 import type { AuditLogSummary, HealthStatus, ReportSummary } from "@/types/api";
 
 export async function getSystemHealth(): Promise<HealthStatus | null> {
@@ -31,7 +31,7 @@ export async function downloadReportSummaryCsv(): Promise<void> {
       method: "GET",
       headers: {
         Accept: "text/csv",
-        ...getDevelopmentAuthHeaders(),
+        ...getApiAuthHeaders(),
       },
       cache: "no-store",
     },

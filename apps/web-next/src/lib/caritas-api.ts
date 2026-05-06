@@ -1,5 +1,5 @@
-﻿import { API_BASE_URL } from "@/lib/config";
-import { getDevelopmentAuthHeaders } from "@/lib/dev-auth";
+import { getApiAuthHeaders } from "@/lib/auth-headers";
+import { API_BASE_URL } from "@/lib/config";
 
 export type ApiResponse<TData> = {
   success?: boolean;
@@ -33,7 +33,7 @@ export async function caritasApiGet<TData>(
   const headers = new Headers(options.headers);
   headers.set("Accept", "application/json");
 
-  for (const [key, value] of Object.entries(getDevelopmentAuthHeaders())) {
+  for (const [key, value] of Object.entries(getApiAuthHeaders())) {
     headers.set(key, value);
   }
 

@@ -1,8 +1,9 @@
-﻿import {
+import {
   DEV_ORGANIZATION_ID,
   DEV_USER_EMAIL,
   DEV_USER_ID,
   DEV_USER_NAME,
+  IS_DEVELOPMENT_AUTH,
 } from "@/lib/config";
 
 const DEV_PERMISSIONS = [
@@ -42,6 +43,10 @@ const DEV_PERMISSIONS = [
 ];
 
 export function getDevelopmentAuthHeaders(): Record<string, string> {
+  if (!IS_DEVELOPMENT_AUTH) {
+    return {};
+  }
+
   return {
     "X-Dev-User-Id": DEV_USER_ID,
     "X-Dev-Organization-Id": DEV_ORGANIZATION_ID,
