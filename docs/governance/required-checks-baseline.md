@@ -21,11 +21,11 @@ Valida npm ci, npm audit, typecheck, build y listado de Playwright E2E tests.
 
 ## Deployment baseline metadata gate
 
-Valida documentación y metadata de deployment.
+Valida documentaciÃ³n y metadata de deployment.
 
 ## Database deployment baseline metadata gate
 
-Valida documentación y scripts de migraciones SQL Server.
+Valida documentaciÃ³n y scripts de migraciones SQL Server.
 
 ## Supply chain baseline metadata gate
 
@@ -41,4 +41,13 @@ Valida Playwright baseline, k6 baseline y thresholds de performance.
 
 ## Docker image build gate
 
-Valida Docker build, Trivy scan y generación de SBOM.
+Valida Docker build, Trivy scan y generaciÃ³n de SBOM.
+
+## Repository Security workflow
+
+Checks adicionales recomendados:
+
+- Repository security metadata gate.
+- Dependency Review.
+
+Dependency Review aparece en pull requests; agregarlo como required check después de que corra al menos una vez en un PR.
