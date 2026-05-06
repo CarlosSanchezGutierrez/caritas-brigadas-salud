@@ -333,3 +333,9 @@ security-reports/
 
 # Local security audit reports
 security-reports/
+
+# Local security audit reports
+security-reports/
+
+# Local API settings
+services/api-dotnet/src/Caritas.Brigadas.Api/appsettings.Local.json
