@@ -39,12 +39,13 @@ public sealed class RequestTelemetryMiddleware
         {
             stopwatch.Stop();
 
-            var sanitizedPath = SanitizePath(context.Request.Path);
+            var sanitizedMethod = SanitizeLogValue(context.Request.Method);
+            var sanitizedPath = SanitizeLogValue(context.Request.Path.Value);
 
             using var scope = _logger.BeginScope(new Dictionary<string, object?>
             {
                 ["TraceId"] = context.TraceIdentifier,
-                ["RequestMethod"] = context.Request.Method,
+                ["RequestMethod"] = sanitizedMethod,
                 ["RequestPath"] = sanitizedPath,
                 ["StatusCode"] = context.Response.StatusCode,
                 ["ElapsedMilliseconds"] = stopwatch.ElapsedMilliseconds
@@ -77,5 +78,27 @@ public sealed class RequestTelemetryMiddleware
         }
 
         return rawPath;
+    }
+
+    private static string SanitizeLogValue(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var sanitizedValue = value
+            .Replace("\r", string.Empty)
+            .Replace("\n", string.Empty)
+            .Replace("\t", " ");
+
+        const int maxLoggedValueLength = 256;
+
+        if (sanitizedValue.Length > maxLoggedValueLength)
+        {
+            return sanitizedValue[..maxLoggedValueLength];
+        }
+
+        return sanitizedValue;
     }
 }

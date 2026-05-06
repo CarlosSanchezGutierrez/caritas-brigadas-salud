@@ -1,4 +1,4 @@
-﻿using Caritas.Brigadas.Application.Audit;
+using Caritas.Brigadas.Application.Audit;
 using Caritas.Brigadas.Application.Security;
 
 namespace Caritas.Brigadas.Api.Audit;
