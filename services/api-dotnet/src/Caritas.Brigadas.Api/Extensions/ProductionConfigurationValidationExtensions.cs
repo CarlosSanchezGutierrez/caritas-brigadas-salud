@@ -1,0 +1,96 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+
+namespace Caritas.Brigadas.Api.Extensions;
+
+public static class ProductionConfigurationValidationExtensions
+{
+    public static void ValidateProductionConfiguration(this WebApplicationBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        if (builder.Environment.IsDevelopment())
+        {
+            return;
+        }
+
+        var configuration = builder.Configuration;
+
+        var authenticationMode = configuration["Authentication:Mode"];
+
+        if (string.IsNullOrWhiteSpace(authenticationMode) ||
+            string.Equals(authenticationMode, "Development", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                "Production requires Authentication:Mode to be configured to a non-Development provider.");
+        }
+
+        var sqlServerConnectionString = configuration.GetConnectionString("SqlServer");
+
+        if (string.IsNullOrWhiteSpace(sqlServerConnectionString))
+        {
+            throw new InvalidOperationException(
+                "Production requires ConnectionStrings:SqlServer to be configured.");
+        }
+
+        var allowedOrigins = configuration
+            .GetSection("Cors:AllowedOrigins")
+            .Get<string[]>() ?? [];
+
+        if (allowedOrigins.Length == 0)
+        {
+            throw new InvalidOperationException(
+                "Production requires at least one explicit Cors:AllowedOrigins entry.");
+        }
+
+        if (allowedOrigins.Any(IsUnsafeCorsOrigin))
+        {
+            throw new InvalidOperationException(
+                "Production CORS origins must be explicit HTTPS origins and cannot use localhost, loopback addresses, or wildcards.");
+        }
+
+        var requireHttps = configuration.GetValue("Security:RequireHttps", true);
+
+        if (!requireHttps)
+        {
+            throw new InvalidOperationException(
+                "Production requires Security:RequireHttps to be true.");
+        }
+
+        var allowedHosts = configuration["AllowedHosts"];
+
+        if (string.IsNullOrWhiteSpace(allowedHosts) || allowedHosts.Contains("*", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "Production requires AllowedHosts to be configured with explicit host names.");
+        }
+    }
+
+    private static bool IsUnsafeCorsOrigin(string origin)
+    {
+        if (string.IsNullOrWhiteSpace(origin))
+        {
+            return true;
+        }
+
+        if (origin.Contains("*", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+        {
+            return true;
+        }
+
+        if (uri.Scheme != Uri.UriSchemeHttps)
+        {
+            return true;
+        }
+
+        return string.Equals(uri.Host, "localhost", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(uri.Host, "127.0.0.1", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(uri.Host, "::1", StringComparison.OrdinalIgnoreCase);
+    }
+}

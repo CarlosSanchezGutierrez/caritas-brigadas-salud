@@ -1,5 +1,5 @@
-﻿export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5031/api/v1";
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:7044/api/v1";
 
 export const DEV_ORGANIZATION_ID =
   process.env.NEXT_PUBLIC_DEV_ORGANIZATION_ID ??

@@ -11,10 +11,15 @@ const string CorsPolicyName = "ConfiguredOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddJsonFile(
-    "appsettings.Local.json",
-    optional: true,
-    reloadOnChange: true);
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddJsonFile(
+        "appsettings.Local.json",
+        optional: true,
+        reloadOnChange: true);
+}
+
+builder.ValidateProductionConfiguration();
 
 var maxRequestBodyBytes = builder.Configuration.GetValue<long?>(
     "Security:MaxRequestBodyBytes") ?? 5L * 1024L * 1024L;
@@ -182,7 +187,7 @@ app.MapGet("/", (HttpContext httpContext) =>
     var payload = new
     {
         service = "caritas-brigadas-api",
-        name = "Cáritas Brigadas de Salud API",
+        name = "CÃ¡ritas Brigadas de Salud API",
         status = "running",
         environment = app.Environment.EnvironmentName,
         timestampUtc = DateTimeOffset.UtcNow
