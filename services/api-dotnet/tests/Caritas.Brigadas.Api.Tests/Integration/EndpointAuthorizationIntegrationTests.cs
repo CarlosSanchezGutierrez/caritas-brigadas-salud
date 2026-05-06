@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Xunit;
@@ -33,7 +33,7 @@ public sealed class EndpointAuthorizationIntegrationTests :
     {
         using var client = _factory.CreateClient();
 
-        var response = await client.GetAsync("/api/v1/health");
+        var response = await client.GetAsync("/api/v1/health", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
@@ -69,7 +69,7 @@ public sealed class EndpointAuthorizationIntegrationTests :
         request.Headers.Add("X-Dev-Name", "Integration Test User");
         request.Headers.Add("X-Dev-Email", "integration.test@caritas.local");
 
-        var response = await client.SendAsync(request);
+        var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
@@ -94,7 +94,7 @@ public sealed class EndpointAuthorizationIntegrationTests :
         request.Headers.Add("X-Dev-Name", "Integration Test User");
         request.Headers.Add("X-Dev-Email", "integration.test@caritas.local");
 
-        var response = await client.SendAsync(request);
+        var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
@@ -117,7 +117,7 @@ public sealed class EndpointAuthorizationIntegrationTests :
         request.Headers.Add("X-Dev-Name", "Integration Test User");
         request.Headers.Add("X-Dev-Email", "integration.test@caritas.local");
 
-        var response = await client.SendAsync(request);
+        var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         Assert.NotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.NotEqual(HttpStatusCode.Forbidden, response.StatusCode);

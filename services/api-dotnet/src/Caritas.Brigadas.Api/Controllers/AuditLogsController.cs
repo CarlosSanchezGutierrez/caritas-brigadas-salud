@@ -1,4 +1,4 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Audit;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Contracts.Api;

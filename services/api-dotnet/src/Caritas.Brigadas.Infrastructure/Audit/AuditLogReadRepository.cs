@@ -1,4 +1,4 @@
-﻿using Caritas.Brigadas.Application.Audit;
+using Caritas.Brigadas.Application.Audit;
 using Caritas.Brigadas.Contracts.Audit;
 using Caritas.Brigadas.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -44,7 +44,7 @@ public sealed class AuditLogReadRepository : IAuditLogReadRepository
             .ToArrayAsync(cancellationToken);
     }
 
-    public async Task<AuditLogSummaryDto> GetByIdAsync(
+    public async Task<AuditLogSummaryDto?> GetByIdAsync(
         Guid auditLogId,
         CancellationToken cancellationToken = default)
     {
