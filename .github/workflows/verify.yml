@@ -69,6 +69,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 24.x
+          package-manager-cache: false
           cache: npm
           cache-dependency-path: apps/web-next/package-lock.json
 
