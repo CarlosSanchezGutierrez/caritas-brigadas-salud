@@ -1,1 +1,82 @@
+name: Verify
 
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+  push:
+    branches:
+      - develop
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend security and quality gate
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: services/api-dotnet
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore tools
+        run: dotnet tool restore
+
+      - name: Restore dependencies
+        run: dotnet restore Caritas.Brigadas.sln
+
+      - name: Build with warnings as errors
+        run: dotnet build Caritas.Brigadas.sln --configuration Release --no-restore /p:TreatWarningsAsErrors=true
+
+      - name: Test with warnings as errors
+        run: dotnet test Caritas.Brigadas.sln --configuration Release --no-build --verbosity normal /p:TreatWarningsAsErrors=true
+
+      - name: Audit NuGet vulnerable packages
+        run: dotnet list Caritas.Brigadas.sln package --vulnerable --include-transitive
+
+  frontend:
+    name: Frontend security and quality gate
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: apps/web-next
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: npm
+          cache-dependency-path: apps/web-next/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit npm dependencies
+        run: npm audit --audit-level=moderate
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
