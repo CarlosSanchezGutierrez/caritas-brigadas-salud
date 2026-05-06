@@ -5,9 +5,24 @@ Este documento define la base mínima para desplegar Cáritas Brigadas de Salud 
 ## Estado actual
 
 - API ASP.NET Core containerizable con Dockerfile multi-stage.
+- Dockerfile endurecido con usuario no root, healthcheck y diagnósticos .NET deshabilitados.
 - Build de imagen validado en GitHub Actions.
+- Deployment metadata gate en CI.
 - docker-compose.local.yml para pruebas locales con SQL Server en contenedor.
 - Producción todavía requiere definición institucional de hosting, red, secretos, dominio, TLS y monitoreo.
+
+## Camino Microsoft recomendado
+
+Como Cáritas usa SQL Server de Microsoft, el camino más natural es Azure-first:
+
+- Azure Container Registry para almacenar imágenes.
+- Azure Container Apps o Azure App Service for Containers para hosting inicial.
+- Azure SQL o SQL Server institucional administrado por TI.
+- Azure Key Vault para secretos.
+- Managed Identity para acceder a secretos y recursos Azure.
+- Microsoft Defender for Cloud para postura de seguridad y análisis de vulnerabilidades.
+
+Este repo no queda amarrado a Azure. La imagen Docker y la configuración por variables de entorno permiten migrar a otro hosting si TI lo requiere.
 
 ## Principios
 
@@ -15,7 +30,15 @@ Este documento define la base mínima para desplegar Cáritas Brigadas de Salud 
 - La imagen no debe contener secretos.
 - Las variables productivas deben venir del ambiente, secret manager o plataforma de deployment.
 - appsettings.Local.json no se copia a la imagen.
-- El contenedor expone HTTP interno en puerto 8080; TLS debe terminar en reverse proxy, load balancer o plataforma administrada.
+- El contenedor expone HTTP interno en puerto 8080.
+- TLS debe terminar en reverse proxy, load balancer o plataforma administrada.
+- Las migraciones no deben ejecutarse automáticamente al iniciar la API.
+
+## Health endpoints
+
+- Liveness: /health/live
+- Readiness: /health/ready
+- Health API legacy/dev: /api/v1/health
 
 ## Docker local
 
@@ -35,10 +58,6 @@ docker compose -f docker-compose.local.yml up --build
 La API quedará disponible en:
 
 - http://localhost:8080
-
-## SQL Server
-
-docker-compose.local.yml usa SQL Server solo para desarrollo local. Producción debe usar SQL Server institucional, Azure SQL o una instancia administrada aprobada por TI.
 
 ## Producción
 
@@ -67,9 +86,9 @@ Variables mínimas esperadas:
 
 ## Siguientes pasos
 
-1. Definir proveedor de hosting.
-2. Definir SQL Server productivo.
-3. Definir secret manager.
+1. Definir Azure Container Apps vs App Service vs AKS.
+2. Definir Azure SQL o SQL Server institucional.
+3. Definir Azure Key Vault y managed identity.
 4. Crear pipeline de deployment.
 5. Configurar dominios y TLS.
 6. Configurar observabilidad.

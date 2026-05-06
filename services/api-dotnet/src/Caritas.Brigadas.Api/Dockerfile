@@ -22,12 +22,25 @@ RUN dotnet publish src/Caritas.Brigadas.Api/Caritas.Brigadas.Api.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
+LABEL org.opencontainers.image.title="Caritas Brigadas de Salud API"
+LABEL org.opencontainers.image.description="ASP.NET Core API for Caritas health brigades operations."
+LABEL org.opencontainers.image.vendor="Caritas Brigadas de Salud"
+LABEL org.opencontainers.image.source="https://github.com/CarlosSanchezGutierrez/caritas-brigadas-salud"
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV ASPNETCORE_URLS=http://+:8080
 ENV DOTNET_EnableDiagnostics=0
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 EXPOSE 8080
 
 COPY --from=build /app/publish .
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl --fail --silent --show-error http://localhost:8080/health/live || exit 1
 
 USER $APP_UID
 

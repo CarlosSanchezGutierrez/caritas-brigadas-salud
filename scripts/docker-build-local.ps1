@@ -11,9 +11,12 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
     throw "Docker is not installed or not available in PATH."
 }
 
-docker info *> $null
+$StdOut = Join-Path $env:TEMP "docker-info.stdout.log"
+$StdErr = Join-Path $env:TEMP "docker-info.stderr.log"
 
-if ($LASTEXITCODE -ne 0) {
+$InfoProcess = Start-Process -FilePath "docker" -ArgumentList @("info") -Wait -PassThru -NoNewWindow -RedirectStandardOutput $StdOut -RedirectStandardError $StdErr
+
+if ($InfoProcess.ExitCode -ne 0) {
     throw "Docker is installed, but the Docker daemon is not running. Start Docker Desktop and try again."
 }
 
