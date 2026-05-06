@@ -142,6 +142,9 @@ jobs:
           exit-code: 1
           format: table
 
+      - name: Create SBOM artifact directory
+        run: mkdir -p artifacts/sbom
+
       - name: Generate container SBOM
         uses: anchore/sbom-action@v0
         with:
