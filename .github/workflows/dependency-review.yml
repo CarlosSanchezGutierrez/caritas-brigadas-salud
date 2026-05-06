@@ -12,7 +12,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -42,10 +41,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Dependency review
-        uses: actions/dependency-review-action@v4.9.0
-        with:
-          fail-on-severity: high
-          vulnerability-check: true
-          license-check: false
-          comment-summary-in-pr: always
+      - name: Dependency Review REST API check
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          FAIL_ON_SEVERITY: high
+        run: pwsh scripts/dependency-review-rest.ps1

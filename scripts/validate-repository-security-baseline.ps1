@@ -2,6 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $DependencyReviewWorkflowPath = Join-Path $RepoRoot ".github\workflows\dependency-review.yml"
+$DependencyReviewRestScriptPath = Join-Path $RepoRoot "scripts\dependency-review-rest.ps1"
 $DependencyReviewDocsPath = Join-Path $RepoRoot "docs\security\dependency-review-baseline.md"
 $SecretScanningDocsPath = Join-Path $RepoRoot "docs\security\secret-scanning-and-push-protection-baseline.md"
 $RequiredChecksDocsPath = Join-Path $RepoRoot "docs\governance\required-checks-baseline.md"
@@ -29,6 +30,7 @@ function Assert-Contains {
 }
 
 Assert-FileExists $DependencyReviewWorkflowPath
+Assert-FileExists $DependencyReviewRestScriptPath
 Assert-FileExists $DependencyReviewDocsPath
 Assert-FileExists $SecretScanningDocsPath
 Assert-FileExists $RequiredChecksDocsPath
@@ -37,16 +39,18 @@ Assert-FileExists $BranchProtectionDocsPath
 Assert-Contains $DependencyReviewWorkflowPath "Repository Security"
 Assert-Contains $DependencyReviewWorkflowPath "Repository security metadata gate"
 Assert-Contains $DependencyReviewWorkflowPath "Dependency Review"
-Assert-Contains $DependencyReviewWorkflowPath "actions/dependency-review-action@v4.9.0"
-Assert-Contains $DependencyReviewWorkflowPath "fail-on-severity: high"
-Assert-Contains $DependencyReviewWorkflowPath "vulnerability-check: true"
-Assert-Contains $DependencyReviewWorkflowPath "license-check: false"
+Assert-Contains $DependencyReviewWorkflowPath "scripts/dependency-review-rest.ps1"
+Assert-Contains $DependencyReviewWorkflowPath "FAIL_ON_SEVERITY: high"
 Assert-Contains $DependencyReviewWorkflowPath "pull_request"
 
-Assert-Contains $DependencyReviewDocsPath "Dependency Review"
-Assert-Contains $DependencyReviewDocsPath "pull request"
-Assert-Contains $DependencyReviewDocsPath "fail-on-severity"
-Assert-Contains $DependencyReviewDocsPath "high"
+Assert-Contains $DependencyReviewRestScriptPath "dependency-graph/compare"
+Assert-Contains $DependencyReviewRestScriptPath "vulnerabilities"
+Assert-Contains $DependencyReviewRestScriptPath "FAIL_ON_SEVERITY"
+Assert-Contains $DependencyReviewRestScriptPath "Blocking vulnerabilities"
+
+Assert-Contains $DependencyReviewDocsPath "Dependency Review REST API"
+Assert-Contains $DependencyReviewDocsPath "high y critical"
+Assert-Contains $DependencyReviewDocsPath "No ejecuta OpenSSF Scorecard"
 
 Assert-Contains $SecretScanningDocsPath "Secret scanning"
 Assert-Contains $SecretScanningDocsPath "Push protection"
