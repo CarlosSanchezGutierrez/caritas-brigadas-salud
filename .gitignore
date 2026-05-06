@@ -322,3 +322,11 @@ cypress/screenshots/
 !pnpm-lock.yaml
 !yarn.lock
 !apps/android-flutter/pubspec.lock
+
+# Local security audit reports
+security-reports/
+
+# Local security audit reports
+security-reports/
+
+security-reports/
