@@ -1,8 +1,8 @@
-using Xunit;
 using System.Net;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
+using Xunit;
 
 namespace Caritas.Brigadas.Api.Tests.Security;
 
@@ -14,7 +14,7 @@ public sealed class SecurityHardeningIntegrationTests
         await using var factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
-                builder.UseEnvironment("Development");
+                builder.UseSetting(WebHostDefaults.EnvironmentKey, "Development");
                 builder.ConfigureAppConfiguration((_, configuration) =>
                 {
                     configuration.AddInMemoryCollection(new Dictionary<string, string?>
@@ -25,7 +25,10 @@ public sealed class SecurityHardeningIntegrationTests
                 });
             });
 
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
 
         using var response = await client.GetAsync("/", TestContext.Current.CancellationToken);
 
@@ -43,7 +46,7 @@ public sealed class SecurityHardeningIntegrationTests
         await using var factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
-                builder.UseEnvironment("Development");
+                builder.UseSetting(WebHostDefaults.EnvironmentKey, "Development");
                 builder.ConfigureAppConfiguration((_, configuration) =>
                 {
                     configuration.AddInMemoryCollection(new Dictionary<string, string?>
