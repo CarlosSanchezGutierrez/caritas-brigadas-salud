@@ -1,0 +1,6 @@
+@Caritas.Brigadas.Api_HostAddress = http://localhost:5031
+
+GET {{Caritas.Brigadas.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

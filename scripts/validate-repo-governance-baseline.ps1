@@ -1,0 +1,75 @@
+$ErrorActionPreference = "Stop"
+
+$RepoRoot = Split-Path -Parent $PSScriptRoot
+$WorkflowPath = Join-Path $RepoRoot ".github\workflows\verify.yml"
+$PrTemplatePath = Join-Path $RepoRoot ".github\pull_request_template.md"
+$CodeownersPath = Join-Path $RepoRoot ".github\CODEOWNERS"
+$RepoGovernanceDocsPath = Join-Path $RepoRoot "docs\governance\repository-governance-baseline.md"
+$BranchProtectionDocsPath = Join-Path $RepoRoot "docs\governance\branch-protection-baseline.md"
+$RequiredChecksDocsPath = Join-Path $RepoRoot "docs\governance\required-checks-baseline.md"
+$ReleaseGovernanceDocsPath = Join-Path $RepoRoot "docs\governance\release-governance-baseline.md"
+$ReleaseChecklistDocsPath = Join-Path $RepoRoot "docs\operations\release-checklist.md"
+
+function Assert-FileExists {
+    param([string]$Path)
+
+    if (-not (Test-Path $Path)) {
+        throw "Required file not found: $Path"
+    }
+}
+
+function Assert-Contains {
+    param(
+        [string]$Path,
+        [string]$Token
+    )
+
+    $Content = Get-Content $Path -Raw
+
+    if ($Content.IndexOf($Token, [StringComparison]::OrdinalIgnoreCase) -lt 0) {
+        throw "$Path does not contain required token: $Token"
+    }
+}
+
+Assert-FileExists $WorkflowPath
+Assert-FileExists $PrTemplatePath
+Assert-FileExists $CodeownersPath
+Assert-FileExists $RepoGovernanceDocsPath
+Assert-FileExists $BranchProtectionDocsPath
+Assert-FileExists $RequiredChecksDocsPath
+Assert-FileExists $ReleaseGovernanceDocsPath
+Assert-FileExists $ReleaseChecklistDocsPath
+
+Assert-Contains $WorkflowPath "Repository governance metadata gate"
+Assert-Contains $WorkflowPath "pwsh scripts/validate-repo-governance-baseline.ps1"
+
+Assert-Contains $PrTemplatePath "Security checklist"
+Assert-Contains $PrTemplatePath "Database checklist"
+Assert-Contains $PrTemplatePath "GitHub Actions Verify passed"
+
+Assert-Contains $CodeownersPath "@CarlosSanchezGutierrez"
+
+Assert-Contains $RepoGovernanceDocsPath "pull request"
+Assert-Contains $RepoGovernanceDocsPath "CODEOWNERS"
+Assert-Contains $RepoGovernanceDocsPath "no direct pushes"
+
+Assert-Contains $BranchProtectionDocsPath "develop"
+Assert-Contains $BranchProtectionDocsPath "main"
+Assert-Contains $BranchProtectionDocsPath "required checks"
+
+Assert-Contains $RequiredChecksDocsPath "Backend security and quality gate"
+Assert-Contains $RequiredChecksDocsPath "Frontend security and quality gate"
+Assert-Contains $RequiredChecksDocsPath "Docker image build gate"
+
+Assert-Contains $ReleaseGovernanceDocsPath "semantic versioning"
+Assert-Contains $ReleaseGovernanceDocsPath "release notes"
+Assert-Contains $ReleaseGovernanceDocsPath "rollback"
+
+Assert-Contains $ReleaseChecklistDocsPath "pre-release"
+Assert-Contains $ReleaseChecklistDocsPath "post-release"
+Assert-Contains $ReleaseChecklistDocsPath "production approval"
+
+Write-Host ""
+Write-Host "============================================================" -ForegroundColor Green
+Write-Host "REPOSITORY GOVERNANCE BASELINE VALIDATION PASO CORRECTAMENTE" -ForegroundColor Green
+Write-Host "============================================================" -ForegroundColor Green
