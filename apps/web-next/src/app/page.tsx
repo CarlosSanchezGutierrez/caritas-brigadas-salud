@@ -1,142 +1,172 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
-import { caritasApiGet } from "@/lib/caritas-api";
+import { useEffect, useMemo, useState } from "react";
+import { AppShell } from "@/components/app-shell";
+import { EmptyState } from "@/components/empty-state";
+import { MetricCard } from "@/components/metric-card";
+import { StatusPanel } from "@/components/status-panel";
+import {
+  getAuditLogs,
+  getReportSummary,
+  getSystemHealth,
+} from "@/lib/caritas-service";
 import { API_BASE_URL, DEV_ORGANIZATION_ID } from "@/lib/config";
 import type { AuditLogSummary, HealthStatus, ReportSummary } from "@/types/api";
 
-type LoadState = {
+type DashboardState = {
   health: HealthStatus | null;
   reportSummary: ReportSummary | null;
   auditLogs: AuditLogSummary[];
-  error: string | null;
   isLoading: boolean;
+  error: string | null;
 };
 
-const initialState: LoadState = {
+const initialState: DashboardState = {
   health: null,
   reportSummary: null,
   auditLogs: [],
-  error: null,
   isLoading: true,
+  error: null,
 };
 
-export default function HomePage() {
-  const [state, setState] = useState<LoadState>(initialState);
+export default function DashboardPage() {
+  const [state, setState] = useState<DashboardState>(initialState);
 
   useEffect(() => {
-    async function loadDashboardData() {
+    async function loadDashboard() {
       try {
-        const [healthResponse, reportResponse, auditResponse] =
-          await Promise.all([
-            caritasApiGet<HealthStatus>("/health"),
-            caritasApiGet<ReportSummary>(
-              `/organizations/${DEV_ORGANIZATION_ID}/reports/summary`,
-            ),
-            caritasApiGet<AuditLogSummary[]>(
-              `/organizations/${DEV_ORGANIZATION_ID}/audit-logs`,
-            ),
-          ]);
+        const [health, reportSummary, auditLogs] = await Promise.all([
+          getSystemHealth(),
+          getReportSummary(),
+          getAuditLogs(),
+        ]);
 
         setState({
-          health: healthResponse.data ?? null,
-          reportSummary: reportResponse.data ?? null,
-          auditLogs: auditResponse.data ?? [],
-          error: null,
+          health,
+          reportSummary,
+          auditLogs,
           isLoading: false,
+          error: null,
         });
       } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "No se pudo cargar la información del backend.";
-
         setState({
           ...initialState,
-          error: message,
           isLoading: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "No se pudo cargar el dashboard.",
         });
       }
     }
 
-    void loadDashboardData();
+    void loadDashboard();
   }, []);
 
+  const reportMetricCount = useMemo(() => {
+    if (!state.reportSummary) {
+      return 0;
+    }
+
+    return Object.keys(state.reportSummary).length;
+  }, [state.reportSummary]);
+
   return (
-    <main className="page-shell">
-      <section className="hero">
-        <div>
-          <p className="eyebrow">Cáritas Brigadas de Salud</p>
-          <h1>Panel web institucional</h1>
-          <p className="hero-copy">
-            Primer scaffold web conectado al backend ASP.NET Core local. Este
-            panel todavía usa autenticación de desarrollo por headers y no debe
-            usarse con datos reales.
-          </p>
-        </div>
-
-        <div className="status-card">
-          <span className="status-label">API base URL</span>
-          <strong>{API_BASE_URL}</strong>
-        </div>
-      </section>
-
+    <AppShell
+      title="Dashboard institucional"
+      subtitle="Vista inicial para monitorear salud técnica, reportes y actividad reciente del sistema."
+      actions={<span className="environment-pill">Development</span>}
+    >
       {state.error ? (
-        <section className="error-panel">
-          <h2>No se pudo conectar con la API</h2>
+        <StatusPanel title="No se pudo conectar con la API" state="error">
           <p>{state.error}</p>
           <p>
-            Verifica que el backend esté corriendo en{" "}
-            <code>http://localhost:5031</code>.
+            Verifica que el backend esté disponible en <code>{API_BASE_URL}</code>.
           </p>
-        </section>
+        </StatusPanel>
       ) : null}
 
-      <section className="grid">
+      <section className="metric-grid">
+        <MetricCard
+          label="API"
+          value={state.health?.status ?? (state.isLoading ? "Cargando" : "N/D")}
+          description="Estado reportado por el endpoint de health."
+        />
+        <MetricCard
+          label="Organización"
+          value={DEV_ORGANIZATION_ID.slice(0, 8)}
+          description="Contexto de desarrollo enviado por headers."
+        />
+        <MetricCard
+          label="Reportes"
+          value={state.isLoading ? "..." : reportMetricCount}
+          description="Campos disponibles en el summary institucional."
+        />
+        <MetricCard
+          label="Auditoría"
+          value={state.isLoading ? "..." : state.auditLogs.length}
+          description="Eventos recuperados desde el backend."
+        />
+      </section>
+
+      <section className="content-grid">
         <article className="card">
           <div className="card-header">
-            <span>Health</span>
-            <strong>{state.isLoading ? "Cargando" : "OK"}</strong>
+            <div>
+              <span>Health</span>
+              <h2>Estado técnico</h2>
+            </div>
           </div>
           <pre>{JSON.stringify(state.health, null, 2)}</pre>
         </article>
 
         <article className="card">
           <div className="card-header">
-            <span>Reports summary</span>
-            <strong>{state.reportSummary ? "Disponible" : "Pendiente"}</strong>
+            <div>
+              <span>Reports</span>
+              <h2>Resumen institucional</h2>
+            </div>
           </div>
           <pre>{JSON.stringify(state.reportSummary, null, 2)}</pre>
         </article>
 
         <article className="card wide">
           <div className="card-header">
-            <span>Audit logs</span>
-            <strong>{state.auditLogs.length} eventos</strong>
+            <div>
+              <span>Audit logs</span>
+              <h2>Actividad reciente</h2>
+            </div>
           </div>
 
-          <div className="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Acción</th>
-                  <th>Entidad</th>
-                  <th>Fecha UTC</th>
-                </tr>
-              </thead>
-              <tbody>
-                {state.auditLogs.slice(0, 10).map((log, index) => (
-                  <tr key={log.id ?? `${log.action}-${index}`}>
-                    <td>{log.action ?? "N/A"}</td>
-                    <td>{log.entityName ?? "N/A"}</td>
-                    <td>{log.occurredAtUtc ?? "N/A"}</td>
+          {state.auditLogs.length === 0 ? (
+            <EmptyState
+              title="Sin eventos para mostrar"
+              description="Cuando existan eventos de auditoría, aparecerán en esta sección."
+            />
+          ) : (
+            <div className="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Acción</th>
+                    <th>Entidad</th>
+                    <th>Fecha UTC</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {state.auditLogs.slice(0, 8).map((log, index) => (
+                    <tr key={log.id ?? `${log.action}-${index}`}>
+                      <td>{log.action ?? "N/A"}</td>
+                      <td>{log.entityName ?? "N/A"}</td>
+                      <td>{log.occurredAtUtc ?? log.createdAtUtc ?? "N/A"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </article>
       </section>
-    </main>
+    </AppShell>
   );
 }
