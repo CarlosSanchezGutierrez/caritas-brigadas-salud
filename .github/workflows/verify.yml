@@ -70,8 +70,6 @@ jobs:
         with:
           node-version: 24.x
           package-manager-cache: false
-          cache: npm
-          cache-dependency-path: apps/web-next/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -142,6 +140,7 @@ jobs:
           ignore-unfixed: true
           exit-code: 1
           format: table
+          cache: 'false'
 
       - name: Create SBOM artifact directory
         run: mkdir -p artifacts/sbom

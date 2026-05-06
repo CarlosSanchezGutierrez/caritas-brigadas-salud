@@ -2,15 +2,15 @@
 
 ## Objetivo
 
-Evitar que una imagen de API con vulnerabilidades críticas o altas conocidas avance sin revisión.
+Evitar que una imagen de API con vulnerabilidades crÃ­ticas o altas conocidas avance sin revisiÃ³n.
 
 ## Controles activos en CI
 
-- Construcción de imagen Docker.
+- ConstrucciÃ³n de imagen Docker.
 - Escaneo de imagen con Trivy.
-- Falla automática en vulnerabilidades CRITICAL,HIGH.
-- Generación de SBOM en formato SPDX JSON.
-- Publicación del SBOM como artifact del workflow.
+- Falla automÃ¡tica en vulnerabilidades CRITICAL,HIGH.
+- GeneraciÃ³n de SBOM en formato SPDX JSON.
+- PublicaciÃ³n del SBOM como artifact del workflow.
 
 ## Regla de bloqueo
 
@@ -26,27 +26,39 @@ Artifact esperado:
 
 ## Excepciones
 
-Toda excepción debe estar documentada con:
+Toda excepciÃ³n debe estar documentada con:
 
 - CVE.
 - Severidad.
 - Paquete afectado.
-- Justificación.
+- JustificaciÃ³n.
 - Riesgo aceptado por TI.
-- Fecha de expiración.
+- Fecha de expiraciÃ³n.
 
 ## No hacer
 
-- No ignorar vulnerabilidades críticas permanentemente.
+- No ignorar vulnerabilidades crÃ­ticas permanentemente.
 - No desplegar imagen sin SBOM.
-- No usar latest en producción.
-- No publicar imágenes con secretos.
+- No usar latest en producciÃ³n.
+- No publicar imÃ¡genes con secretos.
 
-## Producción
+## ProducciÃ³n
 
-Antes de producción, TI debe definir si el escaneo oficial será:
+Antes de producciÃ³n, TI debe definir si el escaneo oficial serÃ¡:
 
 - GitHub Actions + Trivy.
 - Microsoft Defender for Cloud.
 - Azure Container Registry scanning.
 - Otra herramienta institucional.
+## Trivy cache
+
+El cache interno de Trivy Action se mantiene desactivado en CI para evitar annotations heredadas de actions/cache mientras GitHub fuerza acciones Node 20 a Node 24.
+
+Decisión actual:
+
+- cache: 'false'
+- escaneo reproducible por ejecución
+- menor complejidad de CI
+- sin dependencia del cache interno de actions/cache
+
+Si TI necesita optimizar tiempos o evitar rate limits, se debe revaluar con una estrategia de cache actualizada y sin warnings de runtime.
