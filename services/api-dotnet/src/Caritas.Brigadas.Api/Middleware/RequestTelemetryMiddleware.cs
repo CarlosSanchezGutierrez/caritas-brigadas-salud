@@ -38,22 +38,14 @@ public sealed class RequestTelemetryMiddleware
         finally
         {
             stopwatch.Stop();
-
-            var sanitizedPath = SanitizePath(context.Request.Path);
-
             using var scope = _logger.BeginScope(new Dictionary<string, object?>
             {
                 ["TraceId"] = context.TraceIdentifier,
-                ["RequestMethod"] = context.Request.Method,
-                ["RequestPath"] = sanitizedPath,
                 ["StatusCode"] = context.Response.StatusCode,
                 ["ElapsedMilliseconds"] = stopwatch.ElapsedMilliseconds
             });
-
             _logger.LogInformation(
-                "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {ElapsedMilliseconds} ms.",
-                context.Request.Method,
-                sanitizedPath,
+                "HTTP request responded {StatusCode} in {ElapsedMilliseconds} ms.",
                 context.Response.StatusCode,
                 stopwatch.ElapsedMilliseconds);
         }
