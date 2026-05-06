@@ -9,7 +9,10 @@
                     "typecheck":  "tsc --noEmit",
                     "verify":  "npm run typecheck \u0026\u0026 npm run build \u0026\u0026 npm audit --audit-level=moderate",
                     "audit:moderate":  "npm audit --audit-level=moderate",
-                    "audit:high":  "npm audit --audit-level=high"
+                    "audit:high":  "npm audit --audit-level=high",
+                    "test:e2e":  "playwright test",
+                    "test:e2e:ui":  "playwright test --ui",
+                    "test:e2e:list":  "playwright test --list"
                 },
     "dependencies":  {
                          "next":  "^16.2.4",
@@ -17,6 +20,7 @@
                          "react-dom":  "^19.2.5"
                      },
     "devDependencies":  {
+                            "@playwright/test":  "^1.59.1",
                             "@types/node":  "^25.6.0",
                             "@types/react":  "^19.2.14",
                             "@types/react-dom":  "^19.2.3",

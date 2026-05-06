@@ -37,6 +37,7 @@ Checks mínimos:
 - Database deployment baseline metadata gate.
 - Supply chain baseline metadata gate.
 - Repository governance metadata gate.
+- Testing baseline metadata gate.
 - Docker image build gate.
 
 ## Nota

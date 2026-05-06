@@ -83,6 +83,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: List Playwright E2E tests
+        run: npm run test:e2e:list
+
   deployment-metadata:
     name: Deployment baseline metadata gate
     runs-on: ubuntu-latest
@@ -127,6 +130,17 @@ jobs:
       - name: Validate repository governance baseline metadata
         run: pwsh scripts/validate-repo-governance-baseline.ps1
 
+  testing-metadata:
+    name: Testing baseline metadata gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate testing baseline metadata
+        run: pwsh scripts/validate-testing-baseline.ps1
+
   docker:
     name: Docker image build gate
     runs-on: ubuntu-latest
@@ -135,6 +149,7 @@ jobs:
       - database-deployment-metadata
       - supply-chain-metadata
       - repo-governance-metadata
+      - testing-metadata
 
     steps:
       - name: Checkout
