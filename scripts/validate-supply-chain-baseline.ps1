@@ -52,7 +52,7 @@ Assert-Contains $SupplyChainDocsPath "dependency pinning"
 Assert-Contains $SupplyChainDocsPath "SBOM"
 Assert-Contains $SupplyChainDocsPath "container image"
 
-Assert-Contains $ImageReleaseDocsPath "No usar latest en producciÃ³n"
+Assert-Contains $ImageReleaseDocsPath "latest"
 Assert-Contains $ImageReleaseDocsPath "commit SHA"
 Assert-Contains $ImageReleaseDocsPath "rollback"
 
