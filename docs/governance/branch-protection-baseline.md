@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Definir reglas mínimas para proteger develop y main.
+Definir reglas mÃ­nimas para proteger develop y main.
 
 ## main
 
@@ -21,7 +21,7 @@ Reglas recomendadas:
 
 Reglas recomendadas:
 
-- Require pull request before merging cuando haya más de un contribuidor activo.
+- Require pull request before merging cuando haya mÃ¡s de un contribuidor activo.
 - Require status checks to pass.
 - Require branches to be up to date before merging.
 - Block force pushes.
@@ -29,7 +29,7 @@ Reglas recomendadas:
 
 ## required checks
 
-Checks mínimos:
+Checks mÃ­nimos:
 
 - Backend security and quality gate.
 - Frontend security and quality gate.
@@ -42,4 +42,13 @@ Checks mínimos:
 
 ## Nota
 
-La protección real debe configurarse en GitHub Settings o mediante GitHub Rulesets con permisos administrativos.
+La protecciÃ³n real debe configurarse en GitHub Settings o mediante GitHub Rulesets con permisos administrativos.
+
+## Repository security required checks
+
+Agregar después de validar el workflow:
+
+- Repository security metadata gate.
+- Dependency Review.
+
+Dependency Review solo corre en pull requests.
