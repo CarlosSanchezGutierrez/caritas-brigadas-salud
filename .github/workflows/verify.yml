@@ -83,3 +83,14 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  docker:
+    name: Docker image build gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build API Docker image
+        run: docker build -f services/api-dotnet/src/Caritas.Brigadas.Api/Dockerfile -t caritas-brigadas-api:ci services/api-dotnet

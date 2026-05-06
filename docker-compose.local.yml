@@ -1,0 +1,33 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: caritas-brigadas-sqlserver-local
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD before running docker compose.}"
+    ports:
+      - "14333:1433"
+    volumes:
+      - caritas-sqlserver-data:/var/opt/mssql
+
+  api:
+    container_name: caritas-brigadas-api-local
+    build:
+      context: ./services/api-dotnet
+      dockerfile: src/Caritas.Brigadas.Api/Dockerfile
+    depends_on:
+      - sqlserver
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DOTNET_ENVIRONMENT: Development
+      Authentication__Mode: Development
+      ConnectionStrings__SqlServer: "Server=sqlserver,1433;Database=CaritasBrigadas_Local;User Id=sa;Password=${MSSQL_SA_PASSWORD};Encrypt=True;TrustServerCertificate=True;"
+      Security__RequireHttps: "false"
+      Security__RateLimiting__Enabled: "false"
+      Cors__AllowedOrigins__0: "http://localhost:3000"
+      Cors__AllowedOrigins__1: "https://localhost:3000"
+    ports:
+      - "8080:8080"
+
+volumes:
+  caritas-sqlserver-data:

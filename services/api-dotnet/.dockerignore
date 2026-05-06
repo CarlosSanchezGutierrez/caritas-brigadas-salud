@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+**/TestResults/
+**/*.user
+**/*.suo
+**/*.log
+**/coverage/
+**/node_modules/
+**/.next/
+**/security-reports/
+src/Caritas.Brigadas.Api/appsettings.Local.json
