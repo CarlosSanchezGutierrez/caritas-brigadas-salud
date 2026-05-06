@@ -106,12 +106,24 @@ jobs:
       - name: Validate database deployment baseline metadata
         run: pwsh scripts/validate-database-deployment-baseline.ps1
 
+  supply-chain-metadata:
+    name: Supply chain baseline metadata gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate supply chain baseline metadata
+        run: pwsh scripts/validate-supply-chain-baseline.ps1
+
   docker:
     name: Docker image build gate
     runs-on: ubuntu-latest
     needs:
       - deployment-metadata
       - database-deployment-metadata
+      - supply-chain-metadata
 
     steps:
       - name: Checkout
@@ -119,3 +131,29 @@ jobs:
 
       - name: Build API Docker image
         run: docker build -f services/api-dotnet/src/Caritas.Brigadas.Api/Dockerfile -t caritas-brigadas-api:ci services/api-dotnet
+
+      - name: Container image vulnerability scan
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: caritas-brigadas-api:ci
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: 1
+          format: table
+
+      - name: Generate container SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: caritas-brigadas-api:ci
+          format: spdx-json
+          output-file: artifacts/sbom/caritas-brigadas-api.spdx.json
+          upload-artifact: false
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: caritas-brigadas-api-sbom
+          path: artifacts/sbom/caritas-brigadas-api.spdx.json
+          if-no-files-found: error
+          retention-days: 30
