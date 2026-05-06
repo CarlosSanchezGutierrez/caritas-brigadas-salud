@@ -149,6 +149,7 @@ builder.Services.AddHealthChecks();
 var app = builder.Build();
 
 app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<RequestTelemetryMiddleware>();
 app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseMiddleware<ErrorHandlingMiddleware>();
 
@@ -187,7 +188,7 @@ app.MapGet("/", (HttpContext httpContext) =>
     var payload = new
     {
         service = "caritas-brigadas-api",
-        name = "CÃ¡ritas Brigadas de Salud API",
+        name = "CÃƒÂ¡ritas Brigadas de Salud API",
         status = "running",
         environment = app.Environment.EnvironmentName,
         timestampUtc = DateTimeOffset.UtcNow
