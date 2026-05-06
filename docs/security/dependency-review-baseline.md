@@ -2,35 +2,34 @@
 
 ## Objetivo
 
-Evitar que un pull request introduzca dependencias vulnerables en el repositorio.
+Evitar que un pull request introduzca dependencias vulnerables en el repositorio sin generar annotations ruidosas en ejecuciones limpias.
 
 ## Control activo
 
 - Workflow: Repository Security.
 - Job: Dependency Review.
-- Action: actions/dependency-review-action@v4.9.0.
+- Implementación: GitHub Dependency Review REST API vía gh api.
+- Script: scripts/dependency-review-rest.ps1.
 - Evento: pull request hacia develop o main.
 
 ## Configuración
 
-- fail-on-severity: high.
-- vulnerability-check: true.
-- license-check: false.
-- comment-summary-in-pr: always.
+- FAIL_ON_SEVERITY: high.
+- Bloquea vulnerabilidades high y critical.
+- No ejecuta OpenSSF Scorecard dentro del check principal.
+- No usa actions/dependency-review-action para evitar annotations Node.js 20 en runs limpios.
 
 ## Decisión
 
-El bloqueo inicia en severidad high para evitar introducir dependencias nuevas con vulnerabilidades altas o críticas.
+Dependency Review debe enfocarse en vulnerabilidades reales. OpenSSF Scorecard de paquetes terceros puede evaluarse después como workflow separado, pero no debe ensuciar el check principal.
 
 ## Licencias
 
-license-check queda desactivado inicialmente porque todavía no existe política institucional formal de licencias.
-
-Cuando Cáritas/Tec definan política de licencias, se puede activar allow-licenses o reglas equivalentes.
+La API devuelve información de licencia cuando está disponible. La validación estricta de licencias queda pendiente hasta que Cáritas/Tec definan una política institucional formal.
 
 ## Required checks
 
-Después de que este workflow corra al menos una vez en un pull request, agregar Dependency Review como required check en los rulesets.
+El required check sigue llamándose Dependency Review para mantener compatibilidad con los rulesets existentes.
 
 ## No hacer
 
