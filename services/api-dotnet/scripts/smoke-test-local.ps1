@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string] $BaseUrl = "https://localhost:7044",
     [string] $OrganizationId = "4df92032-4a1c-4cf2-b48f-15b570cd073a",
     [string] $UserId = "76279895-817d-47d2-b5c2-2a1e306db4f9"
@@ -71,10 +71,10 @@ function Invoke-Api {
     }
 
     try {
-        $raw = & curl.exe @args
+        $raw = & curl.exe --http1.1 --ssl-no-revoke --retry 3 --retry-delay 1 --connect-timeout 15 --max-time 60 @args
 
         if ($LASTEXITCODE -ne 0) {
-            throw "curl failed with exit code $LASTEXITCODE for $Method $url"
+            throw "curl.exe --http1.1 --ssl-no-revoke --retry 3 --retry-delay 1 --connect-timeout 15 --max-time 60 failed with exit code $LASTEXITCODE for $Method $url"
         }
 
         $lines = @($raw)
@@ -215,7 +215,7 @@ if (@($communities.Body.data).Count -eq 0) {
         -Path "/api/v1/organizations/$OrganizationId/communities" `
         -ExpectedStatus @(201) `
         -Body @{
-            state = "Nuevo León"
+            state = "Nuevo LeÃ³n"
             municipality = "Monterrey"
             colony = "Smoke Test"
             communityName = "Comunidad Smoke $runId"
@@ -237,7 +237,7 @@ if (@($mobileUnits.Body.data).Count -eq 0) {
         -ExpectedStatus @(201) `
         -Body @{
             name = "Unidad Smoke $runId"
-            unitType = "Unidad médica"
+            unitType = "Unidad mÃ©dica"
             plateNumber = $null
             description = "Unidad local de smoke test"
         }
@@ -261,7 +261,7 @@ if (@($brigades.Body.data).Count -eq 0) {
             communityId = $null
             municipality = "Monterrey"
             colony = "Smoke Test"
-            locationText = "Ubicación local de smoke test"
+            locationText = "UbicaciÃ³n local de smoke test"
             mobileUnitId = $null
             coordinatorUserId = $UserId
         }
@@ -376,7 +376,7 @@ $responseJson = @{
     temperatureCelsius = 36.7
     weightKg = 72
     clinicalNotes = "Paciente estable. Registro generado por smoke test."
-    recommendations = "Hidratación y observación."
+    recommendations = "HidrataciÃ³n y observaciÃ³n."
     requiresFollowUp = $false
     requiresReferral = $false
 } | ConvertTo-Json -Depth 10 -Compress

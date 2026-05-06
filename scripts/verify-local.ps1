@@ -1,5 +1,5 @@
 # ============================================================
-# Cáritas Brigadas de Salud
+# CÃƒÂ¡ritas Brigadas de Salud
 # Local verification gate
 # ============================================================
 
@@ -102,6 +102,10 @@ try {
     $env:DOTNET_ENVIRONMENT = "Development"
     $env:Authentication__Mode = "Development"
     $env:ConnectionStrings__SqlServer = $ConnectionString
+    $env:Security__RateLimiting__Enabled = "false"
+    $env:Security__RateLimiting__PermitLimit = "1000"
+    $env:Security__RateLimiting__WindowMinutes = "1"
+    $env:Security__RateLimiting__QueueLimit = "0"
 
     Write-Host "=== VERIFY LOCAL: SQL LOCALDB + MIGRATIONS ===" -ForegroundColor Cyan
     Set-Location $BackendRoot
