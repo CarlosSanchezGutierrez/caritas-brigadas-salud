@@ -8,6 +8,7 @@ Este documento define la base mínima para desplegar Cáritas Brigadas de Salud 
 - Dockerfile endurecido con usuario no root, healthcheck y diagnósticos .NET deshabilitados.
 - Build de imagen validado en GitHub Actions.
 - Deployment metadata gate en CI.
+- Database deployment metadata gate en CI.
 - docker-compose.local.yml para pruebas locales con SQL Server en contenedor.
 - Producción todavía requiere definición institucional de hosting, red, secretos, dominio, TLS y monitoreo.
 
@@ -39,6 +40,18 @@ Este repo no queda amarrado a Azure. La imagen Docker y la configuración por va
 - Liveness: /health/live
 - Readiness: /health/ready
 - Health API legacy/dev: /api/v1/health
+
+## Database migrations
+
+No ejecutar migraciones automáticamente al arrancar la API.
+
+Las migraciones se deben generar como script SQL idempotente y ejecutarse mediante proceso separado con usuario de migraciones.
+
+Script local:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/db-generate-migration-script.ps1
+```
 
 ## Docker local
 
