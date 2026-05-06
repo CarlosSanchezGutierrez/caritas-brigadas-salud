@@ -12,7 +12,7 @@ public sealed class ProductionConfigurationValidationTests
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
-            EnvironmentName = Environments.Development
+            EnvironmentName = Environments.Development,
         });
 
         builder.Configuration["Authentication:Mode"] = "Development";
@@ -44,6 +44,24 @@ public sealed class ProductionConfigurationValidationTests
             () => builder.ValidateProductionConfiguration());
 
         Assert.Contains("SqlServer", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("Server=(localdb)\\\\MSSQLLocalDB;Database=CaritasBrigadas;Encrypt=True;TrustServerCertificate=False;")]
+    [InlineData("Server=localhost;Database=CaritasBrigadas;Encrypt=True;TrustServerCertificate=False;")]
+    [InlineData("Server=127.0.0.1;Database=CaritasBrigadas;Encrypt=True;TrustServerCertificate=False;")]
+    [InlineData("Server=tcp:sql.example.org,1433;Database=CaritasBrigadas;Encrypt=False;TrustServerCertificate=False;")]
+    [InlineData("Server=tcp:sql.example.org,1433;Database=CaritasBrigadas;Encrypt=True;TrustServerCertificate=True;")]
+    [InlineData("Server=tcp:sql.example.org,1433;Database=CaritasBrigadas;TrustServerCertificate=False;")]
+    public void ValidateProductionConfiguration_Throws_WhenProductionSqlServerConnectionStringIsUnsafe(string connectionString)
+    {
+        var builder = CreateValidProductionBuilder();
+        builder.Configuration["ConnectionStrings:SqlServer"] = connectionString;
+
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => builder.ValidateProductionConfiguration());
+
+        Assert.Contains("SQL Server", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -96,7 +114,7 @@ public sealed class ProductionConfigurationValidationTests
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
-            EnvironmentName = Environments.Production
+            EnvironmentName = Environments.Production,
         });
 
         builder.Configuration["Authentication:Mode"] = "JwtBearer";

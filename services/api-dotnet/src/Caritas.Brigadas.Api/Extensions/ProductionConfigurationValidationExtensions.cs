@@ -28,11 +28,7 @@ public static class ProductionConfigurationValidationExtensions
 
         var sqlServerConnectionString = configuration.GetConnectionString("SqlServer");
 
-        if (string.IsNullOrWhiteSpace(sqlServerConnectionString))
-        {
-            throw new InvalidOperationException(
-                "Production requires ConnectionStrings:SqlServer to be configured.");
-        }
+        ValidateProductionSqlServerConnectionString(sqlServerConnectionString);
 
         var allowedOrigins = configuration
             .GetSection("Cors:AllowedOrigins")
@@ -64,6 +60,43 @@ public static class ProductionConfigurationValidationExtensions
         {
             throw new InvalidOperationException(
                 "Production requires AllowedHosts to be configured with explicit host names.");
+        }
+    }
+
+    private static void ValidateProductionSqlServerConnectionString(string? connectionString)
+    {
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException(
+                "Production requires ConnectionStrings:SqlServer to be configured from a secure secret source.");
+        }
+
+        if (connectionString.Contains("(localdb)", StringComparison.OrdinalIgnoreCase) ||
+            connectionString.Contains("localhost", StringComparison.OrdinalIgnoreCase) ||
+            connectionString.Contains("127.0.0.1", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                "Production SQL Server connection string cannot point to LocalDB, localhost, or loopback addresses.");
+        }
+
+        if (connectionString.Contains("TrustServerCertificate=True", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                "Production SQL Server connection string cannot use TrustServerCertificate=True.");
+        }
+
+        if (connectionString.Contains("Encrypt=False", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                "Production SQL Server connection string cannot use Encrypt=False.");
+        }
+
+        if (!connectionString.Contains("Encrypt=True", StringComparison.OrdinalIgnoreCase) &&
+            !connectionString.Contains("Encrypt=Mandatory", StringComparison.OrdinalIgnoreCase) &&
+            !connectionString.Contains("Encrypt=Strict", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                "Production SQL Server connection string must explicitly enable encryption.");
         }
     }
 
