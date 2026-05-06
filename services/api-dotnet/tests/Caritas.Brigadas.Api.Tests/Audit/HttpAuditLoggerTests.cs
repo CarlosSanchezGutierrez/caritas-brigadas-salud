@@ -52,7 +52,7 @@ public sealed class HttpAuditLoggerTests
             AuditActionCodes.PatientCreate,
             "Patient",
             entityId,
-            "{\"source\":\"unit-test\"}", TestContext.Current.CancellationToken);
+            "{\"source\":\"unit-test\"}", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(repository.LastCommand);
         Assert.Equal(organizationId, repository.LastCommand!.OrganizationId);
@@ -87,7 +87,7 @@ public sealed class HttpAuditLoggerTests
         await logger.LogAsync(
             Guid.NewGuid(),
             AuditActionCodes.ReportSummaryRead,
-            "Report", TestContext.Current.CancellationToken);
+            "Report", cancellationToken: TestContext.Current.CancellationToken);
     }
 
     [Fact]

@@ -33,7 +33,7 @@ public sealed class EndpointAuthorizationIntegrationTests :
     {
         using var client = _factory.CreateClient();
 
-        var response = await client.GetAsync("/api/v1/health", TestContext.Current.CancellationToken);
+        var response = await client.GetAsync("/api/v1/health", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
@@ -46,7 +46,7 @@ public sealed class EndpointAuthorizationIntegrationTests :
         var organizationId = Guid.NewGuid();
 
         var response = await client.GetAsync(
-            $"/api/v1/organizations/{organizationId}/reports/summary", TestContext.Current.CancellationToken);
+            $"/api/v1/organizations/{organizationId}/reports/summary", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -69,7 +69,7 @@ public sealed class EndpointAuthorizationIntegrationTests :
         request.Headers.Add("X-Dev-Name", "Integration Test User");
         request.Headers.Add("X-Dev-Email", "integration.test@caritas.local");
 
-        var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var response = await client.SendAsync(request, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
@@ -94,7 +94,7 @@ public sealed class EndpointAuthorizationIntegrationTests :
         request.Headers.Add("X-Dev-Name", "Integration Test User");
         request.Headers.Add("X-Dev-Email", "integration.test@caritas.local");
 
-        var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var response = await client.SendAsync(request, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
@@ -117,7 +117,7 @@ public sealed class EndpointAuthorizationIntegrationTests :
         request.Headers.Add("X-Dev-Name", "Integration Test User");
         request.Headers.Add("X-Dev-Email", "integration.test@caritas.local");
 
-        var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var response = await client.SendAsync(request, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.NotEqual(HttpStatusCode.Forbidden, response.StatusCode);
