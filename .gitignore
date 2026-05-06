@@ -339,3 +339,6 @@ security-reports/
 
 # Local API settings
 services/api-dotnet/src/Caritas.Brigadas.Api/appsettings.Local.json
+
+# Generated local artifacts
+artifacts/
