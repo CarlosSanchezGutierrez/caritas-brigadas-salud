@@ -22,7 +22,7 @@ function Assert-Contains {
 
     $Content = Get-Content $Path -Raw
 
-    if (-not $Content.Contains($Token)) {
+    if ($Content.IndexOf($Token, [StringComparison]::OrdinalIgnoreCase) -lt 0) {
         throw "$Path does not contain required token: $Token"
     }
 }

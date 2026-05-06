@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Reducir riesgo de dependencias comprometidas, imÃ¡genes inseguras y despliegues no reproducibles.
+Reducir riesgo de dependencias comprometidas, imÃƒÂ¡genes inseguras y despliegues no reproducibles.
 
 ## Controles actuales
 
@@ -11,7 +11,7 @@ Reducir riesgo de dependencias comprometidas, imÃ¡genes inseguras y despliegue
 - Docker build gate.
 - Container image vulnerability scan.
 - SBOM generation.
-- Dependency pinning mediante lockfiles y versiones explÃ­citas.
+- Dependency pinning mediante lockfiles y versiones explÃƒÂ­citas.
 - GitHub Actions Verify.
 
 ## Componentes cubiertos
@@ -26,21 +26,21 @@ Reducir riesgo de dependencias comprometidas, imÃ¡genes inseguras y despliegue
 ## Reglas
 
 - Mantener package-lock.json.
-- Mantener versiones explÃ­citas NuGet.
+- Mantener versiones explÃƒÂ­citas NuGet.
 - No instalar dependencias sin justificar.
-- No usar imÃ¡genes base no oficiales.
-- No desplegar imÃ¡genes sin escaneo.
+- No usar imÃƒÂ¡genes base no oficiales.
+- No desplegar imÃƒÂ¡genes sin escaneo.
 - No desplegar sin SBOM.
 
 ## Pendientes enterprise
 
-- Firmar imÃ¡genes.
+- Firmar imÃƒÂ¡genes.
 - Publicar en registry institucional.
-- Definir polÃ­tica de retenciÃ³n de imÃ¡genes.
-- Definir excepciÃ³n formal para CVEs.
+- Definir polÃƒÂ­tica de retenciÃƒÂ³n de imÃƒÂ¡genes.
+- Definir excepciÃƒÂ³n formal para CVEs.
 - Branch protection con required checks.
 - Dependabot/Renovate si TI lo aprueba.
 
 ## dependency pinning
 
-Las dependencias deben mantenerse fijadas mediante lockfiles, versiones explícitas y revisión en CI antes de aceptar cambios.
+Las dependencias deben mantenerse fijadas mediante lockfiles, versiones explÃ­citas y revisiÃ³n en CI antes de aceptar cambios.

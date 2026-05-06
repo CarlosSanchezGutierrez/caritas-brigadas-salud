@@ -342,3 +342,6 @@ services/api-dotnet/src/Caritas.Brigadas.Api/appsettings.Local.json
 
 # Generated local artifacts
 artifacts/
+
+# Generated local artifacts
+artifacts/
