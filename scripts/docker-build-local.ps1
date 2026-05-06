@@ -11,6 +11,12 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
     throw "Docker is not installed or not available in PATH."
 }
 
+docker info *> $null
+
+if ($LASTEXITCODE -ne 0) {
+    throw "Docker is installed, but the Docker daemon is not running. Start Docker Desktop and try again."
+}
+
 Write-Host "=== DOCKER BUILD API ===" -ForegroundColor Cyan
 docker build -f $DockerfilePath -t $ImageName $BackendRoot
 
