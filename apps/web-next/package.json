@@ -1,22 +1,29 @@
 {
-  "name": "@caritas-brigadas/web-next",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "next": "^16.2.4",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5"
-  },
-  "devDependencies": {
-    "@types/node": "^25.6.0",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "typescript": "^6.0.3"
-  }
+    "name":  "@caritas-brigadas/web-next",
+    "version":  "0.1.0",
+    "private":  true,
+    "scripts":  {
+                    "dev":  "next dev",
+                    "build":  "next build",
+                    "start":  "next start",
+                    "typecheck":  "tsc --noEmit",
+                    "verify":  "npm run typecheck \u0026\u0026 npm run build \u0026\u0026 npm audit --audit-level=moderate",
+                    "audit:moderate":  "npm audit --audit-level=moderate",
+                    "audit:high":  "npm audit --audit-level=high"
+                },
+    "dependencies":  {
+                         "next":  "^16.2.4",
+                         "react":  "^19.2.5",
+                         "react-dom":  "^19.2.5"
+                     },
+    "devDependencies":  {
+                            "@types/node":  "^25.6.0",
+                            "@types/react":  "^19.2.14",
+                            "@types/react-dom":  "^19.2.3",
+                            "typescript":  "^6.0.3"
+                        },
+    "engines":  {
+                    "node":  "\u003e=24 \u003c26",
+                    "npm":  "\u003e=11"
+                }
 }
