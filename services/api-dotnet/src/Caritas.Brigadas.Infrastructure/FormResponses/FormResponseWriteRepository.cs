@@ -50,19 +50,21 @@ public sealed class FormResponseWriteRepository : IFormResponseWriteRepository
             throw new KeyNotFoundException("Organization was not found.");
         }
 
-        var encounterExists = await _dbContext.ServiceEncounters
+        var encounter = await _dbContext.ServiceEncounters
             .AsNoTracking()
-            .AnyAsync(
+            .SingleOrDefaultAsync(
                 encounter =>
                     encounter.Id == request.EncounterId &&
                     encounter.OrganizationId == organizationId &&
                     !encounter.IsDeleted,
                 cancellationToken);
 
-        if (!encounterExists)
+        if (encounter is null)
         {
             throw new KeyNotFoundException("Service encounter was not found in this organization.");
         }
+
+        var encounterServiceId = encounter.ServiceId;
 
         var formTemplates = await _dbContext.FormTemplates
             .AsNoTracking()
@@ -71,11 +73,12 @@ public sealed class FormResponseWriteRepository : IFormResponseWriteRepository
         var formTemplate = formTemplates.SingleOrDefault(template =>
             GetGuidProperty(template, "Id") == request.FormTemplateId &&
             GetGuidProperty(template, "OrganizationId") == organizationId &&
+            GetGuidProperty(template, "ServiceId") == encounterServiceId &&
             !GetBoolProperty(template, "IsDeleted"));
 
         if (formTemplate is null)
         {
-            throw new KeyNotFoundException("Form template was not found in this organization.");
+            throw new KeyNotFoundException("Form template was not found for this encounter service in this organization.");
         }
 
         if (request.SubmittedByUserId.HasValue)
