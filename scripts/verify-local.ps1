@@ -1,5 +1,5 @@
 # ============================================================
-# CÃƒÂ¡ritas Brigadas de Salud
+# Cáritas Brigadas de Salud
 # Local verification gate
 # ============================================================
 
