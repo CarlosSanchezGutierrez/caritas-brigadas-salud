@@ -26,7 +26,13 @@ public static class ProductionConfigurationValidationExtensions
                 "Production requires Authentication:Mode to be configured to a non-Development provider.");
         }
 
-        var sqlServerConnectionString = configuration.GetConnectionString("SqlServer");
+        
+        if (string.Equals(authenticationMode, "Disabled", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                "Disabled authentication mode is not allowed in Production environment.");
+        }
+var sqlServerConnectionString = configuration.GetConnectionString("SqlServer");
 
         ValidateProductionSqlServerConnectionString(sqlServerConnectionString);
 
