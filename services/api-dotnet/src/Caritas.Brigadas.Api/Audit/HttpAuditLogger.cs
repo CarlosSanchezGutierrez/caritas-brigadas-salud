@@ -1,4 +1,4 @@
-﻿using Caritas.Brigadas.Application.Audit;
+using Caritas.Brigadas.Application.Audit;
 using Caritas.Brigadas.Application.Security;
 
 namespace Caritas.Brigadas.Api.Audit;
@@ -68,10 +68,7 @@ public sealed class HttpAuditLogger : IAuditLogger
         {
             _logger.LogWarning(
                 exception,
-                "Audit logging failed for action {Action} on entity {EntityName} with id {EntityId}.",
-                action,
-                entityName,
-                entityId);
+                "Audit logging failed. Audit metadata omitted from application logs to avoid sensitive data exposure.");
         }
     }
 }
