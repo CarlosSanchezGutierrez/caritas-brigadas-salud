@@ -153,7 +153,7 @@ var roles = await repository.ListUserRolesAsync(
         Guid userId,
         CancellationToken cancellationToken)
     {
-        var userRepository = _serviceProvider.GetService<IUserReadRepository>();
+        var userRepository = _serviceProvider.GetService<Caritas.Brigadas.Application.Users.IUserReadRepository>();
 
         if (userRepository is null)
         {
