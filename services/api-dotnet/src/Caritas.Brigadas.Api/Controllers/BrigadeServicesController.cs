@@ -137,6 +137,25 @@ try
 
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
+
+    private async Task<bool> BrigadeBelongsToOrganizationAsync(
+        Guid organizationId,
+        Guid brigadeId,
+        CancellationToken cancellationToken)
+    {
+        var brigadeRepository = _serviceProvider.GetService<IBrigadeReadRepository>();
+
+        if (brigadeRepository is null)
+        {
+            return false;
+        }
+
+        var brigade = await brigadeRepository.GetByIdAsync(
+            brigadeId,
+            cancellationToken);
+
+        return brigade is not null && brigade.OrganizationId == organizationId;
+    }
 }
 
 

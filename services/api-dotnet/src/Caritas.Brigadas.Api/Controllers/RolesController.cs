@@ -67,7 +67,12 @@ public sealed class RolesController : ControllerBase
             return DatabaseNotConfigured();
         }
 
-        var roles = await repository.ListUserRolesAsync(
+        
+        if (!await UserBelongsToOrganizationAsync(organizationId, userId, cancellationToken))
+        {
+            return NotFound();
+        }
+var roles = await repository.ListUserRolesAsync(
             userId,
             cancellationToken);
 
@@ -141,5 +146,24 @@ public sealed class RolesController : ControllerBase
             HttpContext.GetCorrelationId());
 
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
+    }
+
+    private async Task<bool> UserBelongsToOrganizationAsync(
+        Guid organizationId,
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var userRepository = _serviceProvider.GetService<IUserReadRepository>();
+
+        if (userRepository is null)
+        {
+            return false;
+        }
+
+        var user = await userRepository.GetByIdAsync(
+            userId,
+            cancellationToken);
+
+        return user is not null && user.OrganizationId == organizationId;
     }
 }
