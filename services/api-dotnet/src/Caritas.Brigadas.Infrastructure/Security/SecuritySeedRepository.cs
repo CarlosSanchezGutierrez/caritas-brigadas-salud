@@ -279,6 +279,7 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
             new PermissionDefinition("roles.read", "Leer roles", "roles", "read", "Consultar roles y permisos.", PermissionSensitivity.Normal),
             new PermissionDefinition("roles.seed", "Inicializar roles", "roles", "seed", "Inicializar roles y permisos base.", PermissionSensitivity.Critical),
             new PermissionDefinition("roles.manage", "Administrar roles", "roles", "manage", "Modificar roles y permisos.", PermissionSensitivity.Critical),
+            new PermissionDefinition("roles.assign", "Asignar roles", "roles", "assign", "Asignar roles a usuarios.", PermissionSensitivity.Critical),
 
             new PermissionDefinition("brigades.read", "Leer brigadas", "brigades", "read", "Consultar brigadas.", PermissionSensitivity.Normal),
             new PermissionDefinition("brigades.create", "Crear brigadas", "brigades", "create", "Crear brigadas.", PermissionSensitivity.Restricted),
@@ -331,6 +332,7 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
                 "users.create",
                 "users.update",
                 "roles.read",
+                "roles.assign",
                 "brigades.read",
                 "brigades.create",
                 "brigades.update",
