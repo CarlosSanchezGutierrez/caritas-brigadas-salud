@@ -15,7 +15,7 @@ public sealed class SyncBatch : Entity
     public SyncBatch(
         Guid id,
         Guid organizationId,
-        Guid deviceId,
+        Guid? deviceId,
         Guid userId,
         DateTimeOffset startedAt,
         Guid? brigadeId = null,
@@ -23,7 +23,9 @@ public sealed class SyncBatch : Entity
         : base(id)
     {
         OrganizationId = RequireGuid(organizationId, nameof(organizationId));
-        DeviceId = RequireGuid(deviceId, nameof(deviceId));
+        DeviceId = deviceId == Guid.Empty
+            ? throw new DomainException("deviceId must not be empty when provided.")
+            : deviceId;
         UserId = RequireGuid(userId, nameof(userId));
         BrigadeId = brigadeId;
         StartedAt = startedAt;
@@ -33,7 +35,7 @@ public sealed class SyncBatch : Entity
 
     public Guid OrganizationId { get; private set; }
 
-    public Guid DeviceId { get; private set; }
+    public Guid? DeviceId { get; private set; }
 
     public Guid UserId { get; private set; }
 
