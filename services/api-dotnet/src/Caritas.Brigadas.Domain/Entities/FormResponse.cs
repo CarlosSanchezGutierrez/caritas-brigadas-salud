@@ -54,6 +54,10 @@ public sealed class FormResponse : AuditableEntity
 
     public Guid? DeviceId { get; private set; }
 
+    public DateTimeOffset? SubmittedAt { get; private set; }
+
+    public DateTimeOffset? CapturedAt { get; private set; }
+
     public SyncStatus SyncStatus { get; private set; }
 
     public bool IsCompleted => Status == FormResponseStatus.Completed;

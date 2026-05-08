@@ -766,8 +766,7 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ResponseHash")
+b.Property<string>("ResponseHash")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ResponseJson")
@@ -1809,7 +1808,7 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
                     b.Property<int>("ConflictCount")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("DeviceId")
+                    b.Property<Guid?>("DeviceId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ErrorSummary")

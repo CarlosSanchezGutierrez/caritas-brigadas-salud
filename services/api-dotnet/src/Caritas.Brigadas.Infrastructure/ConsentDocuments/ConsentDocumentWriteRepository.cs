@@ -72,6 +72,7 @@ public sealed class ConsentDocumentWriteRepository : IConsentDocumentWriteReposi
                     visit =>
                         visit.Id == request.VisitId.Value &&
                         visit.OrganizationId == organizationId &&
+                        visit.PatientId == request.PatientId &&
                         !visit.IsDeleted,
                     cancellationToken);
 

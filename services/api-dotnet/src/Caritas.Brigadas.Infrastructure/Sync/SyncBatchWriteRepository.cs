@@ -79,15 +79,12 @@ public sealed class SyncBatchWriteRepository : ISyncBatchWriteRepository
         {
             throw new KeyNotFoundException("Brigade was not found in this organization.");
         }
-
-        var deviceIdForConstructor = request.DeviceId ?? Guid.Empty;
-
         var batch = new SyncBatch(
             id: Guid.NewGuid(),
             organizationId: organizationId,
             userId: request.UserId,
             brigadeId: request.BrigadeId,
-            deviceId: deviceIdForConstructor,
+            deviceId: request.DeviceId,
             startedAt: request.StartedAt ?? DateTimeOffset.UtcNow,
             eventsCount: request.EventsCount ?? InferEventsCount(request.PayloadJson));
 

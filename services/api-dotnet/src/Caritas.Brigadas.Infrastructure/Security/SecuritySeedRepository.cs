@@ -269,52 +269,41 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
     {
         return new[]
         {
-            new PermissionDefinition("organizations.read", "Leer organizaciones", "organizations", "read", "Consultar organizaciones.", PermissionSensitivity.Normal),
-            new PermissionDefinition("organizations.manage", "Administrar organizaciones", "organizations", "manage", "Administrar configuración institucional.", PermissionSensitivity.Restricted),
-
-            new PermissionDefinition("users.read", "Leer usuarios", "users", "read", "Consultar usuarios institucionales.", PermissionSensitivity.Normal),
-            new PermissionDefinition("users.create", "Crear usuarios", "users", "create", "Crear usuarios institucionales.", PermissionSensitivity.Restricted),
-            new PermissionDefinition("users.update", "Actualizar usuarios", "users", "update", "Actualizar usuarios institucionales.", PermissionSensitivity.Restricted),
-
-            new PermissionDefinition("roles.read", "Leer roles", "roles", "read", "Consultar roles y permisos.", PermissionSensitivity.Normal),
-            new PermissionDefinition("roles.seed", "Inicializar roles", "roles", "seed", "Inicializar roles y permisos base.", PermissionSensitivity.Critical),
-            new PermissionDefinition("roles.manage", "Administrar roles", "roles", "manage", "Modificar roles y permisos.", PermissionSensitivity.Critical),
-            new PermissionDefinition("roles.assign", "Asignar roles", "roles", "assign", "Asignar roles a usuarios.", PermissionSensitivity.Critical),
-
-            new PermissionDefinition("brigades.read", "Leer brigadas", "brigades", "read", "Consultar brigadas.", PermissionSensitivity.Normal),
-            new PermissionDefinition("brigades.create", "Crear brigadas", "brigades", "create", "Crear brigadas.", PermissionSensitivity.Restricted),
-            new PermissionDefinition("brigades.update", "Actualizar brigadas", "brigades", "update", "Actualizar brigadas.", PermissionSensitivity.Restricted),
-            new PermissionDefinition("brigades.open", "Abrir brigadas", "brigades", "open", "Iniciar operación de una brigada.", PermissionSensitivity.Restricted),
-            new PermissionDefinition("brigades.close", "Cerrar brigadas", "brigades", "close", "Cerrar operación de una brigada.", PermissionSensitivity.Restricted),
-
-            new PermissionDefinition("patients.read", "Leer pacientes", "patients", "read", "Consultar pacientes.", PermissionSensitivity.Sensitive),
-            new PermissionDefinition("patients.create", "Crear pacientes", "patients", "create", "Registrar pacientes.", PermissionSensitivity.Sensitive),
-            new PermissionDefinition("patients.update", "Actualizar pacientes", "patients", "update", "Actualizar datos de pacientes.", PermissionSensitivity.Sensitive),
-
-            new PermissionDefinition("visits.read", "Leer visitas", "visits", "read", "Consultar visitas de pacientes.", PermissionSensitivity.Sensitive),
-            new PermissionDefinition("visits.create", "Crear visitas", "visits", "create", "Registrar visitas de pacientes.", PermissionSensitivity.Sensitive),
-            new PermissionDefinition("visits.close", "Cerrar visitas", "visits", "close", "Cerrar visitas de pacientes.", PermissionSensitivity.Sensitive),
-
-            new PermissionDefinition("encounters.read", "Leer atenciones", "encounters", "read", "Consultar atenciones por servicio.", PermissionSensitivity.Sensitive),
-            new PermissionDefinition("encounters.create", "Crear atenciones", "encounters", "create", "Registrar atenciones por servicio.", PermissionSensitivity.Sensitive),
-            new PermissionDefinition("encounters.update", "Actualizar atenciones", "encounters", "update", "Actualizar atenciones por servicio.", PermissionSensitivity.Sensitive),
-            new PermissionDefinition("encounters.complete", "Completar atenciones", "encounters", "complete", "Completar atenciones por servicio.", PermissionSensitivity.Sensitive),
-
-            new PermissionDefinition("documents.sign", "Firmar documentos", "documents", "sign", "Capturar firmas y consentimientos.", PermissionSensitivity.Sensitive),
-            new PermissionDefinition("documents.read", "Leer documentos", "documents", "read", "Consultar documentos asociados.", PermissionSensitivity.Sensitive),
-
-            new PermissionDefinition("sync.submit", "Enviar sincronización", "sync", "submit", "Enviar lotes offline para sincronización.", PermissionSensitivity.Restricted),
-            new PermissionDefinition("sync.read", "Leer sincronización", "sync", "read", "Consultar eventos y lotes de sincronización.", PermissionSensitivity.Restricted),
-
-            new PermissionDefinition("reports.read", "Leer reportes", "reports", "read", "Consultar reportes operativos.", PermissionSensitivity.Restricted),
-            new PermissionDefinition("reports.export", "Exportar reportes", "reports", "export", "Exportar reportes institucionales.", PermissionSensitivity.Restricted),
-
-            new PermissionDefinition("audit.read", "Leer auditoría", "audit", "read", "Consultar auditoría y trazabilidad.", PermissionSensitivity.Critical),
-            new PermissionDefinition("ai.request", "Solicitar apoyo de IA", "ai", "request", "Solicitar funciones administrativas o analíticas de IA.", PermissionSensitivity.Restricted),
-            new PermissionDefinition("crypto.verify", "Verificar integridad criptográfica", "crypto", "verify", "Verificar hashes y trazabilidad criptográfica.", PermissionSensitivity.Critical)
+            new PermissionDefinition("audit-logs.read", "Permission audit-logs.read", "audit-logs", "read", "Allows audit-logs.read.", PermissionSensitivity.Critical),
+            new PermissionDefinition("brigades.read", "Permission brigades.read", "brigades", "read", "Allows brigades.read.", PermissionSensitivity.Normal),
+            new PermissionDefinition("brigades.write", "Permission brigades.write", "brigades", "write", "Allows brigades.write.", PermissionSensitivity.Restricted),
+            new PermissionDefinition("brigade-services.read", "Permission brigade-services.read", "brigade-services", "read", "Allows brigade-services.read.", PermissionSensitivity.Normal),
+            new PermissionDefinition("brigade-services.write", "Permission brigade-services.write", "brigade-services", "write", "Allows brigade-services.write.", PermissionSensitivity.Restricted),
+            new PermissionDefinition("communities.read", "Permission communities.read", "communities", "read", "Allows communities.read.", PermissionSensitivity.Normal),
+            new PermissionDefinition("communities.write", "Permission communities.write", "communities", "write", "Allows communities.write.", PermissionSensitivity.Restricted),
+            new PermissionDefinition("consent-documents.read", "Permission consent-documents.read", "consent-documents", "read", "Allows consent-documents.read.", PermissionSensitivity.Sensitive),
+            new PermissionDefinition("consent-documents.write", "Permission consent-documents.write", "consent-documents", "write", "Allows consent-documents.write.", PermissionSensitivity.Sensitive),
+            new PermissionDefinition("form-responses.read", "Permission form-responses.read", "form-responses", "read", "Allows form-responses.read.", PermissionSensitivity.Sensitive),
+            new PermissionDefinition("form-responses.write", "Permission form-responses.write", "form-responses", "write", "Allows form-responses.write.", PermissionSensitivity.Sensitive),
+            new PermissionDefinition("form-templates.read", "Permission form-templates.read", "form-templates", "read", "Allows form-templates.read.", PermissionSensitivity.Normal),
+            new PermissionDefinition("form-templates.seed", "Permission form-templates.seed", "form-templates", "seed", "Allows form-templates.seed.", PermissionSensitivity.Restricted),
+            new PermissionDefinition("mobile-units.read", "Permission mobile-units.read", "mobile-units", "read", "Allows mobile-units.read.", PermissionSensitivity.Normal),
+            new PermissionDefinition("mobile-units.write", "Permission mobile-units.write", "mobile-units", "write", "Allows mobile-units.write.", PermissionSensitivity.Restricted),
+            new PermissionDefinition("organizations.read", "Permission organizations.read", "organizations", "read", "Allows organizations.read.", PermissionSensitivity.Normal),
+            new PermissionDefinition("organizations.write", "Permission organizations.write", "organizations", "write", "Allows organizations.write.", PermissionSensitivity.Restricted),
+            new PermissionDefinition("patients.read", "Permission patients.read", "patients", "read", "Allows patients.read.", PermissionSensitivity.Sensitive),
+            new PermissionDefinition("patients.write", "Permission patients.write", "patients", "write", "Allows patients.write.", PermissionSensitivity.Sensitive),
+            new PermissionDefinition("patient-visits.read", "Permission patient-visits.read", "patient-visits", "read", "Allows patient-visits.read.", PermissionSensitivity.Sensitive),
+            new PermissionDefinition("patient-visits.write", "Permission patient-visits.write", "patient-visits", "write", "Allows patient-visits.write.", PermissionSensitivity.Sensitive),
+            new PermissionDefinition("reports.export", "Permission reports.export", "reports", "export", "Allows reports.export.", PermissionSensitivity.Restricted),
+            new PermissionDefinition("reports.read", "Permission reports.read", "reports", "read", "Allows reports.read.", PermissionSensitivity.Normal),
+            new PermissionDefinition("roles.assign", "Permission roles.assign", "roles", "assign", "Allows roles.assign.", PermissionSensitivity.Critical),
+            new PermissionDefinition("roles.read", "Permission roles.read", "roles", "read", "Allows roles.read.", PermissionSensitivity.Normal),
+            new PermissionDefinition("service-encounters.read", "Permission service-encounters.read", "service-encounters", "read", "Allows service-encounters.read.", PermissionSensitivity.Sensitive),
+            new PermissionDefinition("service-encounters.write", "Permission service-encounters.write", "service-encounters", "write", "Allows service-encounters.write.", PermissionSensitivity.Sensitive),
+            new PermissionDefinition("services.read", "Permission services.read", "services", "read", "Allows services.read.", PermissionSensitivity.Normal),
+            new PermissionDefinition("services.seed", "Permission services.seed", "services", "seed", "Allows services.seed.", PermissionSensitivity.Restricted),
+            new PermissionDefinition("sync-batches.read", "Permission sync-batches.read", "sync-batches", "read", "Allows sync-batches.read.", PermissionSensitivity.Normal),
+            new PermissionDefinition("sync-batches.write", "Permission sync-batches.write", "sync-batches", "write", "Allows sync-batches.write.", PermissionSensitivity.Restricted),
+            new PermissionDefinition("users.read", "Permission users.read", "users", "read", "Allows users.read.", PermissionSensitivity.Normal),
+            new PermissionDefinition("users.write", "Permission users.write", "users", "write", "Allows users.write.", PermissionSensitivity.Restricted)
         };
     }
-
     private static IReadOnlyDictionary<string, IReadOnlyCollection<string>> GetRolePermissionMap()
     {
         var allPermissions = GetPermissionDefinitions()
@@ -328,71 +317,108 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
             ["ADMIN"] = new[]
             {
                 "organizations.read",
+                "organizations.write",
                 "users.read",
-                "users.create",
-                "users.update",
+                "users.write",
                 "roles.read",
+                "services.read",
+                "services.seed",
+                "communities.read",
+                "communities.write",
+                "mobile-units.read",
+                "mobile-units.write",
                 "brigades.read",
-                "brigades.create",
-                "brigades.update",
-                "brigades.open",
-                "brigades.close",
+                "brigades.write",
+                "brigade-services.read",
+                "brigade-services.write",
                 "patients.read",
-                "visits.read",
-                "encounters.read",
-                "documents.read",
-                "sync.read",
+                "patients.write",
+                "patient-visits.read",
+                "patient-visits.write",
+                "service-encounters.read",
+                "service-encounters.write",
+                "form-templates.read",
+                "form-templates.seed",
+                "form-responses.read",
+                "form-responses.write",
+                "consent-documents.read",
+                "consent-documents.write",
+                "sync-batches.read",
+                "sync-batches.write",
                 "reports.read",
-                "reports.export"
+                "reports.export",
+                "audit-logs.read"
             },
 
             ["BRIGADE_COORDINATOR"] = new[]
             {
                 "organizations.read",
                 "users.read",
+                "roles.read",
+                "services.read",
+                "communities.read",
+                "communities.write",
+                "mobile-units.read",
+                "mobile-units.write",
                 "brigades.read",
-                "brigades.update",
-                "brigades.open",
-                "brigades.close",
+                "brigades.write",
+                "brigade-services.read",
+                "brigade-services.write",
                 "patients.read",
-                "patients.create",
-                "patients.update",
-                "visits.read",
-                "visits.create",
-                "visits.close",
-                "encounters.read",
-                "documents.sign",
-                "documents.read",
-                "sync.submit",
+                "patients.write",
+                "patient-visits.read",
+                "patient-visits.write",
+                "service-encounters.read",
+                "service-encounters.write",
+                "form-templates.read",
+                "form-responses.read",
+                "form-responses.write",
+                "consent-documents.read",
+                "consent-documents.write",
+                "sync-batches.read",
+                "sync-batches.write",
                 "reports.read"
             },
 
             ["HEALTH_PROVIDER"] = new[]
             {
                 "organizations.read",
+                "services.read",
                 "brigades.read",
+                "brigade-services.read",
                 "patients.read",
-                "patients.create",
-                "patients.update",
-                "visits.read",
-                "encounters.read",
-                "encounters.create",
-                "encounters.update",
-                "encounters.complete",
-                "documents.sign",
-                "documents.read",
-                "sync.submit"
+                "patients.write",
+                "patient-visits.read",
+                "patient-visits.write",
+                "service-encounters.read",
+                "service-encounters.write",
+                "form-templates.read",
+                "form-responses.read",
+                "form-responses.write",
+                "consent-documents.read",
+                "consent-documents.write",
+                "sync-batches.write"
             },
-
             ["SERVICE_STUDENT"] = new[]
             {
                 "organizations.read",
+                "services.read",
+                "communities.read",
+                "mobile-units.read",
                 "brigades.read",
-                "patients.create",
-                "visits.create",
-                "encounters.create",
-                "documents.sign",
-                "sync.submit"
+                "brigade-services.read",
+                "patients.read",
+                "patients.write",
+                "patient-visits.read",
+                "patient-visits.write",
+                "service-encounters.read",
+                "service-encounters.write",
+                "form-templates.read",
+                "form-responses.read",
+                "form-responses.write",
+                "consent-documents.read",
+                "consent-documents.write",
+                "sync-batches.write"
             },
 
             ["AUDITOR"] = new[]
@@ -400,28 +426,40 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
                 "organizations.read",
                 "users.read",
                 "roles.read",
+                "services.read",
+                "communities.read",
+                "mobile-units.read",
                 "brigades.read",
+                "brigade-services.read",
                 "patients.read",
-                "visits.read",
-                "encounters.read",
-                "documents.read",
-                "sync.read",
+                "patient-visits.read",
+                "service-encounters.read",
+                "form-templates.read",
+                "form-responses.read",
+                "consent-documents.read",
+                "sync-batches.read",
                 "reports.read",
-                "audit.read",
-                "crypto.verify"
+                "audit-logs.read"
             },
 
             ["DATA_ANALYST"] = new[]
             {
                 "organizations.read",
+                "communities.read",
+                "mobile-units.read",
                 "brigades.read",
+                "brigade-services.read",
+                "patients.read",
+                "patient-visits.read",
+                "service-encounters.read",
+                "form-responses.read",
+                "consent-documents.read",
+                "sync-batches.read",
                 "reports.read",
-                "reports.export",
-                "ai.request"
+                "reports.export"
             }
         };
     }
-
     private sealed record RoleDefinition(
         string Code,
         string Name,

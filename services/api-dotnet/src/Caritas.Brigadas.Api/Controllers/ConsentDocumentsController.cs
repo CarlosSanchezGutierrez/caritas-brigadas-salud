@@ -136,7 +136,7 @@ public sealed class ConsentDocumentsController : ControllerBase
                 HttpContext.GetCorrelationId(),
                 "Consent document created successfully.");
 
-            return Created($"/api/v1/consent-documents/{document.Id}", payload);
+            return Created($"/api/v1/organizations/{organizationId}/consent-documents/{document.Id}", payload);
         }
         catch (KeyNotFoundException exception)
         {

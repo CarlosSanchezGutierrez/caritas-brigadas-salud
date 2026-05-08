@@ -133,7 +133,7 @@ public sealed class UsersController : ControllerBase
                 HttpContext.GetCorrelationId(),
                 "User created successfully.");
 
-            return Created($"/api/v1/users/{user.Id}", response);
+            return Created($"/api/v1/organizations/{organizationId}/users/{user.Id}", response);
         }
         catch (KeyNotFoundException exception)
         {

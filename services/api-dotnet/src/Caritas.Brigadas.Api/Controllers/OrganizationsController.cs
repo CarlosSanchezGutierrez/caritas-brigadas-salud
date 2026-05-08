@@ -39,6 +39,31 @@ public sealed class OrganizationsController : ControllerBase
             return DatabaseNotConfigured();
         }
 
+        if (!User.HasClaim(
+            Caritas.Brigadas.Application.Security.CurrentUserClaimTypes.RoleCode,
+            Caritas.Brigadas.Application.Security.RoleCodes.SuperAdmin))
+        {
+            var currentOrganizationIdClaim = User.FindFirst(
+                Caritas.Brigadas.Application.Security.CurrentUserClaimTypes.OrganizationId)?.Value;
+
+            if (!Guid.TryParse(currentOrganizationIdClaim, out var currentOrganizationId))
+            {
+                return Forbid();
+            }
+
+            var organization = await repository.GetByIdAsync(
+                currentOrganizationId,
+                cancellationToken);
+
+            var scopedOrganizations = organization is null
+                ? Array.Empty<OrganizationSummaryDto>()
+                : new[] { organization };
+
+            return Ok(ApiResponse<IReadOnlyCollection<OrganizationSummaryDto>>.Ok(
+                scopedOrganizations,
+                HttpContext.GetCorrelationId()));
+        }
+
         var organizations = await repository.ListAsync(cancellationToken);
 
         return Ok(ApiResponse<IReadOnlyCollection<OrganizationSummaryDto>>.Ok(
