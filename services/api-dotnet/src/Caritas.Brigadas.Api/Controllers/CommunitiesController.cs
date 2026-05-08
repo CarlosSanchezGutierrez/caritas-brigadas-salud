@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Caritas.Brigadas.Contracts.Security;
+using Microsoft.AspNetCore.Authorization;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Communities;
@@ -53,12 +54,13 @@ public sealed class CommunitiesController : ControllerBase
     /// <summary>
     /// Obtiene una comunidad por identificador.
     /// </summary>
-    [HttpGet("api/v1/communities/{communityId:guid}")]
+    [HttpGet("api/v1/organizations/{organizationId:guid}/communities/{communityId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<CommunitySummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     [Authorize(Policy = PermissionCodes.CommunitiesRead)]
     public async Task<IActionResult> GetByIdAsync(
+        Guid organizationId,
         Guid communityId,
         CancellationToken cancellationToken)
     {
@@ -74,6 +76,16 @@ public sealed class CommunitiesController : ControllerBase
             cancellationToken);
 
         if (community is null)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.NotFound,
+                "Community was not found.",
+                HttpContext.GetCorrelationId());
+
+            return NotFound(error);
+        }
+
+        if (community.OrganizationId != organizationId)
         {
             var error = ApiErrorResponse.Create(
                 ApiErrorCodes.NotFound,

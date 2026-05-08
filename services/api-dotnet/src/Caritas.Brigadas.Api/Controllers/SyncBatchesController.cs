@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Caritas.Brigadas.Contracts.Security;
+using Microsoft.AspNetCore.Authorization;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Sync;
@@ -54,11 +55,13 @@ public sealed class SyncBatchesController : ControllerBase
     /// <summary>
     /// Obtiene un lote de sincronización por identificador.
     /// </summary>
-    [HttpGet("api/v1/sync-batches/{syncBatchId:guid}")]
+    [HttpGet("api/v1/organizations/{organizationId:guid}/sync-batches/{syncBatchId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<SyncBatchSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.SyncBatchesRead)]
     public async Task<IActionResult> GetByIdAsync(
+        Guid organizationId,
         Guid syncBatchId,
         CancellationToken cancellationToken)
     {
@@ -74,6 +77,16 @@ public sealed class SyncBatchesController : ControllerBase
             cancellationToken);
 
         if (batch is null)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.NotFound,
+                "Sync batch was not found.",
+                HttpContext.GetCorrelationId());
+
+            return NotFound(error);
+        }
+
+        if (batch.OrganizationId != organizationId)
         {
             var error = ApiErrorResponse.Create(
                 ApiErrorCodes.NotFound,
