@@ -1809,7 +1809,7 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
                     b.Property<int>("ConflictCount")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("DeviceId")
+                    b.Property<Guid?>("DeviceId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ErrorSummary")

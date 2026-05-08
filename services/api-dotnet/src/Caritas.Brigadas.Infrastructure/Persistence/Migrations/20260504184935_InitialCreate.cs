@@ -766,7 +766,7 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OrganizationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    DeviceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    DeviceId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     BrigadeId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     StartedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
