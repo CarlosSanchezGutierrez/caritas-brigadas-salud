@@ -136,7 +136,7 @@ public sealed class PatientVisitsController : ControllerBase
                 HttpContext.GetCorrelationId(),
                 "Patient visit created successfully.");
 
-            return Created($"/api/v1/patient-visits/{visit.Id}", response);
+            return Created($"api/v1/organizations/{organizationId}/patient-visits/{visit.Id}", response);
         }
         catch (KeyNotFoundException exception)
         {
