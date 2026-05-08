@@ -399,6 +399,27 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
                 "consent-documents.write",
                 "sync-batches.write"
             },
+            ["SERVICE_STUDENT"] = new[]
+            {
+                "organizations.read",
+                "services.read",
+                "communities.read",
+                "mobile-units.read",
+                "brigades.read",
+                "brigade-services.read",
+                "patients.read",
+                "patients.write",
+                "patient-visits.read",
+                "patient-visits.write",
+                "service-encounters.read",
+                "service-encounters.write",
+                "form-templates.read",
+                "form-responses.read",
+                "form-responses.write",
+                "consent-documents.read",
+                "consent-documents.write",
+                "sync-batches.write"
+            },
 
             ["AUDITOR"] = new[]
             {
