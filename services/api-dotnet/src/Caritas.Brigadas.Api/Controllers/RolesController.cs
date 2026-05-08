@@ -1,7 +1,8 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Caritas.Brigadas.Api.Controllers;
@@ -21,7 +22,7 @@ public sealed class RolesController : ControllerBase
     }
 
     /// <summary>
-    /// Lista roles de una organización.
+    /// Lista roles de una organizaciÃ³n.
     /// </summary>
     [HttpGet("api/v1/organizations/{organizationId:guid}/roles")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<RoleSummaryDto>>), StatusCodes.Status200OK)]
@@ -73,13 +74,15 @@ public sealed class RolesController : ControllerBase
     }
 
     /// <summary>
-    /// Asigna un rol a un usuario dentro de una organización.
+    /// Asigna un rol a un usuario dentro de una organizaciÃ³n.
     /// </summary>
     [HttpPost("api/v1/organizations/{organizationId:guid}/users/{userId:guid}/roles")]
     [ProducesResponseType(typeof(ApiResponse<UserRoleSummaryDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.RolesAssign)]
+
     public async Task<IActionResult> AssignRoleAsync(
         Guid organizationId,
         Guid userId,
