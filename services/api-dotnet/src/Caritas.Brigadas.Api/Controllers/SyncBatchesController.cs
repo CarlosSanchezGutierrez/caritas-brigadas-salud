@@ -136,7 +136,7 @@ public sealed class SyncBatchesController : ControllerBase
                 HttpContext.GetCorrelationId(),
                 "Sync batch received successfully.");
 
-            return Created($"/api/v1/sync-batches/{batch.Id}", payload);
+            return Created($"/api/v1/organizations/{organizationId}/sync-batches/{batch.Id}", payload);
         }
         catch (KeyNotFoundException exception)
         {
