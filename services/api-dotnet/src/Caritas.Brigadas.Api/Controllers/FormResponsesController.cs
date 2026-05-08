@@ -136,7 +136,7 @@ public sealed class FormResponsesController : ControllerBase
                 HttpContext.GetCorrelationId(),
                 "Form response created successfully.");
 
-            return Created($"/api/v1/form-responses/{response.Id}", payload);
+            return Created($"/api/v1/organizations/{organizationId}/form-responses/{response.Id}", payload);
         }
         catch (KeyNotFoundException exception)
         {
