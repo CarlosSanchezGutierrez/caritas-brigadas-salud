@@ -13,7 +13,7 @@ namespace Caritas.Brigadas.Api.Controllers;
 /// Endpoints para servicios disponibles dentro de una brigada.
 /// </summary>
 [ApiController]
-[Route("api/v1/brigades/{brigadeId:guid}/services")]
+[Route("api/v1/organizations/{organizationId:guid}/brigades/{brigadeId:guid}/services")]
 [Produces("application/json")]
 public sealed class BrigadeServicesController : ControllerBase
 {
@@ -32,6 +32,7 @@ public sealed class BrigadeServicesController : ControllerBase
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     [Authorize(Policy = PermissionCodes.BrigadeServicesRead)]
     public async Task<IActionResult> ListAsync(
+        Guid organizationId,
         Guid brigadeId,
         CancellationToken cancellationToken)
     {
@@ -42,7 +43,12 @@ public sealed class BrigadeServicesController : ControllerBase
             return DatabaseNotConfigured();
         }
 
-        var services = await repository.ListByBrigadeAsync(
+        
+        if (!await BrigadeBelongsToOrganizationAsync(organizationId, brigadeId, cancellationToken))
+        {
+            return NotFound();
+        }
+var services = await repository.ListByBrigadeAsync(
             brigadeId,
             cancellationToken);
 
@@ -62,6 +68,7 @@ public sealed class BrigadeServicesController : ControllerBase
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     [Authorize(Policy = PermissionCodes.BrigadeServicesWrite)]
     public async Task<IActionResult> AssignAsync(
+        Guid organizationId,
         Guid brigadeId,
         [FromBody] AssignBrigadeServiceRequest request,
         CancellationToken cancellationToken)
@@ -73,7 +80,12 @@ public sealed class BrigadeServicesController : ControllerBase
             return DatabaseNotConfigured();
         }
 
-        try
+        
+        if (!await BrigadeBelongsToOrganizationAsync(organizationId, brigadeId, cancellationToken))
+        {
+            return NotFound();
+        }
+try
         {
             var assignment = await repository.AssignAsync(
                 brigadeId,
@@ -85,7 +97,7 @@ public sealed class BrigadeServicesController : ControllerBase
                 HttpContext.GetCorrelationId(),
                 "Service assigned to brigade successfully.");
 
-            return Created($"/api/v1/brigades/{brigadeId}/services", response);
+            return Created($"/api/v1/organizations/{organizationId}/brigades/{brigadeId}/services", response);
         }
         catch (KeyNotFoundException exception)
         {

@@ -27,6 +27,7 @@ public sealed class RolesController : ControllerBase
     [HttpGet("api/v1/organizations/{organizationId:guid}/roles")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<RoleSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.RolesRead)]
     public async Task<IActionResult> ListRolesAsync(
         Guid organizationId,
         CancellationToken cancellationToken)
@@ -50,10 +51,12 @@ public sealed class RolesController : ControllerBase
     /// <summary>
     /// Lista los roles asignados a un usuario.
     /// </summary>
-    [HttpGet("api/v1/users/{userId:guid}/roles")]
+    [HttpGet("api/v1/organizations/{organizationId:guid}/users/{userId:guid}/roles")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<UserRoleSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.RolesRead)]
     public async Task<IActionResult> ListUserRolesAsync(
+        Guid organizationId,
         Guid userId,
         CancellationToken cancellationToken)
     {
@@ -108,7 +111,7 @@ public sealed class RolesController : ControllerBase
                 HttpContext.GetCorrelationId(),
                 "Role assigned successfully.");
 
-            return Created($"/api/v1/users/{userId}/roles", response);
+            return Created($"/api/v1/organizations/{organizationId}/users/{userId}/roles", response);
         }
         catch (KeyNotFoundException exception)
         {
