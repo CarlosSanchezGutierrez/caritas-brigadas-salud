@@ -58,6 +58,7 @@ public sealed class PatientsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<PatientSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.PatientsRead)]
     public async Task<IActionResult> GetByIdAsync(
         Guid patientId,
         CancellationToken cancellationToken)
