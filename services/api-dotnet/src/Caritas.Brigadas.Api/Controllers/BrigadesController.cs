@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Caritas.Brigadas.Contracts.Security;
+using Microsoft.AspNetCore.Authorization;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Brigades;
@@ -53,12 +54,13 @@ public sealed class BrigadesController : ControllerBase
     /// <summary>
     /// Obtiene una brigada por identificador.
     /// </summary>
-    [HttpGet("api/v1/brigades/{brigadeId:guid}")]
+    [HttpGet("api/v1/organizations/{organizationId:guid}/brigades/{brigadeId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<BrigadeSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     [Authorize(Policy = PermissionCodes.BrigadesRead)]
     public async Task<IActionResult> GetByIdAsync(
+        Guid organizationId,
         Guid brigadeId,
         CancellationToken cancellationToken)
     {
@@ -74,6 +76,16 @@ public sealed class BrigadesController : ControllerBase
             cancellationToken);
 
         if (brigade is null)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.NotFound,
+                "Brigade was not found.",
+                HttpContext.GetCorrelationId());
+
+            return NotFound(error);
+        }
+
+        if (brigade.OrganizationId != organizationId)
         {
             var error = ApiErrorResponse.Create(
                 ApiErrorCodes.NotFound,
