@@ -136,7 +136,7 @@ public sealed class ServiceEncountersController : ControllerBase
                 HttpContext.GetCorrelationId(),
                 "Service encounter created successfully.");
 
-            return Created($"/api/v1/service-encounters/{encounter.Id}", response);
+            return Created($"/api/v1/organizations/{organizationId}/service-encounters/{encounter.Id}", response);
         }
         catch (KeyNotFoundException exception)
         {

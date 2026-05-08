@@ -134,7 +134,7 @@ public sealed class BrigadesController : ControllerBase
                 HttpContext.GetCorrelationId(),
                 "Brigade created successfully.");
 
-            return Created($"/api/v1/brigades/{brigade.Id}", response);
+            return Created($"/api/v1/organizations/{organizationId}/brigades/{brigade.Id}", response);
         }
         catch (KeyNotFoundException exception)
         {

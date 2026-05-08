@@ -134,7 +134,7 @@ public sealed class MobileUnitsController : ControllerBase
                 HttpContext.GetCorrelationId(),
                 "Mobile unit created successfully.");
 
-            return Created($"/api/v1/mobile-units/{unit.Id}", response);
+            return Created($"/api/v1/organizations/{organizationId}/mobile-units/{unit.Id}", response);
         }
         catch (KeyNotFoundException exception)
         {
