@@ -1,3 +1,4 @@
+using Caritas.Brigadas.Application.Security;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using Caritas.Brigadas.Contracts.Security;
@@ -35,12 +36,12 @@ public sealed class DisabledAuthenticationHandler : AuthenticationHandler<Authen
             new(CurrentUserClaimTypes.OrganizationId, DisabledAuthenticationDefaults.OrganizationId.ToString()),
             new(ClaimTypes.Name, "Disabled Development User"),
             new(ClaimTypes.Email, "disabled-auth@localhost"),
-            new(CurrentUserClaimTypes.Role, RoleCodes.SuperAdmin)
+            new(CurrentUserClaimTypes.RoleCode, RoleCodes.SuperAdmin)
         };
 
         foreach (var permissionCode in PermissionCodes.All)
         {
-            claims.Add(new Claim(CurrentUserClaimTypes.Permission, permissionCode));
+            claims.Add(new Claim(CurrentUserClaimTypes.PermissionCode, permissionCode));
         }
 
         var identity = new ClaimsIdentity(
