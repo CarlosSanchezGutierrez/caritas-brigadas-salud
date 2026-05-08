@@ -134,7 +134,7 @@ public sealed class CommunitiesController : ControllerBase
                 HttpContext.GetCorrelationId(),
                 "Community created successfully.");
 
-            return Created($"api/v1/organizations/{organizationId}/communities/{community.Id}", response);
+            return Created($"/api/v1/organizations/{organizationId}/communities/{community.Id}", response);
         }
         catch (KeyNotFoundException exception)
         {
