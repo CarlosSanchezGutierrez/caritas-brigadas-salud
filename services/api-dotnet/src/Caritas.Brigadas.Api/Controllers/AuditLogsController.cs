@@ -44,12 +44,13 @@ public sealed class AuditLogsController : ControllerBase
             HttpContext.GetCorrelationId()));
     }
 
-    [HttpGet("audit-logs/{auditLogId:guid}")]
+    [HttpGet("organizations/{organizationId:guid}/audit-logs/{auditLogId:guid}")]
     [Authorize(Policy = PermissionCodes.AuditLogsRead)]
     [ProducesResponseType(typeof(ApiResponse<AuditLogSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> GetByIdAsync(
+        Guid organizationId,
         Guid auditLogId,
         CancellationToken cancellationToken)
     {
@@ -71,6 +72,11 @@ public sealed class AuditLogsController : ControllerBase
         {
             return NotFound();
         }
+
+            if (auditLog.OrganizationId != organizationId)
+            {
+                return NotFound();
+            }
 return Ok(ApiResponse<AuditLogSummaryDto>.Ok(auditLog!,
                 HttpContext.GetCorrelationId()));
         }
