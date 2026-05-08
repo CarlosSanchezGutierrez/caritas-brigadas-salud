@@ -46,7 +46,7 @@ public static class ConfiguredAuthenticationServiceExtensions
                     "Disabled authentication mode is only allowed in Development environment.");
             }
 
-            services.AddAuthorization();
+            services.AddDisabledAuthentication(environment);
             return services;
         }
 

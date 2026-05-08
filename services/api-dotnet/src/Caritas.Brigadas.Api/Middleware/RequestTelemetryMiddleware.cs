@@ -38,8 +38,6 @@ public sealed class RequestTelemetryMiddleware
         finally
         {
             stopwatch.Stop();
-
-            var sanitizedPath = SanitizePath(context.Request.Path);
             using var scope = _logger.BeginScope(new Dictionary<string, object?>
             {
                 ["TraceId"] = context.TraceIdentifier,

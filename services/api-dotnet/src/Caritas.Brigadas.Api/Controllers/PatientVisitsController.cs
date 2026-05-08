@@ -1,4 +1,5 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+﻿using Caritas.Brigadas.Contracts.Security;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Application.PatientVisits;
 using Caritas.Brigadas.Contracts.Api;
@@ -54,11 +55,13 @@ public sealed class PatientVisitsController : ControllerBase
     /// <summary>
     /// Obtiene una visita por identificador.
     /// </summary>
-    [HttpGet("api/v1/patient-visits/{visitId:guid}")]
+    [HttpGet("api/v1/organizations/{organizationId:guid}/patient-visits/{visitId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<PatientVisitSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.PatientVisitsRead)]
     public async Task<IActionResult> GetByIdAsync(
+        Guid organizationId,
         Guid visitId,
         CancellationToken cancellationToken)
     {
@@ -74,6 +77,16 @@ public sealed class PatientVisitsController : ControllerBase
             cancellationToken);
 
         if (visit is null)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.NotFound,
+                "Patient visit was not found.",
+                HttpContext.GetCorrelationId());
+
+            return NotFound(error);
+        }
+
+        if (visit.OrganizationId != organizationId)
         {
             var error = ApiErrorResponse.Create(
                 ApiErrorCodes.NotFound,

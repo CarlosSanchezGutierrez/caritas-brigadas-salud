@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Caritas.Brigadas.Contracts.Security;
+using Microsoft.AspNetCore.Authorization;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Users;
@@ -52,12 +53,13 @@ public sealed class UsersController : ControllerBase
     /// <summary>
     /// Obtiene un usuario por identificador.
     /// </summary>
-    [HttpGet("api/v1/users/{userId:guid}")]
+    [HttpGet("api/v1/organizations/{organizationId:guid}/users/{userId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<UserSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     [Authorize(Policy = PermissionCodes.UsersRead)]
     public async Task<IActionResult> GetByIdAsync(
+        Guid organizationId,
         Guid userId,
         CancellationToken cancellationToken)
     {
@@ -73,6 +75,16 @@ public sealed class UsersController : ControllerBase
             cancellationToken);
 
         if (user is null)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.NotFound,
+                "User was not found.",
+                HttpContext.GetCorrelationId());
+
+            return NotFound(error);
+        }
+
+        if (user.OrganizationId != organizationId)
         {
             var error = ApiErrorResponse.Create(
                 ApiErrorCodes.NotFound,

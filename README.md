@@ -1,31 +1,45 @@
-﻿# Cáritas Brigadas de Salud
+# Cáritas Brigadas de Salud
 
-Plataforma institucional para registrar, sincronizar, auditar, analizar y reportar atenciones realizadas en brigadas de salud de Cáritas de Monterrey.
+Plataforma institucional para apoyar la operación digital de brigadas de salud, con enfoque en trazabilidad, seguridad, auditoría, reportes y evolución mantenible por estudiantes y equipos técnicos.
 
-Este repositorio es específico para Cáritas de Monterrey y el Tec de Monterrey. No es un SaaS comercial, no es una plataforma multi-ONG pública y no debe mezclarse con proyectos comerciales externos.
+Este repositorio está diseñado como una base seria para colaboración entre Cáritas, Tec de Monterrey y futuros contribuidores técnicos. No es solo una app: es un sistema preparado para crecer con gobierno de repositorio, controles de seguridad, pruebas, documentación operativa y una arquitectura modular.
 
-## Stack objetivo
+## Estado del repositorio
 
-- Web/PWA: Next.js + TypeScript
-- iOS/iPadOS: SwiftUI
-- Android: Flutter
-- Backend: ASP.NET Core
-- Base de datos: SQL Server
-- Contratos: OpenAPI + JSON Schema
-- Formularios: JSON versionados
-- Offline: almacenamiento local cifrado + sincronización por lotes
-- Seguridad: RBAC, auditoría, cifrado, rate limiting y control de dispositivos
+- Backend ASP.NET Core con arquitectura por capas.
+- Frontend Next.js como app shell institucional.
+- SQL Server como base de datos objetivo.
+- Docker baseline para empaquetado de API.
+- GitHub Actions con gates de calidad, seguridad, Docker, supply chain, testing y gobernanza.
+- SBOM generado en CI.
+- Dependency Review vía REST API para bloquear vulnerabilidades high y critical sin annotations ruidosas.
+- Branch protection y rulesets para proteger develop y main.
+- Documentación de producción, seguridad, testing, deployment y operación.
 
-## Principios no negociables
+## Lectura recomendada
 
-- Las apps nunca se conectan directo a SQL Server.
-- Web, iOS y Android consumen la misma API.
-- El sistema debe funcionar offline en campo.
-- Los alumnos no deben acceder a datos reales identificables.
-- Toda acción sensible debe quedar auditada.
-- La IA solo puede usarse para apoyo administrativo, analítico o documental.
-- No se permite IA para diagnóstico, tratamiento o decisión clínica autónoma.
+Empieza aquí:
 
-## Estado del proyecto
+- docs/START_HERE.md
+- docs/architecture/system-overview.md
+- docs/architecture/folder-map.md
+- docs/contributing/local-development.md
+- docs/contributing/contribution-paths.md
+- docs/governance/maintainer-playbook.md
+- docs/operations/ti-handoff.md
+- docs/security/security-map.md
 
-Fase inicial: estructura institucional, documentación técnica y primer vertical slice.
+## Regla principal
+
+Nadie debe meter cambios a develop o main sin Pull Request y sin que pasen los checks requeridos.
+
+## Qué NO es este repositorio todavía
+
+- No es todavía un despliegue productivo final.
+- No debe almacenar datos reales de pacientes en el repositorio.
+- No debe contener secretos, connection strings reales ni llaves privadas.
+- No reemplaza aprobación institucional, revisión legal ni validación final de TI.
+
+## Qué sí representa
+
+Una base técnica seria para convertir el proyecto en un sistema institucional mantenible, auditable y escalable.

@@ -1,4 +1,5 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+﻿using Caritas.Brigadas.Contracts.Security;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Application.ServiceEncounters;
 using Caritas.Brigadas.Contracts.Api;
@@ -54,11 +55,13 @@ public sealed class ServiceEncountersController : ControllerBase
     /// <summary>
     /// Obtiene una atención de servicio por identificador.
     /// </summary>
-    [HttpGet("api/v1/service-encounters/{encounterId:guid}")]
+    [HttpGet("api/v1/organizations/{organizationId:guid}/service-encounters/{encounterId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<ServiceEncounterSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.ServiceEncountersRead)]
     public async Task<IActionResult> GetByIdAsync(
+        Guid organizationId,
         Guid encounterId,
         CancellationToken cancellationToken)
     {
@@ -74,6 +77,16 @@ public sealed class ServiceEncountersController : ControllerBase
             cancellationToken);
 
         if (encounter is null)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.NotFound,
+                "Service encounter was not found.",
+                HttpContext.GetCorrelationId());
+
+            return NotFound(error);
+        }
+
+        if (encounter.OrganizationId != organizationId)
         {
             var error = ApiErrorResponse.Create(
                 ApiErrorCodes.NotFound,
