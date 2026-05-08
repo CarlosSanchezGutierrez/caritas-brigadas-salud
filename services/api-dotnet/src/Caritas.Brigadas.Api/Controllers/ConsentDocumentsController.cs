@@ -1,4 +1,5 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+﻿using Caritas.Brigadas.Contracts.Security;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Application.ConsentDocuments;
 using Caritas.Brigadas.Contracts.Api;
@@ -54,11 +55,13 @@ public sealed class ConsentDocumentsController : ControllerBase
     /// <summary>
     /// Obtiene un consentimiento por identificador.
     /// </summary>
-    [HttpGet("api/v1/consent-documents/{consentDocumentId:guid}")]
+    [HttpGet("api/v1/organizations/{organizationId:guid}/consent-documents/{consentDocumentId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<ConsentDocumentSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.ConsentDocumentsRead)]
     public async Task<IActionResult> GetByIdAsync(
+        Guid organizationId,
         Guid consentDocumentId,
         CancellationToken cancellationToken)
     {
@@ -74,6 +77,16 @@ public sealed class ConsentDocumentsController : ControllerBase
             cancellationToken);
 
         if (document is null)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.NotFound,
+                "Consent document was not found.",
+                HttpContext.GetCorrelationId());
+
+            return NotFound(error);
+        }
+
+        if (document.OrganizationId != organizationId)
         {
             var error = ApiErrorResponse.Create(
                 ApiErrorCodes.NotFound,

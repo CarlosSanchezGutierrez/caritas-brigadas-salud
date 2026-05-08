@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Caritas.Brigadas.Contracts.Security;
+using Microsoft.AspNetCore.Authorization;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.MobileUnits;
@@ -53,12 +54,13 @@ public sealed class MobileUnitsController : ControllerBase
     /// <summary>
     /// Obtiene una unidad móvil por identificador.
     /// </summary>
-    [HttpGet("api/v1/mobile-units/{mobileUnitId:guid}")]
+    [HttpGet("api/v1/organizations/{organizationId:guid}/mobile-units/{mobileUnitId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<MobileUnitSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     [Authorize(Policy = PermissionCodes.MobileUnitsRead)]
     public async Task<IActionResult> GetByIdAsync(
+        Guid organizationId,
         Guid mobileUnitId,
         CancellationToken cancellationToken)
     {
@@ -74,6 +76,16 @@ public sealed class MobileUnitsController : ControllerBase
             cancellationToken);
 
         if (unit is null)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.NotFound,
+                "Mobile unit was not found.",
+                HttpContext.GetCorrelationId());
+
+            return NotFound(error);
+        }
+
+        if (unit.OrganizationId != organizationId)
         {
             var error = ApiErrorResponse.Create(
                 ApiErrorCodes.NotFound,

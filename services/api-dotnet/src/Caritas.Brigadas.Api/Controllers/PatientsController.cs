@@ -1,4 +1,5 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+﻿using Caritas.Brigadas.Contracts.Security;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Application.Patients;
 using Caritas.Brigadas.Contracts.Api;
@@ -54,12 +55,13 @@ public sealed class PatientsController : ControllerBase
     /// <summary>
     /// Obtiene un paciente por identificador.
     /// </summary>
-    [HttpGet("api/v1/patients/{patientId:guid}")]
+    [HttpGet("api/v1/organizations/{organizationId:guid}/patients/{patientId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<PatientSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     [Authorize(Policy = PermissionCodes.PatientsRead)]
     public async Task<IActionResult> GetByIdAsync(
+        Guid organizationId,
         Guid patientId,
         CancellationToken cancellationToken)
     {
@@ -75,6 +77,16 @@ public sealed class PatientsController : ControllerBase
             cancellationToken);
 
         if (patient is null)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.NotFound,
+                "Patient was not found.",
+                HttpContext.GetCorrelationId());
+
+            return NotFound(error);
+        }
+
+        if (patient.OrganizationId != organizationId)
         {
             var error = ApiErrorResponse.Create(
                 ApiErrorCodes.NotFound,

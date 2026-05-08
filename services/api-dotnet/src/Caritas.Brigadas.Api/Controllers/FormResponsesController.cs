@@ -1,4 +1,5 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+﻿using Caritas.Brigadas.Contracts.Security;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Application.FormResponses;
 using Caritas.Brigadas.Contracts.Api;
@@ -54,11 +55,13 @@ public sealed class FormResponsesController : ControllerBase
     /// <summary>
     /// Obtiene una respuesta de formulario por identificador.
     /// </summary>
-    [HttpGet("api/v1/form-responses/{formResponseId:guid}")]
+    [HttpGet("api/v1/organizations/{organizationId:guid}/form-responses/{formResponseId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<FormResponseSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.FormResponsesRead)]
     public async Task<IActionResult> GetByIdAsync(
+        Guid organizationId,
         Guid formResponseId,
         CancellationToken cancellationToken)
     {
@@ -74,6 +77,16 @@ public sealed class FormResponsesController : ControllerBase
             cancellationToken);
 
         if (response is null)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.NotFound,
+                "Form response was not found.",
+                HttpContext.GetCorrelationId());
+
+            return NotFound(error);
+        }
+
+        if (response.OrganizationId != organizationId)
         {
             var error = ApiErrorResponse.Create(
                 ApiErrorCodes.NotFound,

@@ -1,4 +1,5 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+﻿using Caritas.Brigadas.Contracts.Security;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Application.FormTemplates;
 using Caritas.Brigadas.Contracts.Api;
@@ -53,11 +54,13 @@ public sealed class FormTemplatesController : ControllerBase
     /// <summary>
     /// Obtiene una plantilla de formulario por identificador.
     /// </summary>
-    [HttpGet("api/v1/form-templates/{formTemplateId:guid}")]
+    [HttpGet("api/v1/organizations/{organizationId:guid}/form-templates/{formTemplateId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<FormTemplateSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.FormTemplatesRead)]
     public async Task<IActionResult> GetByIdAsync(
+        Guid organizationId,
         Guid formTemplateId,
         CancellationToken cancellationToken)
     {
@@ -73,6 +76,16 @@ public sealed class FormTemplatesController : ControllerBase
             cancellationToken);
 
         if (template is null)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.NotFound,
+                "Form template was not found.",
+                HttpContext.GetCorrelationId());
+
+            return NotFound(error);
+        }
+
+        if (template.OrganizationId != organizationId)
         {
             var error = ApiErrorResponse.Create(
                 ApiErrorCodes.NotFound,
