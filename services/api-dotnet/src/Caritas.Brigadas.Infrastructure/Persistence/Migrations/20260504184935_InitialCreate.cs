@@ -338,6 +338,8 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
                     ResponseHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CompletedByUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CompletedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+     SubmittedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+     CapturedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     CreatedOffline = table.Column<bool>(type: "bit", nullable: false),
                     DeviceId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
