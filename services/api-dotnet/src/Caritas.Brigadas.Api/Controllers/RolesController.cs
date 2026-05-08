@@ -2,6 +2,7 @@
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Caritas.Brigadas.Api.Controllers;
@@ -80,6 +81,7 @@ public sealed class RolesController : ControllerBase
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.RolesAssign)]
     public async Task<IActionResult> AssignRoleAsync(
         Guid organizationId,
         Guid userId,
