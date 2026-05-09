@@ -1,16 +1,10 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 using Caritas.Brigadas.Application.Security;
-using System.Security.Claims;
 using Caritas.Brigadas.Api.Extensions;
-using System.Security.Claims;
 using Caritas.Brigadas.Application.Organizations;
-using System.Security.Claims;
 using Caritas.Brigadas.Contracts.Api;
-using System.Security.Claims;
 using Caritas.Brigadas.Contracts.Organizations;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Caritas.Brigadas.Api.Controllers;
