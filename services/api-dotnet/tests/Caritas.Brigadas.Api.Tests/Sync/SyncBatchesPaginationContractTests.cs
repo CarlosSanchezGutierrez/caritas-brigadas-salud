@@ -30,7 +30,7 @@ public sealed class SyncBatchesPaginationContractTests
         Assert.Contains("CountAsync(cancellationToken)", source);
         Assert.Contains(".Skip(pagination.Skip)", source);
         Assert.Contains(".Take(pageSize)", source);
-        Assert.Contains("ThenByDescending(syncBatch => syncBatch.Id)", source);
+        Assert.Contains("ThenByDescending(batch => batch.Id)", source);
         Assert.DoesNotContain(".Take(250)", source);
     }
 

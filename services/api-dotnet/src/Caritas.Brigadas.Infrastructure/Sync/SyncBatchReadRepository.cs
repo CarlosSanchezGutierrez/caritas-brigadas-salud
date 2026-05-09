@@ -32,16 +32,14 @@ public sealed class SyncBatchReadRepository : ISyncBatchReadRepository
 
         var query = _dbContext.SyncBatches
             .AsNoTracking()
-            .Where(syncBatch => syncBatch.OrganizationId == organizationId);
+            .Where(batch => batch.OrganizationId == organizationId);
 
         var totalCount = await query.CountAsync(cancellationToken);
 
         var items = await query
-            .OrderByDescending(syncBatch => syncBatch.CreatedAtUtc)
-            .ThenByDescending(syncBatch => syncBatch.Id)
             .Skip(pagination.Skip)
             .Take(pageSize)
-            .Select(syncBatch => new SyncBatchSummaryDto
+            .Select(batch => new SyncBatchSummaryDto
             {
                 Id = batch.Id,
                 OrganizationId = batch.OrganizationId,
