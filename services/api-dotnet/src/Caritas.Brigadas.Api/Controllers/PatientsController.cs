@@ -1,4 +1,3 @@
-﻿using Caritas.Brigadas.Contracts.Security;
 using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Application.Patients;
@@ -28,12 +27,13 @@ public sealed class PatientsController : ControllerBase
     /// Lista pacientes de una organización.
     /// </summary>
     [HttpGet("api/v1/organizations/{organizationId:guid}/patients")]
-    [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<PatientSummaryDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<PatientSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     [Authorize(Policy = PermissionCodes.PatientsRead)]
 
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
+        [FromQuery] PaginationRequest pagination,
         CancellationToken cancellationToken)
     {
         var repository = _serviceProvider.GetService<IPatientReadRepository>();
@@ -45,9 +45,10 @@ public sealed class PatientsController : ControllerBase
 
         var patients = await repository.ListByOrganizationAsync(
             organizationId,
+            pagination,
             cancellationToken);
 
-        return Ok(ApiResponse<IReadOnlyCollection<PatientSummaryDto>>.Ok(
+        return Ok(ApiResponse<PaginatedResponse<PatientSummaryDto>>.Ok(
             patients,
             HttpContext.GetCorrelationId()));
     }
