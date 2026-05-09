@@ -1,11 +1,13 @@
-﻿using Caritas.Brigadas.Contracts.Sync;
+using Caritas.Brigadas.Contracts.Api;
+using Caritas.Brigadas.Contracts.Sync;
 
 namespace Caritas.Brigadas.Application.Sync;
 
 public interface ISyncBatchReadRepository
 {
-    Task<IReadOnlyCollection<SyncBatchSummaryDto>> ListByOrganizationAsync(
+    Task<PaginatedResponse<SyncBatchSummaryDto>> ListByOrganizationAsync(
         Guid organizationId,
+        PaginationRequest pagination,
         CancellationToken cancellationToken = default);
 
     Task<SyncBatchSummaryDto?> GetByIdAsync(
