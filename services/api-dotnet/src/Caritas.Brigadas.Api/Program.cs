@@ -188,7 +188,7 @@ app.MapGet("/", (HttpContext httpContext) =>
     var payload = new
     {
         service = "caritas-brigadas-api",
-        name = "CÃƒÂ¡ritas Brigadas de Salud API",
+        name = "Cáritas Brigadas de Salud API",
         status = "running",
         environment = app.Environment.EnvironmentName,
         timestampUtc = DateTimeOffset.UtcNow
