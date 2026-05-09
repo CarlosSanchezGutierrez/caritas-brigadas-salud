@@ -1,11 +1,13 @@
-﻿using Caritas.Brigadas.Contracts.PatientVisits;
+using Caritas.Brigadas.Contracts.Api;
+using Caritas.Brigadas.Contracts.PatientVisits;
 
 namespace Caritas.Brigadas.Application.PatientVisits;
 
 public interface IPatientVisitReadRepository
 {
-    Task<IReadOnlyCollection<PatientVisitSummaryDto>> ListByOrganizationAsync(
+    Task<PaginatedResponse<PatientVisitSummaryDto>> ListByOrganizationAsync(
         Guid organizationId,
+        PaginationRequest pagination,
         CancellationToken cancellationToken = default);
 
     Task<PatientVisitSummaryDto?> GetByIdAsync(

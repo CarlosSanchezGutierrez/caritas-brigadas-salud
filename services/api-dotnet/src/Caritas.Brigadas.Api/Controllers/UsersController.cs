@@ -1,4 +1,3 @@
-﻿using Caritas.Brigadas.Contracts.Security;
 using Microsoft.AspNetCore.Authorization;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Api.Extensions;
@@ -27,11 +26,12 @@ public sealed class UsersController : ControllerBase
     /// Lista usuarios de una organización.
     /// </summary>
     [HttpGet("api/v1/organizations/{organizationId:guid}/users")]
-    [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<UserSummaryDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<UserSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     [Authorize(Policy = PermissionCodes.UsersRead)]
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
+        [FromQuery] PaginationRequest pagination,
         CancellationToken cancellationToken)
     {
         var repository = _serviceProvider.GetService<IUserReadRepository>();
@@ -43,9 +43,10 @@ public sealed class UsersController : ControllerBase
 
         var users = await repository.ListByOrganizationAsync(
             organizationId,
+            pagination,
             cancellationToken);
 
-        return Ok(ApiResponse<IReadOnlyCollection<UserSummaryDto>>.Ok(
+        return Ok(ApiResponse<PaginatedResponse<UserSummaryDto>>.Ok(
             users,
             HttpContext.GetCorrelationId()));
     }

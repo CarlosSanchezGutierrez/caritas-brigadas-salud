@@ -1,5 +1,6 @@
-﻿using Caritas.Brigadas.Application.Patients;
+using Caritas.Brigadas.Application.Patients;
 using Caritas.Brigadas.Contracts.Patients;
+using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,17 +15,34 @@ public sealed class PatientReadRepository : IPatientReadRepository
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyCollection<PatientSummaryDto>> ListByOrganizationAsync(
+    public async Task<PaginatedResponse<PatientSummaryDto>> ListByOrganizationAsync(
         Guid organizationId,
+        PaginationRequest pagination,
         CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Patients
+        if (organizationId == Guid.Empty)
+        {
+            throw new ArgumentException("Organization id is required.", nameof(organizationId));
+        }
+
+        ArgumentNullException.ThrowIfNull(pagination);
+
+        var pageNumber = pagination.NormalizedPageNumber;
+        var pageSize = pagination.NormalizedPageSize;
+
+        var query = _dbContext.Patients
             .AsNoTracking()
             .Where(patient =>
                 patient.OrganizationId == organizationId &&
-                !patient.IsDeleted)
-            .OrderBy(patient => patient.FullNameNormalized)
-            .ThenBy(patient => patient.PatientFolio)
+                !patient.IsDeleted);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderBy(patient => patient.PatientFolio)
+            .ThenBy(patient => patient.Id)
+            .Skip(pagination.Skip)
+            .Take(pageSize)
             .Select(patient => new PatientSummaryDto
             {
                 Id = patient.Id,
@@ -49,7 +67,15 @@ public sealed class PatientReadRepository : IPatientReadRepository
                 Status = patient.Status,
                 IsActive = patient.IsActive
             })
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
+
+        return new PaginatedResponse<PatientSummaryDto>
+        {
+            Items = items,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<PatientSummaryDto?> GetByIdAsync(

@@ -1,7 +1,7 @@
 import { getApiAuthHeaders } from "@/lib/auth-headers";
 import { caritasApiGet } from "@/lib/caritas-api";
 import { API_BASE_URL, DEV_ORGANIZATION_ID } from "@/lib/config";
-import type { AuditLogSummary, HealthStatus, ReportSummary } from "@/types/api";
+import type { AuditLogSummary, PaginatedResponse, HealthStatus, ReportSummary } from "@/types/api";
 
 export async function getSystemHealth(): Promise<HealthStatus | null> {
   const response = await caritasApiGet<HealthStatus>("/health");
@@ -17,11 +17,11 @@ export async function getReportSummary(): Promise<ReportSummary | null> {
 }
 
 export async function getAuditLogs(): Promise<AuditLogSummary[]> {
-  const response = await caritasApiGet<AuditLogSummary[]>(
+  const response = await caritasApiGet<PaginatedResponse<AuditLogSummary>>(
     `/organizations/${DEV_ORGANIZATION_ID}/audit-logs`,
   );
 
-  return Array.isArray(response.data) ? response.data : [];
+  return response.data?.items ?? [];
 }
 
 export async function downloadReportSummaryCsv(): Promise<void> {
