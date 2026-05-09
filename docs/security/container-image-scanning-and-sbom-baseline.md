@@ -2,15 +2,15 @@
 
 ## Objetivo
 
-Evitar que una imagen de API con vulnerabilidades crÃ­ticas o altas conocidas avance sin revisiÃ³n.
+Evitar que una imagen de API con vulnerabilidades críticas o altas conocidas avance sin revisión.
 
 ## Controles activos en CI
 
-- ConstrucciÃ³n de imagen Docker.
+- Construcción de imagen Docker.
 - Escaneo de imagen con Trivy.
-- Falla automÃ¡tica en vulnerabilidades CRITICAL,HIGH.
-- GeneraciÃ³n de SBOM en formato SPDX JSON.
-- PublicaciÃ³n del SBOM como artifact del workflow.
+- Falla automática en vulnerabilidades CRITICAL,HIGH.
+- Generación de SBOM en formato SPDX JSON.
+- Publicación del SBOM como artifact del workflow.
 
 ## Regla de bloqueo
 
@@ -26,25 +26,25 @@ Artifact esperado:
 
 ## Excepciones
 
-Toda excepciÃ³n debe estar documentada con:
+Toda excepción debe estar documentada con:
 
 - CVE.
 - Severidad.
 - Paquete afectado.
-- JustificaciÃ³n.
+- Justificación.
 - Riesgo aceptado por TI.
-- Fecha de expiraciÃ³n.
+- Fecha de expiración.
 
 ## No hacer
 
-- No ignorar vulnerabilidades crÃ­ticas permanentemente.
+- No ignorar vulnerabilidades críticas permanentemente.
 - No desplegar imagen sin SBOM.
-- No usar latest en producciÃ³n.
-- No publicar imÃ¡genes con secretos.
+- No usar latest en producción.
+- No publicar imágenes con secretos.
 
-## ProducciÃ³n
+## Producción
 
-Antes de producciÃ³n, TI debe definir si el escaneo oficial serÃ¡:
+Antes de producción, TI debe definir si el escaneo oficial será:
 
 - GitHub Actions + Trivy.
 - Microsoft Defender for Cloud.
