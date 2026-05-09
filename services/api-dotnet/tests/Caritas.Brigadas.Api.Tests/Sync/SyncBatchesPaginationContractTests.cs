@@ -30,7 +30,10 @@ public sealed class SyncBatchesPaginationContractTests
         Assert.Contains("CountAsync(cancellationToken)", source);
         Assert.Contains(".Skip(pagination.Skip)", source);
         Assert.Contains(".Take(pageSize)", source);
-        Assert.Contains("ThenByDescending(batch => batch.Id)", source);
+        Assert.True(
+            source.Contains("ThenByDescending(batch => batch.Id)", StringComparison.Ordinal) ||
+            source.Contains("OrderByDescending(batch => batch.Id)", StringComparison.Ordinal),
+            "Sync batch pagination query must use deterministic ordering by Id.");
         Assert.DoesNotContain(".Take(250)", source);
     }
 
