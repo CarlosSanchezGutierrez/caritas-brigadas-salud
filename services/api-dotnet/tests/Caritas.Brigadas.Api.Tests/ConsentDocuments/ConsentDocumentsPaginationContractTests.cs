@@ -30,15 +30,9 @@ public sealed class ConsentDocumentsPaginationContractTests
         Assert.Contains("CountAsync(cancellationToken)", source);
         Assert.Contains(".Skip(pagination.Skip)", source);
         Assert.Contains(".Take(pageSize)", source);
-        Assert.Contains("new ConsentDocumentSummaryDto", source);
+        Assert.Contains(".OrderByDescending(document => EF.Property<Guid>(document, \"Id\"))", source);
+        Assert.Contains("Select(MapToDto)", source);
         Assert.DoesNotContain(".Take(250)", source);
-
-        Assert.True(
-            source.Contains(".ThenByDescending(", StringComparison.Ordinal) ||
-            source.Contains(".ThenBy(", StringComparison.Ordinal) ||
-            source.Contains(".OrderByDescending(", StringComparison.Ordinal) ||
-            source.Contains(".OrderBy(", StringComparison.Ordinal),
-            "Consent document pagination query must use deterministic ordering.");
     }
 
     [Fact]

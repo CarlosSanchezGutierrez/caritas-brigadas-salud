@@ -1,7 +1,7 @@
 using System.Reflection;
 using Caritas.Brigadas.Application.ConsentDocuments;
-using Caritas.Brigadas.Contracts.ConsentDocuments;
 using Caritas.Brigadas.Contracts.Api;
+using Caritas.Brigadas.Contracts.ConsentDocuments;
 using Caritas.Brigadas.Domain.Entities;
 using Caritas.Brigadas.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -32,59 +32,23 @@ public sealed class ConsentDocumentReadRepository : IConsentDocumentReadReposito
         var pageNumber = pagination.NormalizedPageNumber;
         var pageSize = pagination.NormalizedPageSize;
 
-        var query = _dbContext.ConsentDocuments
+        var query = _dbContext.Set<ConsentDocument>()
             .AsNoTracking()
-            .Where( =>
-                .OrganizationId == organizationId &&
-                !.IsDeleted);
+            .Where(document =>
+                EF.Property<Guid>(document, "OrganizationId") == organizationId &&
+                !EF.Property<bool>(document, "IsDeleted"));
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        var items = await query
+        var documents = await query
+            .OrderByDescending(document => EF.Property<Guid>(document, "Id"))
             .Skip(pagination.Skip)
             .Take(pageSize)
-            .Select( => new ConsentDocumentSummaryDto
-            {
-                Id = GetGuidProperty(document, "Id"),
-            OrganizationId = GetGuidProperty(document, "OrganizationId"),
-            PatientId = GetGuidProperty(document, "PatientId"),
-            VisitId =
-                GetGuidNullableProperty(document, "VisitId") ??
-                GetGuidNullableProperty(document, "PatientVisitId"),
-            ConsentType =
-                GetStringProperty(document, "ConsentType") ??
-                GetStringProperty(document, "DocumentType") ??
-                string.Empty,
-            DocumentVersion =
-                GetStringProperty(document, "DocumentVersion") ??
-                GetStringProperty(document, "Version") ??
-                string.Empty,
-            DocumentTextSnapshot =
-                GetNullableStringProperty(document, "DocumentTextSnapshot") ??
-                GetNullableStringProperty(document, "TextSnapshot") ??
-                GetNullableStringProperty(document, "ContentSnapshot"),
-            SignatureDataUrl =
-                GetNullableStringProperty(document, "SignatureDataUrl") ??
-                GetNullableStringProperty(document, "SignatureBase64") ??
-                GetNullableStringProperty(document, "SignatureImageDataUrl"),
-            GuardianFullName = GetNullableStringProperty(document, "GuardianFullName"),
-            GuardianRelationship = GetNullableStringProperty(document, "GuardianRelationship"),
-            SignedByUserId =
-                GetGuidNullableProperty(document, "SignedByUserId") ??
-                GetGuidNullableProperty(document, "CapturedByUserId") ??
-                GetGuidNullableProperty(document, "CreatedByUserId"),
-            SignedAt =
-                GetDateTimeOffsetNullableProperty(document, "SignedAt") ??
-                GetDateTimeOffsetNullableProperty(document, "CapturedAt") ??
-                GetDateTimeOffsetNullableProperty(document, "CreatedAt"),
-            CreatedOffline = GetBoolProperty(document, "CreatedOffline"),
-            DeviceId = GetGuidNullableProperty(document, "DeviceId"),
-            SyncStatus =
-                GetStringProperty(document, "SyncStatus") ??
-                string.Empty,
-            IsDeleted = GetBoolProperty(document, "IsDeleted")
-            })
             .ToArrayAsync(cancellationToken);
+
+        var items = documents
+            .Select(MapToDto)
+            .ToArray();
 
         return new PaginatedResponse<ConsentDocumentSummaryDto>
         {
@@ -99,13 +63,17 @@ public sealed class ConsentDocumentReadRepository : IConsentDocumentReadReposito
         Guid consentDocumentId,
         CancellationToken cancellationToken = default)
     {
-        var documents = await _dbContext.Set<ConsentDocument>()
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
+        if (consentDocumentId == Guid.Empty)
+        {
+            throw new ArgumentException("Consent document id is required.", nameof(consentDocumentId));
+        }
 
-        var document = documents.SingleOrDefault(item =>
-            GetGuidProperty(item, "Id") == consentDocumentId &&
-            !GetBoolProperty(item, "IsDeleted"));
+        var document = await _dbContext.Set<ConsentDocument>()
+            .AsNoTracking()
+            .Where(item =>
+                EF.Property<Guid>(item, "Id") == consentDocumentId &&
+                !EF.Property<bool>(item, "IsDeleted"))
+            .SingleOrDefaultAsync(cancellationToken);
 
         return document is null
             ? null
