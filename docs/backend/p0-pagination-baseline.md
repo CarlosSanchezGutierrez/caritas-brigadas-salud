@@ -80,29 +80,29 @@ Respuesta esperada:
 
 ## Reglas de paginación
 
-La paginación se normaliza desde PaginationRequest.
+La paginación se normaliza desde `PaginationRequest`.
 
 Reglas principales:
 
-- pageNumber menor a 1 usa el valor por defecto.
-- pageSize menor a 1 usa el valor por defecto.
-- pageSize mayor al máximo se limita al máximo permitido.
-- pageNumber excesivamente grande se limita para evitar overflow en Skip.
-- Skip se calcula de forma segura.
-- El repositorio debe ejecutar CountAsync para obtener TotalCount.
-- El repositorio debe aplicar ordenamiento determinístico antes de Skip y Take.
+- `pageNumber` menor a 1 usa el valor por defecto.
+- `pageSize` menor a 1 usa el valor por defecto.
+- `pageSize` mayor al máximo se limita al máximo permitido.
+- `pageNumber` excesivamente grande se limita para evitar overflow en `Skip`.
+- `Skip` se calcula de forma segura.
+- El repositorio debe ejecutar `CountAsync` para obtener `TotalCount`.
+- El repositorio debe aplicar ordenamiento determinístico antes de `Skip` y `Take`.
 
 ## Endpoints P0 migrados
 
 | Área | Endpoint | DTO | Estado |
 |---|---|---|---|
-| Audit logs | GET /api/v1/organizations/{organizationId}/audit-logs | AuditLogSummaryDto | Paginado |
-| Patients | GET /api/v1/organizations/{organizationId}/patients | PatientSummaryDto | Paginado |
-| Users | GET /api/v1/organizations/{organizationId}/users | UserSummaryDto | Paginado |
-| Sync batches | GET /api/v1/organizations/{organizationId}/sync-batches | SyncBatchSummaryDto | Paginado |
-| Consent documents | GET /api/v1/organizations/{organizationId}/consent-documents | ConsentDocumentSummaryDto | Paginado |
-| Form responses | GET /api/v1/organizations/{organizationId}/form-responses | FormResponseSummaryDto | Paginado |
-| Patient visits | GET /api/v1/organizations/{organizationId}/patient-visits | PatientVisitSummaryDto | Paginado |
+| Audit logs | `GET /api/v1/organizations/{organizationId}/audit-logs` | `AuditLogSummaryDto` | Paginado |
+| Patients | `GET /api/v1/organizations/{organizationId}/patients` | `PatientSummaryDto` | Paginado |
+| Users | `GET /api/v1/organizations/{organizationId}/users` | `UserSummaryDto` | Paginado |
+| Sync batches | `GET /api/v1/organizations/{organizationId}/sync-batches` | `SyncBatchSummaryDto` | Paginado |
+| Consent documents | `GET /api/v1/organizations/{organizationId}/consent-documents` | `ConsentDocumentSummaryDto` | Paginado |
+| Form responses | `GET /api/v1/organizations/{organizationId}/form-responses` | `FormResponseSummaryDto` | Paginado |
+| Patient visits | `GET /api/v1/organizations/{organizationId}/patient-visits` | `PatientVisitSummaryDto` | Paginado |
 
 ## Reglas aplicadas en repositorios
 
@@ -121,13 +121,13 @@ var items = await query
 
 Criterios mínimos:
 
-- AsNoTracking() en lecturas.
-- Filtro por OrganizationId.
+- `AsNoTracking()` en lecturas.
+- Filtro por `OrganizationId`.
 - Exclusión de registros eliminados lógicamente cuando aplique.
-- Ordenamiento antes de Skip y Take.
-- Id como desempate determinístico cuando aplique.
-- Sin .Take(250) como límite fijo sustituto de paginación.
-- Sin ToListAsync antes de paginar.
+- Ordenamiento antes de `Skip` y `Take`.
+- `Id` como desempate determinístico cuando aplique.
+- Sin `.Take(250)` como límite fijo sustituto de paginación.
+- Sin `ToListAsync` antes de paginar.
 
 ## Ordenamiento crítico
 
@@ -135,17 +135,17 @@ Criterios mínimos:
 
 Debe conservar orden clínico/cronológico:
 
-1. SubmittedAt
-2. CapturedAt
-3. CreatedAt
-4. Id como desempate
+1. `SubmittedAt`
+2. `CapturedAt`
+3. `CreatedAt`
+4. `Id` como desempate
 
 ### Patient visits
 
 Debe conservar orden operativo por llegada:
 
-1. ArrivalTime
-2. Id como desempate
+1. `ArrivalTime`
+2. `Id` como desempate
 
 ### Audit logs
 
@@ -215,15 +215,15 @@ data class PaginatedResponse<T>(
 
 La fase P0 incluye validaciones de:
 
-- dotnet build con warnings como errores.
-- dotnet test con warnings como errores.
+- `dotnet build` con warnings como errores.
+- `dotnet test` con warnings como errores.
 - pruebas de contrato de paginación por endpoint.
-- verificación de que los controladores usan PaginatedResponse<TDto>.
-- verificación de que los controladores reciben PaginationRequest.
-- verificación de que los repositorios usan CountAsync, Skip y Take.
+- verificación de que los controladores usan `PaginatedResponse<TDto>`.
+- verificación de que los controladores reciben `PaginationRequest`.
+- verificación de que los repositorios usan `CountAsync`, `Skip` y `Take`.
 - validación de frontend cuando aplica.
 - actualización de mocks E2E para respetar respuestas paginadas.
-- release de baseline a main.
+- release de baseline a `main`.
 
 ## Pruebas de contrato agregadas
 
@@ -263,21 +263,21 @@ Este checkpoint no resuelve todavía:
 
 Después de P0, los listados P1 recomendados son:
 
-1. service-encounters
-2. rigades
-3. orm-templates
-4. communities
-5. mobile-units
-6. oles
-7. services
-8. rigade-services
+1. `service-encounters`
+2. `brigades`
+3. `form-templates`
+4. `communities`
+5. `mobile-units`
+6. `roles`
+7. `services`
+8. `brigade-services`
 
 ## Criterio para iniciar P1
 
 Antes de iniciar P1 debe cumplirse:
 
-- develop limpio.
-- main actualizado con el baseline P0.
+- `develop` limpio.
+- `main` actualizado con el baseline P0.
 - sin PRs abiertos.
 - build y tests pasando.
 - documentación checkpoint P0 mergeada.
