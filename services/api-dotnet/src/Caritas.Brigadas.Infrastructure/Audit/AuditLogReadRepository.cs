@@ -1,4 +1,5 @@
 using Caritas.Brigadas.Application.Audit;
+using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.Audit;
 using Caritas.Brigadas.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -14,8 +15,9 @@ public sealed class AuditLogReadRepository : IAuditLogReadRepository
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyCollection<AuditLogSummaryDto>> ListByOrganizationAsync(
+    public async Task<PaginatedResponse<AuditLogSummaryDto>> ListByOrganizationAsync(
         Guid organizationId,
+        PaginationRequest pagination,
         CancellationToken cancellationToken = default)
     {
         if (organizationId == Guid.Empty)
@@ -23,11 +25,22 @@ public sealed class AuditLogReadRepository : IAuditLogReadRepository
             throw new ArgumentException("Organization id is required.", nameof(organizationId));
         }
 
-        return await _dbContext.AuditLogs
+        ArgumentNullException.ThrowIfNull(pagination);
+
+        var pageNumber = pagination.NormalizedPageNumber;
+        var pageSize = pagination.NormalizedPageSize;
+
+        var query = _dbContext.AuditLogs
             .AsNoTracking()
-            .Where(auditLog => auditLog.OrganizationId == organizationId)
+            .Where(auditLog => auditLog.OrganizationId == organizationId);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
             .OrderByDescending(auditLog => auditLog.OccurredAtUtc)
-            .Take(250)
+            .ThenByDescending(auditLog => auditLog.Id)
+            .Skip(pagination.Skip)
+            .Take(pageSize)
             .Select(auditLog => new AuditLogSummaryDto
             {
                 Id = auditLog.Id,
@@ -42,6 +55,14 @@ public sealed class AuditLogReadRepository : IAuditLogReadRepository
                 DetailsJson = auditLog.DetailsJson
             })
             .ToArrayAsync(cancellationToken);
+
+        return new PaginatedResponse<AuditLogSummaryDto>
+        {
+            Items = items,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<AuditLogSummaryDto?> GetByIdAsync(
@@ -53,7 +74,7 @@ public sealed class AuditLogReadRepository : IAuditLogReadRepository
             throw new ArgumentException("Audit log id is required.", nameof(auditLogId));
         }
 
-        var auditLog = await _dbContext.AuditLogs
+        return await _dbContext.AuditLogs
             .AsNoTracking()
             .Where(item => item.Id == auditLogId)
             .Select(item => new AuditLogSummaryDto
@@ -69,13 +90,6 @@ public sealed class AuditLogReadRepository : IAuditLogReadRepository
                 IpAddress = item.IpAddress,
                 DetailsJson = item.DetailsJson
             })
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (auditLog is null)
-        {
-            throw new KeyNotFoundException("Audit log was not found.");
-        }
-
-        return auditLog;
+            .SingleOrDefaultAsync(cancellationToken);
     }
 }

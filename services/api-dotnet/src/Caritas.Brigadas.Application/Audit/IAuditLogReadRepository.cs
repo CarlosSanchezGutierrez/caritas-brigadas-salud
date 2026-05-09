@@ -1,11 +1,13 @@
-﻿using Caritas.Brigadas.Contracts.Audit;
+using Caritas.Brigadas.Contracts.Api;
+using Caritas.Brigadas.Contracts.Audit;
 
 namespace Caritas.Brigadas.Application.Audit;
 
 public interface IAuditLogReadRepository
 {
-    Task<IReadOnlyCollection<AuditLogSummaryDto>> ListByOrganizationAsync(
+    Task<PaginatedResponse<AuditLogSummaryDto>> ListByOrganizationAsync(
         Guid organizationId,
+        PaginationRequest pagination,
         CancellationToken cancellationToken = default);
 
     Task<AuditLogSummaryDto?> GetByIdAsync(

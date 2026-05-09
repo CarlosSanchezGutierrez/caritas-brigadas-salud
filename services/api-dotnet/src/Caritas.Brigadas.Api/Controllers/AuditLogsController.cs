@@ -22,10 +22,11 @@ public sealed class AuditLogsController : ControllerBase
 
     [HttpGet("organizations/{organizationId:guid}/audit-logs")]
     [Authorize(Policy = PermissionCodes.AuditLogsRead)]
-    [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<AuditLogSummaryDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<AuditLogSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
+        [FromQuery] PaginationRequest pagination,
         CancellationToken cancellationToken)
     {
         var repository = _serviceProvider.GetService<IAuditLogReadRepository>();
@@ -37,9 +38,10 @@ public sealed class AuditLogsController : ControllerBase
 
         var auditLogs = await repository.ListByOrganizationAsync(
             organizationId,
+            pagination,
             cancellationToken);
 
-        return Ok(ApiResponse<IReadOnlyCollection<AuditLogSummaryDto>>.Ok(
+        return Ok(ApiResponse<PaginatedResponse<AuditLogSummaryDto>>.Ok(
             auditLogs,
             HttpContext.GetCorrelationId()));
     }
@@ -67,17 +69,18 @@ public sealed class AuditLogsController : ControllerBase
                 auditLogId,
                 cancellationToken);
 
-            
-        if (auditLog is null)
-        {
-            return NotFound();
-        }
+            if (auditLog is null)
+            {
+                return NotFound();
+            }
 
             if (auditLog.OrganizationId != organizationId)
             {
                 return NotFound();
             }
-return Ok(ApiResponse<AuditLogSummaryDto>.Ok(auditLog!,
+
+            return Ok(ApiResponse<AuditLogSummaryDto>.Ok(
+                auditLog,
                 HttpContext.GetCorrelationId()));
         }
         catch (KeyNotFoundException exception)

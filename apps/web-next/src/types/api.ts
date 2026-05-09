@@ -1,4 +1,4 @@
-﻿export type HealthStatus = {
+export type HealthStatus = {
   service?: string;
   status?: string;
   timestampUtc?: string;
@@ -15,4 +15,12 @@ export type AuditLogSummary = {
   entityId?: string | null;
   occurredAtUtc?: string;
   createdAtUtc?: string;
+};
+
+export type PaginatedResponse<TItem> = {
+  items?: TItem[];
+  pageNumber?: number;
+  pageSize?: number;
+  totalCount?: number;
+  totalPages?: number;
 };
