@@ -1,4 +1,3 @@
-﻿using Caritas.Brigadas.Contracts.Security;
 using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Application.Patients;
@@ -28,7 +27,7 @@ public sealed class PatientsController : ControllerBase
     /// Lista pacientes de una organización.
     /// </summary>
     [HttpGet("api/v1/organizations/{organizationId:guid}/patients")]
-    [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<PatientSummaryDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<PatientSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     [Authorize(Policy = PermissionCodes.PatientsRead)]
 
