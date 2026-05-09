@@ -1,4 +1,3 @@
-﻿using Caritas.Brigadas.Contracts.Security;
 using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Application.ConsentDocuments;
@@ -28,12 +27,13 @@ public sealed class ConsentDocumentsController : ControllerBase
     /// Lista consentimientos de una organización.
     /// </summary>
     [HttpGet("api/v1/organizations/{organizationId:guid}/consent-documents")]
-    [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<ConsentDocumentSummaryDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<ConsentDocumentSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     [Authorize(Policy = PermissionCodes.ConsentDocumentsRead)]
 
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
+        [FromQuery] PaginationRequest pagination,
         CancellationToken cancellationToken)
     {
         var repository = _serviceProvider.GetService<IConsentDocumentReadRepository>();
@@ -45,9 +45,10 @@ public sealed class ConsentDocumentsController : ControllerBase
 
         var documents = await repository.ListByOrganizationAsync(
             organizationId,
+            pagination,
             cancellationToken);
 
-        return Ok(ApiResponse<IReadOnlyCollection<ConsentDocumentSummaryDto>>.Ok(
+        return Ok(ApiResponse<PaginatedResponse<ConsentDocumentSummaryDto>>.Ok(
             documents,
             HttpContext.GetCorrelationId()));
     }
