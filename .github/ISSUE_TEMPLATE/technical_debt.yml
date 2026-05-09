@@ -1,0 +1,73 @@
+name: Technical debt
+description: Track intentional technical debt with owner, risk, and target phase.
+title: "debt: "
+labels:
+  - technical-debt
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template only for intentional, reviewed technical debt.
+        Undocumented debt should not be accepted.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What is the debt and why does it exist?
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - D1 Critical
+        - D2 High
+        - D3 Medium
+        - D4 Low
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - API
+        - Database
+        - Security
+        - Authorization
+        - Frontend
+        - DevOps
+        - Observability
+        - Documentation
+        - Testing
+    validations:
+      required: true
+  - type: textarea
+    id: risk
+    attributes:
+      label: Risk
+      description: What can go wrong if this debt remains?
+    validations:
+      required: true
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: Mitigation plan
+      description: How will this be reduced or removed?
+    validations:
+      required: true
+  - type: input
+    id: owner
+    attributes:
+      label: Owner
+      description: Who owns this debt?
+    validations:
+      required: true
+  - type: input
+    id: target
+    attributes:
+      label: Target phase/date
+      description: When should this be resolved?
+    validations:
+      required: true
