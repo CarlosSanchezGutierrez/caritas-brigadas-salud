@@ -1,5 +1,6 @@
-﻿using Caritas.Brigadas.Application.Sync;
+using Caritas.Brigadas.Application.Sync;
 using Caritas.Brigadas.Contracts.Sync;
+using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,15 +15,33 @@ public sealed class SyncBatchReadRepository : ISyncBatchReadRepository
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyCollection<SyncBatchSummaryDto>> ListByOrganizationAsync(
+    public async Task<PaginatedResponse<SyncBatchSummaryDto>> ListByOrganizationAsync(
         Guid organizationId,
+        PaginationRequest pagination,
         CancellationToken cancellationToken = default)
     {
-        return await _dbContext.SyncBatches
+        if (organizationId == Guid.Empty)
+        {
+            throw new ArgumentException("Organization id is required.", nameof(organizationId));
+        }
+
+        ArgumentNullException.ThrowIfNull(pagination);
+
+        var pageNumber = pagination.NormalizedPageNumber;
+        var pageSize = pagination.NormalizedPageSize;
+
+        var query = _dbContext.SyncBatches
             .AsNoTracking()
-            .Where(batch => batch.OrganizationId == organizationId)
-            .OrderByDescending(batch => batch.StartedAt)
-            .Select(batch => new SyncBatchSummaryDto
+            .Where(syncBatch => syncBatch.OrganizationId == organizationId);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(syncBatch => syncBatch.CreatedAtUtc)
+            .ThenByDescending(syncBatch => syncBatch.Id)
+            .Skip(pagination.Skip)
+            .Take(pageSize)
+            .Select(syncBatch => new SyncBatchSummaryDto
             {
                 Id = batch.Id,
                 OrganizationId = batch.OrganizationId,
@@ -36,7 +55,15 @@ public sealed class SyncBatchReadRepository : ISyncBatchReadRepository
                 ErrorSummary = batch.ErrorSummary,
                 IsCompleted = batch.IsCompleted
             })
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
+
+        return new PaginatedResponse<SyncBatchSummaryDto>
+        {
+            Items = items,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<SyncBatchSummaryDto?> GetByIdAsync(

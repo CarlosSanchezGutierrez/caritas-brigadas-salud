@@ -1,4 +1,3 @@
-﻿using Caritas.Brigadas.Contracts.Security;
 using Microsoft.AspNetCore.Authorization;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Api.Extensions;
@@ -28,12 +27,13 @@ public sealed class SyncBatchesController : ControllerBase
     /// Lista lotes de sincronización de una organización.
     /// </summary>
     [HttpGet("api/v1/organizations/{organizationId:guid}/sync-batches")]
-    [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<SyncBatchSummaryDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<SyncBatchSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     [Authorize(Policy = PermissionCodes.SyncBatchesRead)]
 
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
+        [FromQuery] PaginationRequest pagination,
         CancellationToken cancellationToken)
     {
         var repository = _serviceProvider.GetService<ISyncBatchReadRepository>();
@@ -45,9 +45,10 @@ public sealed class SyncBatchesController : ControllerBase
 
         var batches = await repository.ListByOrganizationAsync(
             organizationId,
+            pagination,
             cancellationToken);
 
-        return Ok(ApiResponse<IReadOnlyCollection<SyncBatchSummaryDto>>.Ok(
+        return Ok(ApiResponse<PaginatedResponse<SyncBatchSummaryDto>>.Ok(
             batches,
             HttpContext.GetCorrelationId()));
     }
