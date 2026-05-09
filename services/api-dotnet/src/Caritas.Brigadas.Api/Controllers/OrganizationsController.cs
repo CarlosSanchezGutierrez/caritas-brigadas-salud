@@ -40,9 +40,7 @@ public sealed class OrganizationsController : ControllerBase
             return DatabaseNotConfigured();
         }
 
-        if (!User.HasClaim(
-            Caritas.Brigadas.Application.Security.CurrentUserClaimTypes.RoleCode,
-            Caritas.Brigadas.Application.Security.RoleCodes.SuperAdmin))
+        if (!IsSuperAdmin(User))
         {
             var currentOrganizationIdClaim = User.FindFirst(
                 Caritas.Brigadas.Application.Security.CurrentUserClaimTypes.OrganizationId)?.Value;
