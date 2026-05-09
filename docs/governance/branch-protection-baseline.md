@@ -46,7 +46,7 @@ La protección real debe configurarse en GitHub Settings o mediante GitHub Rules
 
 ## Repository security required checks
 
-Agregar despu�s de validar el workflow:
+Agregar después de validar el workflow:
 
 - Repository security metadata gate.
 - Dependency Review.

@@ -43,4 +43,4 @@ Reducir riesgo de dependencias comprometidas, imágenes inseguras y despliegues 
 
 ## dependency pinning
 
-Las dependencias deben mantenerse fijadas mediante lockfiles, versiones expl�citas y revisi�n en CI antes de aceptar cambios.
+Las dependencias deben mantenerse fijadas mediante lockfiles, versiones explícitas y revisión en CI antes de aceptar cambios.

@@ -50,4 +50,4 @@ Checks adicionales recomendados:
 - Repository security metadata gate.
 - Dependency Review.
 
-Dependency Review aparece en pull requests; agregarlo como required check despu�s de que corra al menos una vez en un PR.
+Dependency Review aparece en pull requests; agregarlo como required check después de que corra al menos una vez en un PR.

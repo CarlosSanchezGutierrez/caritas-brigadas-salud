@@ -54,10 +54,10 @@ Antes de producción, TI debe definir si el escaneo oficial será:
 
 El cache interno de Trivy Action se mantiene desactivado en CI para evitar annotations heredadas de actions/cache mientras GitHub fuerza acciones Node 20 a Node 24.
 
-Decisi�n actual:
+Decisión actual:
 
 - cache: 'false'
-- escaneo reproducible por ejecuci�n
+- escaneo reproducible por ejecución
 - menor complejidad de CI
 - sin dependencia del cache interno de actions/cache
 
