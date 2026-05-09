@@ -1,7 +1,6 @@
-﻿using Caritas.Brigadas.Contracts.Security;
 using Caritas.Brigadas.Api.Extensions;
-using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Application.FormResponses;
+using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.FormResponses;
 using Caritas.Brigadas.Domain.Common;
@@ -28,12 +27,12 @@ public sealed class FormResponsesController : ControllerBase
     /// Lista respuestas de formularios de una organización.
     /// </summary>
     [HttpGet("api/v1/organizations/{organizationId:guid}/form-responses")]
-    [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<FormResponseSummaryDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<FormResponseSummaryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     [Authorize(Policy = PermissionCodes.FormResponsesRead)]
-
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
+        [FromQuery] PaginationRequest pagination,
         CancellationToken cancellationToken)
     {
         var repository = _serviceProvider.GetService<IFormResponseReadRepository>();
@@ -45,9 +44,10 @@ public sealed class FormResponsesController : ControllerBase
 
         var responses = await repository.ListByOrganizationAsync(
             organizationId,
+            pagination,
             cancellationToken);
 
-        return Ok(ApiResponse<IReadOnlyCollection<FormResponseSummaryDto>>.Ok(
+        return Ok(ApiResponse<PaginatedResponse<FormResponseSummaryDto>>.Ok(
             responses,
             HttpContext.GetCorrelationId()));
     }
@@ -111,7 +111,6 @@ public sealed class FormResponsesController : ControllerBase
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     [Authorize(Policy = PermissionCodes.FormResponsesWrite)]
-
     public async Task<IActionResult> CreateAsync(
         Guid organizationId,
         [FromBody] CreateFormResponseRequest request,
@@ -177,7 +176,3 @@ public sealed class FormResponsesController : ControllerBase
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
     }
 }
-
-
-
-

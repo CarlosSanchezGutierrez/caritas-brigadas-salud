@@ -1,5 +1,6 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Caritas.Brigadas.Application.FormResponses;
+using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.FormResponses;
 using Caritas.Brigadas.Domain.Entities;
 using Caritas.Brigadas.Infrastructure.Persistence;
@@ -16,37 +17,63 @@ public sealed class FormResponseReadRepository : IFormResponseReadRepository
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyCollection<FormResponseSummaryDto>> ListByOrganizationAsync(
+    public async Task<PaginatedResponse<FormResponseSummaryDto>> ListByOrganizationAsync(
         Guid organizationId,
+        PaginationRequest pagination,
         CancellationToken cancellationToken = default)
     {
-        var responses = await _dbContext.FormResponses
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
+        if (organizationId == Guid.Empty)
+        {
+            throw new ArgumentException("Organization id is required.", nameof(organizationId));
+        }
 
-        return responses
+        ArgumentNullException.ThrowIfNull(pagination);
+
+        var pageNumber = pagination.NormalizedPageNumber;
+        var pageSize = pagination.NormalizedPageSize;
+
+        var query = _dbContext.Set<FormResponse>()
+            .AsNoTracking()
             .Where(response =>
-                GetGuidProperty(response, "OrganizationId") == organizationId &&
-                !GetBoolProperty(response, "IsDeleted"))
-            .OrderByDescending(response =>
-                GetDateTimeOffsetNullableProperty(response, "SubmittedAt") ??
-                GetDateTimeOffsetNullableProperty(response, "CapturedAt") ??
-                GetDateTimeOffsetNullableProperty(response, "CreatedAt"))
+                EF.Property<Guid>(response, "OrganizationId") == organizationId &&
+                !EF.Property<bool>(response, "IsDeleted"));
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var responses = await query
+            .OrderByDescending(response => EF.Property<Guid>(response, "Id"))
+            .Skip(pagination.Skip)
+            .Take(pageSize)
+            .ToArrayAsync(cancellationToken);
+
+        var items = responses
             .Select(MapToDto)
             .ToArray();
+
+        return new PaginatedResponse<FormResponseSummaryDto>
+        {
+            Items = items,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<FormResponseSummaryDto?> GetByIdAsync(
         Guid formResponseId,
         CancellationToken cancellationToken = default)
     {
-        var responses = await _dbContext.FormResponses
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
+        if (formResponseId == Guid.Empty)
+        {
+            throw new ArgumentException("Form response id is required.", nameof(formResponseId));
+        }
 
-        var response = responses.SingleOrDefault(item =>
-            GetGuidProperty(item, "Id") == formResponseId &&
-            !GetBoolProperty(item, "IsDeleted"));
+        var response = await _dbContext.Set<FormResponse>()
+            .AsNoTracking()
+            .Where(item =>
+                EF.Property<Guid>(item, "Id") == formResponseId &&
+                !EF.Property<bool>(item, "IsDeleted"))
+            .SingleOrDefaultAsync(cancellationToken);
 
         return response is null
             ? null
@@ -81,19 +108,13 @@ public sealed class FormResponseReadRepository : IFormResponseReadRepository
     private static Guid GetGuidProperty(object instance, string propertyName)
     {
         var value = GetPropertyValue(instance, propertyName);
-
-        return value is Guid guid
-            ? guid
-            : Guid.Empty;
+        return value is Guid guid ? guid : Guid.Empty;
     }
 
     private static Guid? GetGuidNullableProperty(object instance, string propertyName)
     {
         var value = GetPropertyValue(instance, propertyName);
-
-        return value is Guid guid
-            ? guid
-            : null;
+        return value is Guid guid ? guid : null;
     }
 
     private static string GetStringProperty(object instance, string propertyName)
@@ -101,25 +122,16 @@ public sealed class FormResponseReadRepository : IFormResponseReadRepository
         return GetPropertyValue(instance, propertyName)?.ToString() ?? string.Empty;
     }
 
-    private static bool GetBoolProperty(
-        object instance,
-        string propertyName,
-        bool defaultValue = false)
+    private static bool GetBoolProperty(object instance, string propertyName, bool defaultValue = false)
     {
         var value = GetPropertyValue(instance, propertyName);
-
-        return value is bool boolean
-            ? boolean
-            : defaultValue;
+        return value is bool boolean ? boolean : defaultValue;
     }
 
     private static DateTimeOffset? GetDateTimeOffsetNullableProperty(object instance, string propertyName)
     {
         var value = GetPropertyValue(instance, propertyName);
-
-        return value is DateTimeOffset dateTimeOffset
-            ? dateTimeOffset
-            : null;
+        return value is DateTimeOffset dateTimeOffset ? dateTimeOffset : null;
     }
 
     private static object? GetPropertyValue(object instance, string propertyName)
