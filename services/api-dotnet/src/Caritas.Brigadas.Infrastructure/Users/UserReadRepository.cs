@@ -1,5 +1,6 @@
-﻿using Caritas.Brigadas.Application.Users;
+using Caritas.Brigadas.Application.Users;
 using Caritas.Brigadas.Contracts.Users;
+using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,16 +15,34 @@ public sealed class UserReadRepository : IUserReadRepository
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyCollection<UserSummaryDto>> ListByOrganizationAsync(
+    public async Task<PaginatedResponse<UserSummaryDto>> ListByOrganizationAsync(
         Guid organizationId,
+        PaginationRequest pagination,
         CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Users
+        if (organizationId == Guid.Empty)
+        {
+            throw new ArgumentException("Organization id is required.", nameof(organizationId));
+        }
+
+        ArgumentNullException.ThrowIfNull(pagination);
+
+        var pageNumber = pagination.NormalizedPageNumber;
+        var pageSize = pagination.NormalizedPageSize;
+
+        var query = _dbContext.Users
             .AsNoTracking()
             .Where(user =>
                 user.OrganizationId == organizationId &&
-                !user.IsDeleted)
+                !user.IsDeleted);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
             .OrderBy(user => user.FullName)
+            .ThenBy(user => user.Id)
+            .Skip(pagination.Skip)
+            .Take(pageSize)
             .Select(user => new UserSummaryDto
             {
                 Id = user.Id,
@@ -36,7 +55,15 @@ public sealed class UserReadRepository : IUserReadRepository
                 IsActive = user.IsActive,
                 LastLoginAt = user.LastLoginAt
             })
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
+
+        return new PaginatedResponse<UserSummaryDto>
+        {
+            Items = items,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<UserSummaryDto?> GetByIdAsync(
