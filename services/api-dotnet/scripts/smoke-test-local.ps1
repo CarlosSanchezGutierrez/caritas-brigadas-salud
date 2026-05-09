@@ -215,7 +215,7 @@ if (@($communities.Body.data).Count -eq 0) {
         -Path "/api/v1/organizations/$OrganizationId/communities" `
         -ExpectedStatus @(201) `
         -Body @{
-            state = "Nuevo LeÃ³n"
+            state = "Nuevo León"
             municipality = "Monterrey"
             colony = "Smoke Test"
             communityName = "Comunidad Smoke $runId"
@@ -237,7 +237,7 @@ if (@($mobileUnits.Body.data).Count -eq 0) {
         -ExpectedStatus @(201) `
         -Body @{
             name = "Unidad Smoke $runId"
-            unitType = "Unidad mÃ©dica"
+            unitType = "Unidad médica"
             plateNumber = $null
             description = "Unidad local de smoke test"
         }
@@ -261,7 +261,7 @@ if (@($brigades.Body.data).Count -eq 0) {
             communityId = $null
             municipality = "Monterrey"
             colony = "Smoke Test"
-            locationText = "UbicaciÃ³n local de smoke test"
+            locationText = "Ubicación local de smoke test"
             mobileUnitId = $null
             coordinatorUserId = $UserId
         }
@@ -376,7 +376,7 @@ $responseJson = @{
     temperatureCelsius = 36.7
     weightKg = 72
     clinicalNotes = "Paciente estable. Registro generado por smoke test."
-    recommendations = "HidrataciÃ³n y observaciÃ³n."
+    recommendations = "Hidratación y observación."
     requiresFollowUp = $false
     requiresReferral = $false
 } | ConvertTo-Json -Depth 10 -Compress
