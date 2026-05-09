@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Organizations;
@@ -39,9 +40,7 @@ public sealed class OrganizationsController : ControllerBase
             return DatabaseNotConfigured();
         }
 
-        if (!User.HasClaim(
-            Caritas.Brigadas.Application.Security.CurrentUserClaimTypes.RoleCode,
-            Caritas.Brigadas.Application.Security.RoleCodes.SuperAdmin))
+        if (!IsSuperAdmin(User))
         {
             var currentOrganizationIdClaim = User.FindFirst(
                 Caritas.Brigadas.Application.Security.CurrentUserClaimTypes.OrganizationId)?.Value;
@@ -161,6 +160,22 @@ public sealed class OrganizationsController : ControllerBase
             HttpContext.GetCorrelationId());
 
         return StatusCode(StatusCodes.Status503ServiceUnavailable, error);
+    }
+
+    private static bool IsSuperAdmin(ClaimsPrincipal user)
+    {
+        return user.IsInRole("SUPER_ADMIN") ||
+            user.Claims.Any(claim =>
+                IsRoleClaimType(claim.Type) &&
+                string.Equals(claim.Value, "SUPER_ADMIN", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool IsRoleClaimType(string claimType)
+    {
+        return string.Equals(claimType, "role_code", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(claimType, "role", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(claimType, "roles", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(claimType, ClaimTypes.Role, StringComparison.OrdinalIgnoreCase);
     }
 }
 
