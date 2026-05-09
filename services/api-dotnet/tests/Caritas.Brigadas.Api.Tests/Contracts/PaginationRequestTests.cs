@@ -1,4 +1,5 @@
 using Caritas.Brigadas.Contracts.Api;
+using Xunit;
 
 namespace Caritas.Brigadas.Api.Tests.Contracts;
 
