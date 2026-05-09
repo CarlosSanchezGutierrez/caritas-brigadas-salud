@@ -8,13 +8,18 @@ public sealed record PaginationRequest
 
     public const int MaxPageSize = 250;
 
+    public const int MaxPageNumber = int.MaxValue / MaxPageSize;
+
     public int PageNumber { get; init; } = DefaultPageNumber;
 
     public int PageSize { get; init; } = DefaultPageSize;
 
-    public int NormalizedPageNumber => PageNumber < 1
-        ? DefaultPageNumber
-        : PageNumber;
+    public int NormalizedPageNumber => PageNumber switch
+    {
+        < 1 => DefaultPageNumber,
+        > MaxPageNumber => MaxPageNumber,
+        _ => PageNumber
+    };
 
     public int NormalizedPageSize => PageSize switch
     {
@@ -23,5 +28,15 @@ public sealed record PaginationRequest
         _ => PageSize
     };
 
-    public int Skip => (NormalizedPageNumber - 1) * NormalizedPageSize;
+    public int Skip
+    {
+        get
+        {
+            var offset = ((long)NormalizedPageNumber - 1L) * NormalizedPageSize;
+
+            return offset > int.MaxValue
+                ? int.MaxValue
+                : (int)offset;
+        }
+    }
 }
