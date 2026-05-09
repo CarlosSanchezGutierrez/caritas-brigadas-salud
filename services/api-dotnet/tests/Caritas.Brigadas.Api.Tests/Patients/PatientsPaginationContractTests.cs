@@ -34,6 +34,19 @@ public sealed class PatientsPaginationContractTests
         Assert.DoesNotContain(".Take(250)", source);
     }
 
+    [Fact]
+    public void PatientReadRepositoryContract_ReturnsPaginatedResponse()
+    {
+        var source = ReadRepoFile(
+            "src",
+            "Caritas.Brigadas.Application",
+            "Patients",
+            "IPatientReadRepository.cs");
+
+        Assert.Contains("Task<PaginatedResponse<PatientSummaryDto>> ListByOrganizationAsync", source);
+        Assert.Contains("PaginationRequest pagination", source);
+    }
+
     private static string ReadRepoFile(params string[] relativeSegments)
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);

@@ -33,6 +33,7 @@ public sealed class PatientsController : ControllerBase
 
     public async Task<IActionResult> ListByOrganizationAsync(
         Guid organizationId,
+        [FromQuery] PaginationRequest pagination,
         CancellationToken cancellationToken)
     {
         var repository = _serviceProvider.GetService<IPatientReadRepository>();
@@ -44,9 +45,10 @@ public sealed class PatientsController : ControllerBase
 
         var patients = await repository.ListByOrganizationAsync(
             organizationId,
+            pagination,
             cancellationToken);
 
-        return Ok(ApiResponse<IReadOnlyCollection<PatientSummaryDto>>.Ok(
+        return Ok(ApiResponse<PaginatedResponse<PatientSummaryDto>>.Ok(
             patients,
             HttpContext.GetCorrelationId()));
     }
