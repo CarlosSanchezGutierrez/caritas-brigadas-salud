@@ -37,6 +37,7 @@ public sealed class SyncBatchReadRepository : ISyncBatchReadRepository
         var totalCount = await query.CountAsync(cancellationToken);
 
         var items = await query
+            .OrderByDescending(batch => batch.Id)
             .Skip(pagination.Skip)
             .Take(pageSize)
             .Select(batch => new SyncBatchSummaryDto
