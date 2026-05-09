@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Caritas.Brigadas.Api.Extensions;
@@ -10,6 +11,17 @@ using Microsoft.AspNetCore.RateLimiting;
 const string CorsPolicyName = "ConfiguredOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto |
+        ForwardedHeaders.XForwardedHost;
+
+    // Required for container/reverse-proxy deployments where the proxy network is dynamic.
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 if (builder.Environment.IsDevelopment())
 {
@@ -170,6 +182,8 @@ if (app.Environment.IsDevelopment() && enableSwaggerInDevelopment)
 {
     app.UseCaritasSwagger();
 }
+
+app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
 
