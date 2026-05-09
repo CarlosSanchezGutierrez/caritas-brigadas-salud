@@ -1,5 +1,6 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Caritas.Brigadas.Application.ConsentDocuments;
+using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.ConsentDocuments;
 using Caritas.Brigadas.Domain.Entities;
 using Caritas.Brigadas.Infrastructure.Persistence;
@@ -16,36 +17,63 @@ public sealed class ConsentDocumentReadRepository : IConsentDocumentReadReposito
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyCollection<ConsentDocumentSummaryDto>> ListByOrganizationAsync(
+    public async Task<PaginatedResponse<ConsentDocumentSummaryDto>> ListByOrganizationAsync(
         Guid organizationId,
+        PaginationRequest pagination,
         CancellationToken cancellationToken = default)
     {
-        var documents = await _dbContext.Set<ConsentDocument>()
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
+        if (organizationId == Guid.Empty)
+        {
+            throw new ArgumentException("Organization id is required.", nameof(organizationId));
+        }
 
-        return documents
+        ArgumentNullException.ThrowIfNull(pagination);
+
+        var pageNumber = pagination.NormalizedPageNumber;
+        var pageSize = pagination.NormalizedPageSize;
+
+        var query = _dbContext.Set<ConsentDocument>()
+            .AsNoTracking()
             .Where(document =>
-                GetGuidProperty(document, "OrganizationId") == organizationId &&
-                !GetBoolProperty(document, "IsDeleted"))
-            .OrderByDescending(document =>
-                GetDateTimeOffsetNullableProperty(document, "SignedAt") ??
-                GetDateTimeOffsetNullableProperty(document, "CreatedAt"))
+                EF.Property<Guid>(document, "OrganizationId") == organizationId &&
+                !EF.Property<bool>(document, "IsDeleted"));
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var documents = await query
+            .OrderByDescending(document => EF.Property<Guid>(document, "Id"))
+            .Skip(pagination.Skip)
+            .Take(pageSize)
+            .ToArrayAsync(cancellationToken);
+
+        var items = documents
             .Select(MapToDto)
             .ToArray();
+
+        return new PaginatedResponse<ConsentDocumentSummaryDto>
+        {
+            Items = items,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<ConsentDocumentSummaryDto?> GetByIdAsync(
         Guid consentDocumentId,
         CancellationToken cancellationToken = default)
     {
-        var documents = await _dbContext.Set<ConsentDocument>()
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
+        if (consentDocumentId == Guid.Empty)
+        {
+            throw new ArgumentException("Consent document id is required.", nameof(consentDocumentId));
+        }
 
-        var document = documents.SingleOrDefault(item =>
-            GetGuidProperty(item, "Id") == consentDocumentId &&
-            !GetBoolProperty(item, "IsDeleted"));
+        var document = await _dbContext.Set<ConsentDocument>()
+            .AsNoTracking()
+            .Where(item =>
+                EF.Property<Guid>(item, "Id") == consentDocumentId &&
+                !EF.Property<bool>(item, "IsDeleted"))
+            .SingleOrDefaultAsync(cancellationToken);
 
         return document is null
             ? null
