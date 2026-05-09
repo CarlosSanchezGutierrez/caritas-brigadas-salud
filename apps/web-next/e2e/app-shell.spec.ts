@@ -37,7 +37,7 @@ async function mockCaritasApi(page: import("@playwright/test").Page) {
       contentType: "application/json",
       body: JSON.stringify({
         success: true,
-        data: [
+        data: { items: [
           {
             id: "audit-1",
             action: "reports.read",
@@ -45,7 +45,7 @@ async function mockCaritasApi(page: import("@playwright/test").Page) {
             userId: "e2e-user",
             occurredAtUtc: "2026-01-01T00:00:00Z",
           },
-        ],
+        ] },
       }),
     });
   });
