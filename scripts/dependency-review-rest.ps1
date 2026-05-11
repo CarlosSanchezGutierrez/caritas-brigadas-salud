@@ -56,10 +56,11 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $Changes = @($RawResponse | ConvertFrom-Json)
+$ReviewableChanges = @($Changes | Where-Object { $_.change_type -eq "added" -or $_.change_type -eq "changed" })
 $BlockingFindings = New-Object System.Collections.Generic.List[object]
 $VulnerabilityCount = 0
 
-foreach ($Dependency in $Changes) {
+foreach ($Dependency in $ReviewableChanges) {
     $Vulnerabilities = @($Dependency.vulnerabilities)
 
     foreach ($Vulnerability in $Vulnerabilities) {
@@ -92,11 +93,12 @@ $Removed = @($Changes | Where-Object { $_.change_type -eq "removed" }).Count
 $Changed = @($Changes | Where-Object { $_.change_type -eq "changed" }).Count
 
 Write-Host "Dependency changes scanned: $($Changes.Count)"
+Write-Host "Reviewable dependency changes scanned: $($ReviewableChanges.Count)"
 Write-Host "Added: $Added"
 Write-Host "Removed: $Removed"
 Write-Host "Changed: $Changed"
-Write-Host "Total vulnerabilities found: $VulnerabilityCount"
-Write-Host "Blocking vulnerabilities found: $($BlockingFindings.Count)"
+Write-Host "Total vulnerabilities found in added/changed dependencies: $VulnerabilityCount"
+Write-Host "Blocking vulnerabilities found in added/changed dependencies: $($BlockingFindings.Count)"
 
 if (-not [string]::IsNullOrWhiteSpace($env:GITHUB_STEP_SUMMARY)) {
     $SummaryLines = @(
@@ -107,11 +109,12 @@ if (-not [string]::IsNullOrWhiteSpace($env:GITHUB_STEP_SUMMARY)) {
         "| Metric | Value |",
         "| --- | ---: |",
         "| Dependency changes scanned | $($Changes.Count) |",
+        "| Reviewable dependency changes scanned | $($ReviewableChanges.Count) |",
         "| Added | $Added |",
         "| Removed | $Removed |",
         "| Changed | $Changed |",
-        "| Vulnerabilities found | $VulnerabilityCount |",
-        "| Blocking vulnerabilities | $($BlockingFindings.Count) |",
+        "| Vulnerabilities found in added/changed dependencies | $VulnerabilityCount |",
+        "| Blocking vulnerabilities in added/changed dependencies | $($BlockingFindings.Count) |",
         "| Blocking threshold | $FailOnSeverity |"
     )
 

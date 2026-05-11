@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Caritas.Brigadas.Api.Extensions;
@@ -10,6 +11,17 @@ using Microsoft.AspNetCore.RateLimiting;
 const string CorsPolicyName = "ConfiguredOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto |
+        ForwardedHeaders.XForwardedHost;
+
+    // Required for container/reverse-proxy deployments where the proxy network is dynamic.
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 if (builder.Environment.IsDevelopment())
 {
@@ -148,6 +160,7 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<RequestTelemetryMiddleware>();
 app.UseMiddleware<SecurityHeadersMiddleware>();
@@ -170,7 +183,6 @@ if (app.Environment.IsDevelopment() && enableSwaggerInDevelopment)
 {
     app.UseCaritasSwagger();
 }
-
 app.UseHttpsRedirection();
 
 app.UseCors(CorsPolicyName);
@@ -188,7 +200,7 @@ app.MapGet("/", (HttpContext httpContext) =>
     var payload = new
     {
         service = "caritas-brigadas-api",
-        name = "Cáritas Brigadas de Salud API",
+        name = "CÃ¡ritas Brigadas de Salud API",
         status = "running",
         environment = app.Environment.EnvironmentName,
         timestampUtc = DateTimeOffset.UtcNow

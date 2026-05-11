@@ -1,10 +1,11 @@
 using System;
 using Microsoft.EntityFrameworkCore.Migrations;
-
+using Microsoft.EntityFrameworkCore.Infrastructure;
 #nullable disable
 
 namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations;
 
+[DbContext(typeof(CaritasDbContext))]
 [Migration("20260508062505_AddFormResponseSubmittedTimestamps")]
 public partial class AddFormResponseSubmittedTimestamps : Migration
 {
