@@ -780,7 +780,7 @@ BEGIN
     CREATE TABLE [sync].[sync_batches] (
         [Id] uniqueidentifier NOT NULL,
         [OrganizationId] uniqueidentifier NOT NULL,
-        [DeviceId] uniqueidentifier NOT NULL,
+        [DeviceId] uniqueidentifier NULL,
         [UserId] uniqueidentifier NOT NULL,
         [BrigadeId] uniqueidentifier NULL,
         [StartedAt] datetimeoffset NOT NULL,
@@ -1310,6 +1310,137 @@ IF NOT EXISTS (
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
     VALUES (N'20260504184935_InitialCreate', N'10.0.7');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260504220324_AddConsentDocuments'
+)
+BEGIN
+    CREATE TABLE [ConsentDocuments] (
+        [Id] uniqueidentifier NOT NULL,
+        [OrganizationId] uniqueidentifier NOT NULL,
+        [PatientId] uniqueidentifier NOT NULL,
+        [VisitId] uniqueidentifier NULL,
+        [ConsentType] nvarchar(max) NOT NULL,
+        [DocumentVersion] nvarchar(max) NOT NULL,
+        [DocumentTextSnapshot] nvarchar(max) NULL,
+        [SignatureDataUrl] nvarchar(max) NULL,
+        [GuardianFullName] nvarchar(max) NULL,
+        [GuardianRelationship] nvarchar(max) NULL,
+        [SignedByUserId] uniqueidentifier NULL,
+        [SignedAt] datetimeoffset NOT NULL,
+        [CreatedOffline] bit NOT NULL,
+        [DeviceId] uniqueidentifier NULL,
+        [SyncStatus] nvarchar(max) NOT NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [IsDeleted] bit NOT NULL,
+        CONSTRAINT [PK_ConsentDocuments] PRIMARY KEY ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260504220324_AddConsentDocuments'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260504220324_AddConsentDocuments', N'10.0.7');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260505014437_AddAuditLogs'
+)
+BEGIN
+    CREATE TABLE [AuditLogs] (
+        [Id] uniqueidentifier NOT NULL,
+        [OrganizationId] uniqueidentifier NOT NULL,
+        [UserId] uniqueidentifier NULL,
+        [Action] nvarchar(max) NOT NULL,
+        [EntityName] nvarchar(max) NOT NULL,
+        [EntityId] uniqueidentifier NULL,
+        [DetailsJson] nvarchar(max) NULL,
+        [CorrelationId] nvarchar(max) NULL,
+        [IpAddress] nvarchar(max) NULL,
+        [UserAgent] nvarchar(max) NULL,
+        [OccurredAtUtc] datetimeoffset NOT NULL,
+        [CreatedAtUtc] datetimeoffset NOT NULL,
+        CONSTRAINT [PK_AuditLogs] PRIMARY KEY ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260505014437_AddAuditLogs'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260505014437_AddAuditLogs', N'10.0.7');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260508054350_MakeSyncBatchDeviceIdNullable'
+)
+BEGIN
+    DECLARE @var nvarchar(max);
+    SELECT @var = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[sync].[sync_batches]') AND [c].[name] = N'DeviceId');
+    IF @var IS NOT NULL EXEC(N'ALTER TABLE [sync].[sync_batches] DROP CONSTRAINT ' + @var + ';');
+    ALTER TABLE [sync].[sync_batches] ALTER COLUMN [DeviceId] uniqueidentifier NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260508054350_MakeSyncBatchDeviceIdNullable'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260508054350_MakeSyncBatchDeviceIdNullable', N'10.0.7');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260508062505_AddFormResponseSubmittedTimestamps'
+)
+BEGIN
+    ALTER TABLE [forms].[form_responses] ADD [SubmittedAt] datetimeoffset NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260508062505_AddFormResponseSubmittedTimestamps'
+)
+BEGIN
+    ALTER TABLE [forms].[form_responses] ADD [CapturedAt] datetimeoffset NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260508062505_AddFormResponseSubmittedTimestamps'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260508062505_AddFormResponseSubmittedTimestamps', N'10.0.7');
 END;
 
 COMMIT;
