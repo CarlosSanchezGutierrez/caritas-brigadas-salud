@@ -71,7 +71,7 @@ public sealed class OrganizationsController : ControllerBase
     }
 
     /// <summary>
-    /// Obtiene una organización por identificador.
+    /// Obtiene una organizaciÃƒÂ³n por identificador.
     /// </summary>
     [HttpGet("{organizationId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<OrganizationSummaryDto>), StatusCodes.Status200OK)]
@@ -109,18 +109,24 @@ public sealed class OrganizationsController : ControllerBase
     }
 
     /// <summary>
-    /// Crea una organización institucional.
+    /// Crea una organizaciÃƒÂ³n institucional.
     /// </summary>
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<OrganizationSummaryDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     [Authorize(Policy = PermissionCodes.OrganizationsWrite)]
     public async Task<IActionResult> CreateAsync(
         [FromBody] CreateOrganizationRequest request,
         CancellationToken cancellationToken)
     {
+        if (!IsSuperAdmin(User))
+        {
+            return Forbid();
+        }
+
         var repository = _serviceProvider.GetService<IOrganizationWriteRepository>();
 
         if (repository is null)
