@@ -19,7 +19,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
         ForwardedHeaders.XForwardedHost;
 
     // Required for container/reverse-proxy deployments where the proxy network is dynamic.
-    options.KnownNetworks.Clear();
+    options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });
 
@@ -160,6 +160,7 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<RequestTelemetryMiddleware>();
 app.UseMiddleware<SecurityHeadersMiddleware>();
@@ -182,9 +183,6 @@ if (app.Environment.IsDevelopment() && enableSwaggerInDevelopment)
 {
     app.UseCaritasSwagger();
 }
-
-app.UseForwardedHeaders();
-
 app.UseHttpsRedirection();
 
 app.UseCors(CorsPolicyName);
@@ -202,7 +200,7 @@ app.MapGet("/", (HttpContext httpContext) =>
     var payload = new
     {
         service = "caritas-brigadas-api",
-        name = "Cáritas Brigadas de Salud API",
+        name = "CÃ¡ritas Brigadas de Salud API",
         status = "running",
         environment = app.Environment.EnvironmentName,
         timestampUtc = DateTimeOffset.UtcNow
