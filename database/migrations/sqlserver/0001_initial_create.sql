@@ -1446,3 +1446,104 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512194857_AddCoreSecurityForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_user_roles_RoleId] ON [core].[user_roles] ([RoleId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512194857_AddCoreSecurityForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_user_roles_UserId] ON [core].[user_roles] ([UserId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512194857_AddCoreSecurityForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_role_permissions_PermissionId] ON [core].[role_permissions] ([PermissionId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512194857_AddCoreSecurityForeignKeys'
+)
+BEGIN
+    ALTER TABLE [core].[role_permissions] ADD CONSTRAINT [FK_role_permissions_permissions_PermissionId] FOREIGN KEY ([PermissionId]) REFERENCES [core].[permissions] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512194857_AddCoreSecurityForeignKeys'
+)
+BEGIN
+    ALTER TABLE [core].[role_permissions] ADD CONSTRAINT [FK_role_permissions_roles_RoleId] FOREIGN KEY ([RoleId]) REFERENCES [core].[roles] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512194857_AddCoreSecurityForeignKeys'
+)
+BEGIN
+    ALTER TABLE [core].[roles] ADD CONSTRAINT [FK_roles_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512194857_AddCoreSecurityForeignKeys'
+)
+BEGIN
+    ALTER TABLE [core].[services] ADD CONSTRAINT [FK_services_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512194857_AddCoreSecurityForeignKeys'
+)
+BEGIN
+    ALTER TABLE [core].[user_roles] ADD CONSTRAINT [FK_user_roles_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512194857_AddCoreSecurityForeignKeys'
+)
+BEGIN
+    ALTER TABLE [core].[user_roles] ADD CONSTRAINT [FK_user_roles_roles_RoleId] FOREIGN KEY ([RoleId]) REFERENCES [core].[roles] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512194857_AddCoreSecurityForeignKeys'
+)
+BEGIN
+    ALTER TABLE [core].[user_roles] ADD CONSTRAINT [FK_user_roles_users_UserId] FOREIGN KEY ([UserId]) REFERENCES [core].[users] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512194857_AddCoreSecurityForeignKeys'
+)
+BEGIN
+    ALTER TABLE [core].[users] ADD CONSTRAINT [FK_users_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512194857_AddCoreSecurityForeignKeys'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260512194857_AddCoreSecurityForeignKeys', N'10.0.7');
+END;
+
+COMMIT;
+GO
+

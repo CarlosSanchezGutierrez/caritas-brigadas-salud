@@ -85,7 +85,7 @@ public sealed class EfDeleteBehaviorContractTests
     }
 
     [Fact]
-    public void EfModel_CurrentlyHasNoForeignKeysUntilP2RelationshipPackagesAreIntroduced()
+    public void EfModel_CurrentForeignKeysAreLimitedToReviewedP205CoreSecurityPackage()
     {
         var model = CreateModel();
 
@@ -96,11 +96,19 @@ public sealed class EfDeleteBehaviorContractTests
             .Order(StringComparer.Ordinal)
             .ToArray();
 
-        Assert.True(
-            foreignKeys.Length == 0,
-            "The current P2 baseline should not introduce implicit relationship drift before explicit FK packages are reviewed." +
-            Environment.NewLine +
-            string.Join(Environment.NewLine, foreignKeys));
+        var expected = new[]
+        {
+            "core.role_permissions(PermissionId) -> core.permissions(Id) DeleteBehavior=NoAction",
+            "core.role_permissions(RoleId) -> core.roles(Id) DeleteBehavior=NoAction",
+            "core.roles(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "core.services(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "core.user_roles(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "core.user_roles(RoleId) -> core.roles(Id) DeleteBehavior=NoAction",
+            "core.user_roles(UserId) -> core.users(Id) DeleteBehavior=NoAction",
+            "core.users(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction"
+        };
+
+        Assert.Equal(expected, foreignKeys);
     }
 
     private static bool HasDangerousCascadeDeleteBehavior(IForeignKey foreignKey)

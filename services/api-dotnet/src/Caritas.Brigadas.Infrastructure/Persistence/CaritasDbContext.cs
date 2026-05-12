@@ -1,4 +1,4 @@
-﻿using Caritas.Brigadas.Domain.Common;
+using Caritas.Brigadas.Domain.Common;
 using Caritas.Brigadas.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -87,6 +87,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
             entity.HasIndex(x => new { x.OrganizationId, x.Email });
             entity.HasIndex(x => new { x.OrganizationId, x.Username });
+
+            entity.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<Role>(entity =>
@@ -97,6 +102,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Name).HasMaxLength(150).IsRequired();
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
             entity.HasIndex(x => new { x.OrganizationId, x.Code }).IsUnique();
+
+            entity.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<Permission>(entity =>
@@ -117,6 +127,21 @@ public sealed class CaritasDbContext : DbContext
             entity.ToTable("user_roles", "core");
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
             entity.HasIndex(x => new { x.OrganizationId, x.UserId, x.RoleId });
+
+            entity.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<Role>()
+                .WithMany()
+                .HasForeignKey(x => x.RoleId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<RolePermission>(entity =>
@@ -124,6 +149,16 @@ public sealed class CaritasDbContext : DbContext
             ConfigureEntity(entity);
             entity.ToTable("role_permissions", "core");
             entity.HasIndex(x => new { x.RoleId, x.PermissionId }).IsUnique();
+
+            entity.HasOne<Role>()
+                .WithMany()
+                .HasForeignKey(x => x.RoleId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<Permission>()
+                .WithMany()
+                .HasForeignKey(x => x.PermissionId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<Device>(entity =>
@@ -146,6 +181,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Category).HasMaxLength(100).IsRequired();
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
             entity.HasIndex(x => new { x.OrganizationId, x.Code }).IsUnique();
+
+            entity.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
     }
 
