@@ -57,6 +57,42 @@ public static class PermissionCodes
         OrganizationsWrite
     };
 
+    public static readonly IReadOnlyCollection<string> TenantScoped = new[]
+    {
+        OrganizationsRead,
+        UsersRead,
+        UsersWrite,
+        RolesRead,
+        RolesAssign,
+        ServicesRead,
+        ServicesSeed,
+        CommunitiesRead,
+        CommunitiesWrite,
+        MobileUnitsRead,
+        MobileUnitsWrite,
+        BrigadesRead,
+        BrigadesWrite,
+        BrigadeServicesRead,
+        BrigadeServicesWrite,
+        PatientsRead,
+        PatientsWrite,
+        PatientVisitsRead,
+        PatientVisitsWrite,
+        ServiceEncountersRead,
+        ServiceEncountersWrite,
+        FormTemplatesRead,
+        FormTemplatesSeed,
+        FormResponsesRead,
+        FormResponsesWrite,
+        ConsentDocumentsRead,
+        ConsentDocumentsWrite,
+        ReportsRead,
+        ReportsExport,
+        SyncBatchesRead,
+        SyncBatchesWrite,
+        AuditLogsRead
+    };
+
     public static readonly IReadOnlyCollection<string> All = new[]
     {
         OrganizationsRead,
