@@ -269,8 +269,9 @@ Se agrego `scripts/verify-no-mojibake.ps1`.
 Objetivo:
 
 - Detectar corrupcion de codificacion en archivos vivos del repositorio.
-- Evitar textos como `CÃ¡ritas`, `organizaciÃ³n`, `auditorÃ­a`, etc.
+- Evitar texto corrupto por doble codificacion o mojibake.
 - Mantener archivos en UTF-8 sin BOM.
+- Evitar que codigo fuente, documentacion viva, SQL, scripts o CI contengan caracteres corruptos.
 
 Politica:
 
