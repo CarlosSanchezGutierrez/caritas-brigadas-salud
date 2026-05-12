@@ -1640,3 +1640,208 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_service_encounters_BrigadeId] ON [clinical].[service_encounters] ([BrigadeId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_service_encounters_PatientId] ON [clinical].[service_encounters] ([PatientId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_service_encounters_ServiceId] ON [clinical].[service_encounters] ([ServiceId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_patient_visits_PatientId] ON [clinical].[patient_visits] ([PatientId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_medication_deliveries_EncounterId] ON [clinical].[medication_deliveries] ([EncounterId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_medication_deliveries_PatientId] ON [clinical].[medication_deliveries] ([PatientId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_medical_referrals_EncounterId] ON [clinical].[medical_referrals] ([EncounterId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_medical_referrals_PatientId] ON [clinical].[medical_referrals] ([PatientId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    ALTER TABLE [clinical].[medical_referrals] ADD CONSTRAINT [FK_medical_referrals_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    ALTER TABLE [clinical].[medical_referrals] ADD CONSTRAINT [FK_medical_referrals_patients_PatientId] FOREIGN KEY ([PatientId]) REFERENCES [clinical].[patients] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    ALTER TABLE [clinical].[medical_referrals] ADD CONSTRAINT [FK_medical_referrals_service_encounters_EncounterId] FOREIGN KEY ([EncounterId]) REFERENCES [clinical].[service_encounters] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    ALTER TABLE [clinical].[medication_deliveries] ADD CONSTRAINT [FK_medication_deliveries_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    ALTER TABLE [clinical].[medication_deliveries] ADD CONSTRAINT [FK_medication_deliveries_patients_PatientId] FOREIGN KEY ([PatientId]) REFERENCES [clinical].[patients] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    ALTER TABLE [clinical].[medication_deliveries] ADD CONSTRAINT [FK_medication_deliveries_service_encounters_EncounterId] FOREIGN KEY ([EncounterId]) REFERENCES [clinical].[service_encounters] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    ALTER TABLE [clinical].[patient_guardians] ADD CONSTRAINT [FK_patient_guardians_patients_PatientId] FOREIGN KEY ([PatientId]) REFERENCES [clinical].[patients] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    ALTER TABLE [clinical].[patient_visits] ADD CONSTRAINT [FK_patient_visits_brigades_BrigadeId] FOREIGN KEY ([BrigadeId]) REFERENCES [brigades].[brigades] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    ALTER TABLE [clinical].[patient_visits] ADD CONSTRAINT [FK_patient_visits_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    ALTER TABLE [clinical].[patient_visits] ADD CONSTRAINT [FK_patient_visits_patients_PatientId] FOREIGN KEY ([PatientId]) REFERENCES [clinical].[patients] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    ALTER TABLE [clinical].[patients] ADD CONSTRAINT [FK_patients_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    ALTER TABLE [clinical].[service_encounters] ADD CONSTRAINT [FK_service_encounters_brigades_BrigadeId] FOREIGN KEY ([BrigadeId]) REFERENCES [brigades].[brigades] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    ALTER TABLE [clinical].[service_encounters] ADD CONSTRAINT [FK_service_encounters_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    ALTER TABLE [clinical].[service_encounters] ADD CONSTRAINT [FK_service_encounters_patient_visits_VisitId] FOREIGN KEY ([VisitId]) REFERENCES [clinical].[patient_visits] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    ALTER TABLE [clinical].[service_encounters] ADD CONSTRAINT [FK_service_encounters_patients_PatientId] FOREIGN KEY ([PatientId]) REFERENCES [clinical].[patients] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    ALTER TABLE [clinical].[service_encounters] ADD CONSTRAINT [FK_service_encounters_services_ServiceId] FOREIGN KEY ([ServiceId]) REFERENCES [core].[services] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512202316_AddClinicalForeignKeys'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260512202316_AddClinicalForeignKeys', N'10.0.7');
+END;
+
+COMMIT;
+GO
+
