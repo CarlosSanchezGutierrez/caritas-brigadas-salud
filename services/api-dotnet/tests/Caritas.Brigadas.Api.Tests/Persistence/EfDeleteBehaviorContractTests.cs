@@ -85,7 +85,7 @@ public sealed class EfDeleteBehaviorContractTests
     }
 
     [Fact]
-    public void EfModel_CurrentForeignKeysAreLimitedToReviewedP205P206AndP207Packages()
+    public void EfModel_CurrentForeignKeysAreLimitedToReviewedP205ToP208Packages()
     {
         var model = CreateModel();
 
@@ -128,7 +128,26 @@ public sealed class EfDeleteBehaviorContractTests
             "core.user_roles(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
             "core.user_roles(RoleId) -> core.roles(Id) DeleteBehavior=NoAction",
             "core.user_roles(UserId) -> core.users(Id) DeleteBehavior=NoAction",
-            "core.users(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction"
+            "core.users(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "documents.document_signatures(DocumentTemplateId) -> documents.document_templates(Id) DeleteBehavior=NoAction",
+            "documents.document_signatures(EncounterId) -> clinical.service_encounters(Id) DeleteBehavior=NoAction",
+            "documents.document_signatures(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "documents.document_signatures(PatientId) -> clinical.patients(Id) DeleteBehavior=NoAction",
+            "documents.document_signatures(VisitId) -> clinical.patient_visits(Id) DeleteBehavior=NoAction",
+            "documents.document_templates(AppliesToServiceId) -> core.services(Id) DeleteBehavior=NoAction",
+            "documents.document_templates(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "documents.media_releases(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "documents.media_releases(PatientId) -> clinical.patients(Id) DeleteBehavior=NoAction",
+            "documents.media_releases(VisitId) -> clinical.patient_visits(Id) DeleteBehavior=NoAction",
+            "forms.form_responses(EncounterId) -> clinical.service_encounters(Id) DeleteBehavior=NoAction",
+            "forms.form_responses(FormTemplateId) -> forms.form_templates(Id) DeleteBehavior=NoAction",
+            "forms.form_responses(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "forms.form_templates(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "forms.form_templates(ServiceId) -> core.services(Id) DeleteBehavior=NoAction",
+            "sync.sync_batches(BrigadeId) -> brigades.brigades(Id) DeleteBehavior=NoAction",
+            "sync.sync_batches(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "sync.sync_events(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "sync.sync_events(SyncBatchId) -> sync.sync_batches(Id) DeleteBehavior=NoAction"
         };
 
         Assert.Equal(expected, foreignKeys);
