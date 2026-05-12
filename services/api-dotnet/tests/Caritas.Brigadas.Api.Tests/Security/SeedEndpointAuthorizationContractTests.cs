@@ -54,10 +54,10 @@ public sealed class SeedEndpointAuthorizationContractTests
     {
         var seedEndpoint = Regex.Match(
             source,
-            $@"\[HttpPost\(""{Regex.Escape(routeFragment)}""\)\](?<attributes>.*?)(public\s+async\s+Task<IActionResult>)",
-            RegexOptions.Singleline);
+            $@"^\s*\[HttpPost\(""[^""]*{Regex.Escape(routeFragment)}[^""]*""\)\](?<attributes>.*?)(public\s+async\s+Task<IActionResult>)",
+            RegexOptions.Singleline | RegexOptions.Multiline);
 
-        Assert.True(seedEndpoint.Success, $"Seed endpoint '{routeFragment}' was not found.");
+        Assert.True(seedEndpoint.Success, $"Seed endpoint containing route fragment '{routeFragment}' was not found.");
 
         var attributes = seedEndpoint.Groups["attributes"].Value;
 
