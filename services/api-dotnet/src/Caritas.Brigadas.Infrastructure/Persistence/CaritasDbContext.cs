@@ -200,6 +200,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Colony).HasMaxLength(150);
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
             entity.HasIndex(x => new { x.OrganizationId, x.Municipality, x.Colony });
+
+            entity.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<MobileUnit>(entity =>
@@ -209,6 +214,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Name).HasMaxLength(150).IsRequired();
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
             entity.HasIndex(x => new { x.OrganizationId, x.Name });
+
+            entity.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<Brigade>(entity =>
@@ -222,6 +232,21 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Colony).HasMaxLength(150);
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
             entity.HasIndex(x => new { x.OrganizationId, x.ScheduledDate });
+
+            entity.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<Community>()
+                .WithMany()
+                .HasForeignKey(x => x.CommunityId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<MobileUnit>()
+                .WithMany()
+                .HasForeignKey(x => x.MobileUnitId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<BrigadeService>(entity =>
@@ -229,6 +254,16 @@ public sealed class CaritasDbContext : DbContext
             ConfigureAuditable(entity);
             entity.ToTable("brigade_services", "brigades");
             entity.HasIndex(x => new { x.BrigadeId, x.ServiceId }).IsUnique();
+
+            entity.HasOne<Brigade>()
+                .WithMany()
+                .HasForeignKey(x => x.BrigadeId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<Service>()
+                .WithMany()
+                .HasForeignKey(x => x.ServiceId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
     }
 

@@ -1547,3 +1547,96 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512195629_AddBrigadesForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_brigades_CommunityId] ON [brigades].[brigades] ([CommunityId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512195629_AddBrigadesForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_brigades_MobileUnitId] ON [brigades].[brigades] ([MobileUnitId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512195629_AddBrigadesForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_brigade_services_ServiceId] ON [brigades].[brigade_services] ([ServiceId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512195629_AddBrigadesForeignKeys'
+)
+BEGIN
+    ALTER TABLE [brigades].[brigade_services] ADD CONSTRAINT [FK_brigade_services_brigades_BrigadeId] FOREIGN KEY ([BrigadeId]) REFERENCES [brigades].[brigades] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512195629_AddBrigadesForeignKeys'
+)
+BEGIN
+    ALTER TABLE [brigades].[brigade_services] ADD CONSTRAINT [FK_brigade_services_services_ServiceId] FOREIGN KEY ([ServiceId]) REFERENCES [core].[services] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512195629_AddBrigadesForeignKeys'
+)
+BEGIN
+    ALTER TABLE [brigades].[brigades] ADD CONSTRAINT [FK_brigades_communities_CommunityId] FOREIGN KEY ([CommunityId]) REFERENCES [brigades].[communities] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512195629_AddBrigadesForeignKeys'
+)
+BEGIN
+    ALTER TABLE [brigades].[brigades] ADD CONSTRAINT [FK_brigades_mobile_units_MobileUnitId] FOREIGN KEY ([MobileUnitId]) REFERENCES [brigades].[mobile_units] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512195629_AddBrigadesForeignKeys'
+)
+BEGIN
+    ALTER TABLE [brigades].[brigades] ADD CONSTRAINT [FK_brigades_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512195629_AddBrigadesForeignKeys'
+)
+BEGIN
+    ALTER TABLE [brigades].[communities] ADD CONSTRAINT [FK_communities_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512195629_AddBrigadesForeignKeys'
+)
+BEGIN
+    ALTER TABLE [brigades].[mobile_units] ADD CONSTRAINT [FK_mobile_units_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512195629_AddBrigadesForeignKeys'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260512195629_AddBrigadesForeignKeys', N'10.0.7');
+END;
+
+COMMIT;
+GO
+
