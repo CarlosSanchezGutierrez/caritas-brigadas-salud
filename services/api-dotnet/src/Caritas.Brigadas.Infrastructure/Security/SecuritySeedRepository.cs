@@ -1,4 +1,4 @@
-﻿using Caritas.Brigadas.Application.Security;
+using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Contracts.Security;
 using Caritas.Brigadas.Domain.Entities;
 using Caritas.Brigadas.Infrastructure.Persistence;
@@ -317,7 +317,6 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
             ["ADMIN"] = new[]
             {
                 "organizations.read",
-                "organizations.write",
                 "users.read",
                 "users.write",
                 "roles.read",
