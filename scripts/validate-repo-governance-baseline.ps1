@@ -10,6 +10,7 @@ $RequiredChecksDocsPath = Join-Path $RepoRoot "docs\governance\required-checks-b
 $ReleaseGovernanceDocsPath = Join-Path $RepoRoot "docs\governance\release-governance-baseline.md"
 $ReleaseChecklistDocsPath = Join-Path $RepoRoot "docs\operations\release-checklist.md"
 $P3DecisionRegisterScriptPath = Join-Path $RepoRoot "scripts\verify-p3-architecture-business-rules-decision-register.ps1"
+$P3TenantBoundaryInventoryScriptPath = Join-Path $RepoRoot "scripts\verify-p3-tenant-boundary-authorization-inventory.ps1"
 
 function Assert-FileExists {
     param([string]$Path)
@@ -41,6 +42,7 @@ Assert-FileExists $RequiredChecksDocsPath
 Assert-FileExists $ReleaseGovernanceDocsPath
 Assert-FileExists $ReleaseChecklistDocsPath
 Assert-FileExists $P3DecisionRegisterScriptPath
+Assert-FileExists $P3TenantBoundaryInventoryScriptPath
 
 Assert-Contains $WorkflowPath "Repository governance metadata gate"
 Assert-Contains $WorkflowPath "pwsh scripts/validate-repo-governance-baseline.ps1"
@@ -72,6 +74,7 @@ Assert-Contains $ReleaseChecklistDocsPath "post-release"
 Assert-Contains $ReleaseChecklistDocsPath "production approval"
 
 & $P3DecisionRegisterScriptPath
+& $P3TenantBoundaryInventoryScriptPath
 
 Write-Host ""
 Write-Host "============================================================" -ForegroundColor Green
