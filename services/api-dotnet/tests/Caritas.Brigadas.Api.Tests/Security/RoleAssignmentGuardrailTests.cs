@@ -70,6 +70,27 @@ public sealed class RoleAssignmentGuardrailTests
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, objectResult.StatusCode);
     }
 
+    private static RolesController CreateControllerWithLegacyRole(string roleCode)
+    {
+        var services = new ServiceCollection().BuildServiceProvider();
+
+        return new RolesController(services)
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(
+                        new[]
+                        {
+                            new Claim(CurrentUserClaimTypes.LegacyRole, roleCode),
+                            new Claim("permission", PermissionCodes.RolesAssign)
+                        },
+                        authenticationType: "TestAuth"))
+                }
+            }
+        };
+    }
     private static RolesController CreateControllerWithRole(string roleCode)
     {
         var services = new ServiceCollection().BuildServiceProvider();
