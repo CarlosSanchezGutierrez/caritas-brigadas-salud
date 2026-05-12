@@ -245,45 +245,45 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
         return new[]
         {
             new RoleDefinition(
-                "SUPER_ADMIN",
+                RoleCodes.SuperAdmin,
                 "Superadministrador institucional",
-                "Control total de la organizaciÃƒÂ³n, configuraciÃƒÂ³n, usuarios, permisos, auditorÃƒÂ­a y datos.",
+                "Control total de la organizaciÃƒÆ’Ã‚Â³n, configuraciÃƒÆ’Ã‚Â³n, usuarios, permisos, auditorÃƒÆ’Ã‚Â­a y datos.",
                 true),
 
             new RoleDefinition(
-                "ADMIN",
+                RoleCodes.Admin,
                 "Administrador institucional",
-                "AdministraciÃƒÂ³n operativa de usuarios, brigadas, servicios y reportes.",
+                "AdministraciÃƒÆ’Ã‚Â³n operativa de usuarios, brigadas, servicios y reportes.",
                 true),
 
             new RoleDefinition(
-                "BRIGADE_COORDINATOR",
+                RoleCodes.BrigadeCoordinator,
                 "Coordinador de brigada",
-                "CoordinaciÃƒÂ³n de brigadas, servicios disponibles, pacientes, visitas y operaciÃƒÂ³n en campo.",
+                "CoordinaciÃƒÆ’Ã‚Â³n de brigadas, servicios disponibles, pacientes, visitas y operaciÃƒÆ’Ã‚Â³n en campo.",
                 false),
 
             new RoleDefinition(
-                "HEALTH_PROVIDER",
+                RoleCodes.HealthProvider,
                 "Prestador de servicio de salud",
-                "Usuario que brinda atenciÃƒÂ³n en un servicio de salud: medicina, psicologÃƒÂ­a, nutriciÃƒÂ³n, optometrÃƒÂ­a, odontologÃƒÂ­a u otro.",
+                "Usuario que brinda atenciÃƒÆ’Ã‚Â³n en un servicio de salud: medicina, psicologÃƒÆ’Ã‚Â­a, nutriciÃƒÆ’Ã‚Â³n, optometrÃƒÆ’Ã‚Â­a, odontologÃƒÆ’Ã‚Â­a u otro.",
                 false),
 
             new RoleDefinition(
-                "SERVICE_STUDENT",
+                RoleCodes.ServiceStudent,
                 "Estudiante prestador de servicio",
-                "Estudiante o voluntario supervisado que apoya captura, atenciÃƒÂ³n operativa o servicios asignados.",
+                "Estudiante o voluntario supervisado que apoya captura, atenciÃƒÆ’Ã‚Â³n operativa o servicios asignados.",
                 false),
 
             new RoleDefinition(
-                "AUDITOR",
+                RoleCodes.Auditor,
                 "Auditor",
-                "Usuario con permisos de consulta para revisiÃƒÂ³n, trazabilidad, cumplimiento y auditorÃƒÂ­a.",
+                "Usuario con permisos de consulta para revisiÃƒÆ’Ã‚Â³n, trazabilidad, cumplimiento y auditorÃƒÆ’Ã‚Â­a.",
                 false),
 
             new RoleDefinition(
-                "DATA_ANALYST",
+                RoleCodes.DataAnalyst,
                 "Analista de datos",
-                "Usuario enfocado en reportes, mÃƒÂ©tricas, anÃƒÂ¡lisis y datos agregados no sensibles.",
+                "Usuario enfocado en reportes, mÃƒÆ’Ã‚Â©tricas, anÃƒÆ’Ã‚Â¡lisis y datos agregados no sensibles.",
                 false)
         };
     }
@@ -335,9 +335,9 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
 
         return new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase)
         {
-            ["SUPER_ADMIN"] = allPermissions,
+            [RoleCodes.SuperAdmin] = allPermissions,
 
-            ["ADMIN"] = new[]
+            [RoleCodes.Admin] = new[]
             {
                 "organizations.read",
                 "users.read",
@@ -372,7 +372,7 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
                 "audit-logs.read"
             },
 
-            ["BRIGADE_COORDINATOR"] = new[]
+            [RoleCodes.BrigadeCoordinator] = new[]
             {
                 "organizations.read",
                 "users.read",
@@ -402,7 +402,7 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
                 "reports.read"
             },
 
-            ["HEALTH_PROVIDER"] = new[]
+            [RoleCodes.HealthProvider] = new[]
             {
                 "organizations.read",
                 "services.read",
@@ -421,7 +421,7 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
                 "consent-documents.write",
                 "sync-batches.write"
             },
-            ["SERVICE_STUDENT"] = new[]
+            [RoleCodes.ServiceStudent] = new[]
             {
                 "organizations.read",
                 "services.read",
@@ -443,7 +443,7 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
                 "sync-batches.write"
             },
 
-            ["AUDITOR"] = new[]
+            [RoleCodes.Auditor] = new[]
             {
                 "organizations.read",
                 "users.read",
@@ -464,7 +464,7 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
                 "audit-logs.read"
             },
 
-            ["DATA_ANALYST"] = new[]
+            [RoleCodes.DataAnalyst] = new[]
             {
                 "organizations.read",
                 "communities.read",
