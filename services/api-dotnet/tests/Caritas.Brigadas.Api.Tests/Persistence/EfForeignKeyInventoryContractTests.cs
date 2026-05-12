@@ -86,14 +86,31 @@ public sealed class EfForeignKeyInventoryContractTests
                 failures.Add($"{candidate.Describe()} dependent property is not mapped.");
                 continue;
             }
-
-            if (dependentProperty.ClrType != typeof(Guid) &&
-                dependentProperty.ClrType != typeof(Guid?))
+            if (candidate.IsRequired)
             {
-                failures.Add($"{candidate.Describe()} dependent property must be Guid or Guid?.");
-            }
+                if (dependentProperty.ClrType != typeof(Guid))
+                {
+                    failures.Add($"{candidate.Describe()} is marked required, so dependent property must be non-nullable Guid.");
+                }
 
-            var principalProperty = principalEntityType.FindProperty(candidate.PrincipalKeyName);
+                if (dependentProperty.IsNullable)
+                {
+                    failures.Add($"{candidate.Describe()} is marked required, so EF property must be non-nullable.");
+                }
+            }
+            else
+            {
+                if (dependentProperty.ClrType != typeof(Guid?))
+                {
+                    failures.Add($"{candidate.Describe()} is marked optional, so dependent property must be nullable Guid?.");
+                }
+
+                if (!dependentProperty.IsNullable)
+                {
+                    failures.Add($"{candidate.Describe()} is marked optional, so EF property must be nullable.");
+                }
+            }
+var principalProperty = principalEntityType.FindProperty(candidate.PrincipalKeyName);
 
             if (principalProperty is null)
             {
@@ -220,15 +237,39 @@ public sealed class EfForeignKeyInventoryContractTests
             "MediaRelease.PatientId -> Patient.Id",
             "MediaRelease.VisitId -> PatientVisit.Id",
             "SyncBatch.OrganizationId -> Organization.Id",
-            "SyncBatch.BrigadeId -> Brigade.Id",
-            "SyncBatch.DeviceId -> Device.Id",
-            "SyncEvent.OrganizationId -> Organization.Id",
+            "SyncBatch.BrigadeId -> Brigade.Id",            "SyncEvent.OrganizationId -> Organization.Id",
             "SyncEvent.SyncBatchId -> SyncBatch.Id"
         };
 
         AssertPackageContains("P2-08-forms-documents-sync", expected);
     }
 
+    [Fact]
+    public void DeferredForeignKeyInventory_ContainsDeviceRelationshipsRequiringPolicyDecision()
+    {
+        var deferred = GetDeferredForeignKeys()
+            .Select(candidate => candidate.Describe())
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        var expected = new[]
+        {
+            "SyncBatch.DeviceId -> Device.Id"
+        };
+
+        Assert.Equal(expected, deferred);
+    }
+
+    private static IReadOnlyCollection<CandidateForeignKey> GetDeferredForeignKeys()
+    {
+        return new[]
+        {
+            CandidateForeignKey.Optional<SyncBatch, Device>(
+                nameof(SyncBatch.DeviceId),
+                "policy-decision-required",
+                "Sync batches may carry offline, revoked, or not-yet-synced device identifiers and require an explicit policy decision before becoming real FKs.")
+        };
+    }
     private static void AssertPackageContains(
         string package,
         IReadOnlyCollection<string> expectedRelationships)
@@ -450,10 +491,6 @@ public sealed class EfForeignKeyInventoryContractTests
                 nameof(SyncBatch.BrigadeId),
                 "P2-08-forms-documents-sync",
                 "Sync batches can optionally be tied to a brigade."),
-            CandidateForeignKey.Optional<SyncBatch, Device>(
-                nameof(SyncBatch.DeviceId),
-                "P2-08-forms-documents-sync",
-                "Sync batches can optionally be tied to a device."),
             CandidateForeignKey.Required<SyncEvent, Organization>(
                 nameof(SyncEvent.OrganizationId),
                 "P2-08-forms-documents-sync",
