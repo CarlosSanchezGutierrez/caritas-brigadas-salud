@@ -1,4 +1,4 @@
-﻿namespace Caritas.Brigadas.Application.Security;
+namespace Caritas.Brigadas.Application.Security;
 
 public static class PermissionCodes
 {
@@ -51,6 +51,47 @@ public static class PermissionCodes
     public const string SyncBatchesWrite = "sync-batches.write";
 
     public const string AuditLogsRead = "audit-logs.read";
+
+    public static readonly IReadOnlyCollection<string> GlobalOnly = new[]
+    {
+        OrganizationsWrite
+    };
+
+    public static readonly IReadOnlyCollection<string> TenantScoped = new[]
+    {
+        OrganizationsRead,
+        UsersRead,
+        UsersWrite,
+        RolesRead,
+        RolesAssign,
+        ServicesRead,
+        ServicesSeed,
+        CommunitiesRead,
+        CommunitiesWrite,
+        MobileUnitsRead,
+        MobileUnitsWrite,
+        BrigadesRead,
+        BrigadesWrite,
+        BrigadeServicesRead,
+        BrigadeServicesWrite,
+        PatientsRead,
+        PatientsWrite,
+        PatientVisitsRead,
+        PatientVisitsWrite,
+        ServiceEncountersRead,
+        ServiceEncountersWrite,
+        FormTemplatesRead,
+        FormTemplatesSeed,
+        FormResponsesRead,
+        FormResponsesWrite,
+        ConsentDocumentsRead,
+        ConsentDocumentsWrite,
+        ReportsRead,
+        ReportsExport,
+        SyncBatchesRead,
+        SyncBatchesWrite,
+        AuditLogsRead
+    };
 
     public static readonly IReadOnlyCollection<string> All = new[]
     {

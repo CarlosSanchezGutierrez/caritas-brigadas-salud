@@ -71,7 +71,7 @@ public sealed class OrganizationsController : ControllerBase
     }
 
     /// <summary>
-    /// Obtiene una organizaciÃƒÂ³n por identificador.
+    /// Obtiene una organización por identificador.
     /// </summary>
     [HttpGet("{organizationId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<OrganizationSummaryDto>), StatusCodes.Status200OK)]
@@ -109,7 +109,7 @@ public sealed class OrganizationsController : ControllerBase
     }
 
     /// <summary>
-    /// Crea una organizaciÃƒÂ³n institucional.
+    /// Crea una organización institucional.
     /// </summary>
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<OrganizationSummaryDto>), StatusCodes.Status201Created)]

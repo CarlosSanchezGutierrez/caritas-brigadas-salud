@@ -1,4 +1,4 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Contracts.Api;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,6 +7,7 @@ namespace Caritas.Brigadas.Api.Controllers;
 /// <summary>
 /// Endpoints básicos para verificar el estado operativo de la API.
 /// </summary>
+[Microsoft.AspNetCore.Authorization.AllowAnonymous]
 [ApiController]
 [Route("api/v1/health")]
 [Produces("application/json")]
