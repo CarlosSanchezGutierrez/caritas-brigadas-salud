@@ -17,28 +17,15 @@ public sealed class ControllerAuthorizationContractTests
             var source = File.ReadAllText(sourcePath);
             var controllerHasAuthorizationDecision = ControllerHasAuthorizationDecision(source);
 
-            foreach (Match httpAttribute in Regex.Matches(
-                         source,
-                         @"^\s*\[Http(Get|Post|Put|Patch|Delete)(\(|\])",
-                         RegexOptions.Multiline))
+            foreach (var action in GetControllerActions(sourcePath, source))
             {
-                var methodStart = source.IndexOf("public ", httpAttribute.Index, StringComparison.Ordinal);
-
-                if (methodStart < 0)
-                {
-                    failures.Add($"{Path.GetFileName(sourcePath)}:{GetLineNumber(source, httpAttribute.Index)} has HTTP attribute without public action method.");
-                    continue;
-                }
-
-                var actionAttributeBlock = source[httpAttribute.Index..methodStart];
-
                 var actionHasAuthorizationDecision =
-                    ContainsAuthorizationDecision(actionAttributeBlock) ||
+                    ContainsAuthorizationDecision(action.AttributeBlock) ||
                     controllerHasAuthorizationDecision;
 
                 if (!actionHasAuthorizationDecision)
                 {
-                    failures.Add($"{Path.GetFileName(sourcePath)}:{GetLineNumber(source, httpAttribute.Index)} has HTTP action without [Authorize] or [AllowAnonymous].");
+                    failures.Add($"{Path.GetFileName(sourcePath)}:{GetLineNumber(source, action.HttpAttributeIndex)} has HTTP action without [Authorize] or [AllowAnonymous].");
                 }
             }
         }
@@ -97,7 +84,7 @@ public sealed class ControllerAuthorizationContractTests
     }
 
     [Fact]
-    public void ControllerActionsUsingGlobalOnlyPermissions_HaveSuperAdminGuardrail()
+    public void ControllerActionsUsingGlobalOnlyPermissions_HaveSuperAdminGuardrailInSameAction()
     {
         var failures = new List<string>();
 
@@ -105,41 +92,112 @@ public sealed class ControllerAuthorizationContractTests
         {
             var source = File.ReadAllText(sourcePath);
 
-            foreach (Match match in Regex.Matches(
-                         source,
-                         @"Authorize\(Policy\s*=\s*PermissionCodes\.(?<member>[A-Za-z0-9_]+)\)"))
+            foreach (var action in GetControllerActions(sourcePath, source))
             {
-                var memberName = match.Groups["member"].Value;
-                var field = typeof(PermissionCodes).GetField(
-                    memberName,
-                    BindingFlags.Public | BindingFlags.Static);
-
-                if (field?.GetValue(null) is not string permissionCode)
+                foreach (Match match in Regex.Matches(
+                             action.AttributeBlock,
+                             @"Authorize\(Policy\s*=\s*PermissionCodes\.(?<member>[A-Za-z0-9_]+)\)"))
                 {
-                    continue;
-                }
+                    var memberName = match.Groups["member"].Value;
+                    var field = typeof(PermissionCodes).GetField(
+                        memberName,
+                        BindingFlags.Public | BindingFlags.Static);
 
-                if (!PermissionCodes.GlobalOnly.Contains(permissionCode, StringComparer.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
+                    if (field?.GetValue(null) is not string permissionCode)
+                    {
+                        continue;
+                    }
 
-                var sourceContainsSuperAdminGuard =
-                    source.Contains("IsSuperAdmin(User)", StringComparison.Ordinal) &&
-                    source.Contains("return Forbid();", StringComparison.Ordinal);
+                    if (!PermissionCodes.GlobalOnly.Contains(permissionCode, StringComparer.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
 
-                if (!sourceContainsSuperAdminGuard)
-                {
-                    failures.Add($"{Path.GetFileName(sourcePath)}:{GetLineNumber(source, match.Index)} uses global-only permission '{permissionCode}' without an explicit super-admin guardrail.");
+                    var actionContainsSuperAdminGuard =
+                        action.Source.Contains("IsSuperAdmin(User)", StringComparison.Ordinal) &&
+                        action.Source.Contains("return Forbid();", StringComparison.Ordinal);
+
+                    if (!actionContainsSuperAdminGuard)
+                    {
+                        failures.Add($"{Path.GetFileName(sourcePath)}:{GetLineNumber(source, action.HttpAttributeIndex)} uses global-only permission '{permissionCode}' without an explicit super-admin guardrail in the same action.");
+                    }
                 }
             }
         }
 
         Assert.True(
             failures.Count == 0,
-            "Controller actions using global-only permissions must include an explicit super-admin guardrail." +
+            "Controller actions using global-only permissions must include an explicit super-admin guardrail in the same action." +
             Environment.NewLine +
             string.Join(Environment.NewLine, failures));
+    }
+
+    private static IReadOnlyCollection<ControllerActionSource> GetControllerActions(
+        string sourcePath,
+        string source)
+    {
+        var httpAttributes = Regex.Matches(
+                source,
+                @"^\s*\[Http(Get|Post|Put|Patch|Delete)(\(|\])",
+                RegexOptions.Multiline)
+            .Cast<Match>()
+            .ToArray();
+
+        var actions = new List<ControllerActionSource>();
+
+        for (var index = 0; index < httpAttributes.Length; index++)
+        {
+            var httpAttribute = httpAttributes[index];
+            var nextHttpAttributeIndex = index + 1 < httpAttributes.Length
+                ? httpAttributes[index + 1].Index
+                : source.Length;
+
+            var methodStart = source.IndexOf(
+                "public ",
+                httpAttribute.Index,
+                StringComparison.Ordinal);
+
+            if (methodStart < 0 || methodStart >= nextHttpAttributeIndex)
+            {
+                throw new InvalidOperationException(
+                    $"{Path.GetFileName(sourcePath)}:{GetLineNumber(source, httpAttribute.Index)} has an HTTP attribute without a public action method.");
+            }
+
+            var attributeBlockStart = FindAttributeBlockStart(source, httpAttribute.Index);
+            var attributeBlock = source[attributeBlockStart..methodStart];
+            var actionSource = source[httpAttribute.Index..nextHttpAttributeIndex];
+
+            actions.Add(new ControllerActionSource(
+                httpAttribute.Index,
+                attributeBlock,
+                actionSource));
+        }
+
+        return actions;
+    }
+
+    private static int FindAttributeBlockStart(string source, int httpAttributeIndex)
+    {
+        var beforeHttpAttribute = source[..httpAttributeIndex];
+
+        var windowsBlankLineIndex = beforeHttpAttribute.LastIndexOf(
+            "\r\n\r\n",
+            StringComparison.Ordinal);
+
+        var unixBlankLineIndex = beforeHttpAttribute.LastIndexOf(
+            "\n\n",
+            StringComparison.Ordinal);
+
+        var blankLineIndex = Math.Max(windowsBlankLineIndex, unixBlankLineIndex);
+
+        if (blankLineIndex < 0)
+        {
+            return 0;
+        }
+
+        return source[blankLineIndex] == '\r'
+            ? blankLineIndex + 4
+            : blankLineIndex + 2;
     }
 
     private static bool ControllerHasAuthorizationDecision(string source)
@@ -154,7 +212,10 @@ public sealed class ControllerAuthorizationContractTests
             return false;
         }
 
-        var prefixStart = source.LastIndexOf($"{Environment.NewLine}{Environment.NewLine}", classMatch.Index, StringComparison.Ordinal);
+        var prefixStart = Math.Max(
+            source.LastIndexOf("\r\n\r\n", classMatch.Index, StringComparison.Ordinal),
+            source.LastIndexOf("\n\n", classMatch.Index, StringComparison.Ordinal));
+
         prefixStart = prefixStart < 0 ? 0 : prefixStart;
 
         var classAttributeBlock = source[prefixStart..classMatch.Index];
@@ -209,4 +270,9 @@ public sealed class ControllerAuthorizationContractTests
 
         throw new DirectoryNotFoundException("Repository root with .git directory was not found.");
     }
+
+    private sealed record ControllerActionSource(
+        int HttpAttributeIndex,
+        string AttributeBlock,
+        string Source);
 }
