@@ -50,6 +50,26 @@ public sealed class RoleAssignmentGuardrailTests
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, objectResult.StatusCode);
     }
 
+    [Fact]
+    public async Task AssignRoleAsync_WhenLegacySuperAdminAssignsSuperAdmin_ContinuesToRepositoryPipeline()
+    {
+        var controller = CreateControllerWithLegacyRole(RoleCodes.SuperAdmin);
+
+        var request = new AssignUserRoleRequest
+        {
+            RoleCode = RoleCodes.SuperAdmin
+        };
+
+        var result = await controller.AssignRoleAsync(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            request,
+            CancellationToken.None);
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, objectResult.StatusCode);
+    }
+
     private static RolesController CreateControllerWithRole(string roleCode)
     {
         var services = new ServiceCollection().BuildServiceProvider();
