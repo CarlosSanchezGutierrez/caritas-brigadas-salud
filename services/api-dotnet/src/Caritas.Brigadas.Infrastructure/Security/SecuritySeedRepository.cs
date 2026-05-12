@@ -161,6 +161,29 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
 
         var roleIds = roles.Select(role => role.Id).ToArray();
 
+        var globalOnlyPermissionIds = permissions
+            .Where(permission => PermissionCodes.GlobalOnly.Contains(
+                permission.Code,
+                StringComparer.OrdinalIgnoreCase))
+            .Select(permission => permission.Id)
+            .ToHashSet();
+
+        var nonSuperAdminRoleIds = roles
+            .Where(role => !string.Equals(
+                role.Code,
+                RoleCodes.SuperAdmin,
+                StringComparison.OrdinalIgnoreCase))
+            .Select(role => role.Id)
+            .ToArray();
+
+        var staleGlobalOnlyRolePermissions = await _dbContext.RolePermissions
+            .Where(rolePermission =>
+                nonSuperAdminRoleIds.Contains(rolePermission.RoleId) &&
+                globalOnlyPermissionIds.Contains(rolePermission.PermissionId))
+            .ToListAsync(cancellationToken);
+
+        _dbContext.RolePermissions.RemoveRange(staleGlobalOnlyRolePermissions);
+
         var existingRolePermissions = await _dbContext.RolePermissions
             .AsNoTracking()
             .Where(rolePermission => roleIds.Contains(rolePermission.RoleId))
@@ -209,7 +232,7 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
             }
         }
 
-        if (created > 0)
+        if (created > 0 || staleGlobalOnlyRolePermissions.Count > 0)
         {
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
@@ -224,43 +247,43 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
             new RoleDefinition(
                 "SUPER_ADMIN",
                 "Superadministrador institucional",
-                "Control total de la organizaciÃ³n, configuraciÃ³n, usuarios, permisos, auditorÃ­a y datos.",
+                "Control total de la organizaciÃƒÂ³n, configuraciÃƒÂ³n, usuarios, permisos, auditorÃƒÂ­a y datos.",
                 true),
 
             new RoleDefinition(
                 "ADMIN",
                 "Administrador institucional",
-                "AdministraciÃ³n operativa de usuarios, brigadas, servicios y reportes.",
+                "AdministraciÃƒÂ³n operativa de usuarios, brigadas, servicios y reportes.",
                 true),
 
             new RoleDefinition(
                 "BRIGADE_COORDINATOR",
                 "Coordinador de brigada",
-                "CoordinaciÃ³n de brigadas, servicios disponibles, pacientes, visitas y operaciÃ³n en campo.",
+                "CoordinaciÃƒÂ³n de brigadas, servicios disponibles, pacientes, visitas y operaciÃƒÂ³n en campo.",
                 false),
 
             new RoleDefinition(
                 "HEALTH_PROVIDER",
                 "Prestador de servicio de salud",
-                "Usuario que brinda atenciÃ³n en un servicio de salud: medicina, psicologÃ­a, nutriciÃ³n, optometrÃ­a, odontologÃ­a u otro.",
+                "Usuario que brinda atenciÃƒÂ³n en un servicio de salud: medicina, psicologÃƒÂ­a, nutriciÃƒÂ³n, optometrÃƒÂ­a, odontologÃƒÂ­a u otro.",
                 false),
 
             new RoleDefinition(
                 "SERVICE_STUDENT",
                 "Estudiante prestador de servicio",
-                "Estudiante o voluntario supervisado que apoya captura, atenciÃ³n operativa o servicios asignados.",
+                "Estudiante o voluntario supervisado que apoya captura, atenciÃƒÂ³n operativa o servicios asignados.",
                 false),
 
             new RoleDefinition(
                 "AUDITOR",
                 "Auditor",
-                "Usuario con permisos de consulta para revisiÃ³n, trazabilidad, cumplimiento y auditorÃ­a.",
+                "Usuario con permisos de consulta para revisiÃƒÂ³n, trazabilidad, cumplimiento y auditorÃƒÂ­a.",
                 false),
 
             new RoleDefinition(
                 "DATA_ANALYST",
                 "Analista de datos",
-                "Usuario enfocado en reportes, mÃ©tricas, anÃ¡lisis y datos agregados no sensibles.",
+                "Usuario enfocado en reportes, mÃƒÂ©tricas, anÃƒÂ¡lisis y datos agregados no sensibles.",
                 false)
         };
     }
