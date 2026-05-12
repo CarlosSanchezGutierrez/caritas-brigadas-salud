@@ -98,6 +98,13 @@ public sealed class EfDeleteBehaviorContractTests
 
         var expected = new[]
         {
+            "brigades.brigade_services(BrigadeId) -> brigades.brigades(Id) DeleteBehavior=NoAction",
+            "brigades.brigade_services(ServiceId) -> core.services(Id) DeleteBehavior=NoAction",
+            "brigades.brigades(CommunityId) -> brigades.communities(Id) DeleteBehavior=NoAction",
+            "brigades.brigades(MobileUnitId) -> brigades.mobile_units(Id) DeleteBehavior=NoAction",
+            "brigades.brigades(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "brigades.communities(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "brigades.mobile_units(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
             "core.role_permissions(PermissionId) -> core.permissions(Id) DeleteBehavior=NoAction",
             "core.role_permissions(RoleId) -> core.roles(Id) DeleteBehavior=NoAction",
             "core.roles(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
