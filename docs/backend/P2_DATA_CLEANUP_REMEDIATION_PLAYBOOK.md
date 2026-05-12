@@ -69,8 +69,6 @@ Recommended action:
 
 This should be done only through a reviewed repair script.
 
----
-
 ### 4.2 Principal row was accidentally deleted
 
 Use this when a parent row is missing but should still exist.
@@ -81,8 +79,6 @@ Recommended action:
 2. preserve original IDs when possible;
 3. avoid generating new IDs unless explicitly approved;
 4. run orphan detection again.
-
----
 
 ### 4.3 Dependent row is invalid test or seed data
 
@@ -98,8 +94,6 @@ Recommended action:
 
 Production deletes require stricter authorization.
 
----
-
 ### 4.4 Dependent row is historical and must remain
 
 Use this when the dependent record must remain for clinical, legal, audit, or sync history.
@@ -111,8 +105,6 @@ Recommended action:
 3. create an archival parent record if allowed by policy;
 4. document the reason;
 5. run orphan detection again.
-
----
 
 ### 4.5 DeviceId relationship appears as orphan-like data
 
@@ -163,7 +155,7 @@ Every repair script must:
 
 Minimum shape:
 
-```sql
+~~~sql
 BEGIN TRANSACTION;
 
 -- Pre-check
@@ -181,31 +173,42 @@ FROM ...
 -- COMMIT only after review
 -- COMMIT TRANSACTION;
 -- ROLLBACK TRANSACTION;
-7. Required post-remediation validation
+~~~
+
+---
+
+## 7. Required post-remediation validation
 
 After remediation:
 
-run p2_detect_fk_orphans.sql;
-confirm total_orphans = 0;
-confirm required_fk_orphans = 0;
-confirm optional_fk_orphans = 0;
-archive the output;
-obtain approval to continue migration.
-8. Migration readiness rule
+1. run `p2_detect_fk_orphans.sql`;
+2. confirm `total_orphans = 0`;
+3. confirm `required_fk_orphans = 0`;
+4. confirm `optional_fk_orphans = 0`;
+5. archive the output;
+6. obtain approval to continue migration.
+
+---
+
+## 8. Migration readiness rule
 
 A database is ready for P2 FK migration only when:
 
-orphan detection returns zero total orphans;
-repair evidence is documented;
-backup exists;
-rollback plan exists;
-migration user is ready;
-runtime API user is not responsible for applying migrations;
-post-migration validation is planned.
-9. Evidence template
+- orphan detection returns zero total orphans;
+- repair evidence is documented;
+- backup exists;
+- rollback plan exists;
+- migration user is ready;
+- runtime API user is not responsible for applying migrations;
+- post-migration validation is planned.
+
+---
+
+## 9. Evidence template
 
 Use this template for every cleanup event.
 
+~~~text
 Environment:
 Database:
 Date:
@@ -226,7 +229,11 @@ Post-check result:
 Final orphan count:
 Approval:
 Rollback notes:
-10. Final rule
+~~~
+
+---
+
+## 10. Final rule
 
 If the data owner cannot explain why a row is safe to modify or delete, do not modify or delete it.
 
