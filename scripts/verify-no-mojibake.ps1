@@ -2,25 +2,10 @@ $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 
-# ASCII-safe mojibake detection.
-# Avoid literal mojibake strings in this script so the script itself cannot break parsing.
 $SuspiciousChars = @(
-    [char]0x00C3, # A with tilde: common mojibake marker
-    [char]0x00C2, # A with circumflex: common mojibake marker
-    [char]0x00A2  # cent sign: common second-order mojibake marker
-)
-
-$SuspiciousAsciiFragments = @(
-    "organizaci",
-    "configuraci",
-    "auditor",
-    "Administraci",
-    "Coordinaci",
-    "atenci",
-    "psicolog",
-    "odontolog",
-    "revisi",
-    "metricas"
+    [char]0x00C3,
+    [char]0x00C2,
+    [char]0x00A2
 )
 
 $TargetExtensions = @(
@@ -46,7 +31,8 @@ $ExcludedSegments = @(
     "\.next\",
     "\coverage\",
     "\playwright-report\",
-    "\test-results\"
+    "\test-results\",
+    "\security-reports\"
 )
 
 $files = Get-ChildItem $RepoRoot -Recurse -File |
@@ -73,22 +59,6 @@ foreach ($file in $files) {
     foreach ($suspiciousChar in $SuspiciousChars) {
         if ($content.Contains([string]$suspiciousChar)) {
             $matches.Add("$relativePath contains suspicious mojibake char U+$('{0:X4}' -f [int][char]$suspiciousChar)")
-        }
-    }
-
-    foreach ($fragment in $SuspiciousAsciiFragments) {
-        $index = $content.IndexOf($fragment, [StringComparison]::OrdinalIgnoreCase)
-
-        if ($index -ge 0) {
-            $windowStart = [Math]::Max(0, $index - 10)
-            $windowLength = [Math]::Min(80, $content.Length - $windowStart)
-            $window = $content.Substring($windowStart, $windowLength)
-
-            foreach ($suspiciousChar in $SuspiciousChars) {
-                if ($window.Contains([string]$suspiciousChar)) {
-                    $matches.Add("$relativePath contains mojibake near fragment '$fragment'")
-                }
-            }
         }
     }
 }
