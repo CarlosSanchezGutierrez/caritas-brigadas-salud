@@ -4,6 +4,7 @@ $RepoRoot = Split-Path -Parent $PSScriptRoot
 $GenerateScriptPath = Join-Path $RepoRoot "scripts\db-generate-migration-script.ps1"
 $ForeignKeyBaselineScriptPath = Join-Path $RepoRoot "scripts\verify-database-foreign-key-baseline.ps1"
 $OrphanDetectionScriptPath = Join-Path $RepoRoot "scripts\verify-p2-orphan-detection-sql.ps1"
+$CleanupRemediationPlaybookScriptPath = Join-Path $RepoRoot "scripts\verify-p2-data-cleanup-remediation-playbook.ps1"
 $MigrationDocsPath = Join-Path $RepoRoot "docs\database\sql-server-migration-deployment-baseline.md"
 $RollbackDocsPath = Join-Path $RepoRoot "docs\database\sql-server-rollback-and-recovery.md"
 $PermissionsDocsPath = Join-Path $RepoRoot "docs\database\sql-server-permissions-baseline.md"
@@ -34,6 +35,7 @@ function Assert-Contains {
 Assert-FileExists $GenerateScriptPath
 Assert-FileExists $ForeignKeyBaselineScriptPath
 Assert-FileExists $OrphanDetectionScriptPath
+Assert-FileExists $CleanupRemediationPlaybookScriptPath
 Assert-FileExists $MigrationDocsPath
 Assert-FileExists $RollbackDocsPath
 Assert-FileExists $PermissionsDocsPath
@@ -65,6 +67,7 @@ Assert-Contains $DeploymentDocsPath "Las migraciones no deben ejecutarse automá
 
 & $ForeignKeyBaselineScriptPath
 & $OrphanDetectionScriptPath
+& $CleanupRemediationPlaybookScriptPath
 
 Write-Host ""
 Write-Host "============================================================" -ForegroundColor Green
