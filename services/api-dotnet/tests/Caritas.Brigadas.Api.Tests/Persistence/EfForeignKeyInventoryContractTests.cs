@@ -229,6 +229,32 @@ public sealed class EfForeignKeyInventoryContractTests
         AssertPackageContains("P2-08-forms-documents-sync", expected);
     }
 
+    [Fact]
+    public void DeferredForeignKeyInventory_ContainsDeviceRelationshipsRequiringPolicyDecision()
+    {
+        var deferred = GetDeferredForeignKeys()
+            .Select(candidate => candidate.Describe())
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        var expected = new[]
+        {
+            "SyncBatch.DeviceId -> Device.Id"
+        };
+
+        Assert.Equal(expected, deferred);
+    }
+
+    private static IReadOnlyCollection<CandidateForeignKey> GetDeferredForeignKeys()
+    {
+        return new[]
+        {
+            CandidateForeignKey.Optional<SyncBatch, Device>(
+                nameof(SyncBatch.DeviceId),
+                "policy-decision-required",
+                "Sync batches may carry offline, revoked, or not-yet-synced device identifiers and require an explicit policy decision before becoming real FKs.")
+        };
+    }
     private static void AssertPackageContains(
         string package,
         IReadOnlyCollection<string> expectedRelationships)
@@ -450,10 +476,6 @@ public sealed class EfForeignKeyInventoryContractTests
                 nameof(SyncBatch.BrigadeId),
                 "P2-08-forms-documents-sync",
                 "Sync batches can optionally be tied to a brigade."),
-            CandidateForeignKey.Optional<SyncBatch, Device>(
-                nameof(SyncBatch.DeviceId),
-                "P2-08-forms-documents-sync",
-                "Sync batches can optionally be tied to a device."),
             CandidateForeignKey.Required<SyncEvent, Organization>(
                 nameof(SyncEvent.OrganizationId),
                 "P2-08-forms-documents-sync",
