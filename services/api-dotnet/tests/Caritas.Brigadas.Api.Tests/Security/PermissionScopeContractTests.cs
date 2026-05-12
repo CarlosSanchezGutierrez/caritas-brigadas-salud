@@ -31,7 +31,7 @@ public sealed class PermissionScopeContractTests
 
         var adminBlock = Regex.Match(
             source,
-            @"\[""ADMIN""\]\s*=\s*new\[\]\s*\{(?<body>.*?)\}",
+            @"\[RoleCodes\.Admin\]\s*=\s*new\[\]\s*\{(?<body>.*?)\}",
             RegexOptions.Singleline);
 
         Assert.True(adminBlock.Success, "ADMIN permission seed block was not found.");

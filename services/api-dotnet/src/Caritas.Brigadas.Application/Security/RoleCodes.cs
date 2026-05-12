@@ -1,23 +1,23 @@
-﻿namespace Caritas.Brigadas.Application.Security;
+namespace Caritas.Brigadas.Application.Security;
 
 public static class RoleCodes
 {
     public const string SuperAdmin = "SUPER_ADMIN";
-    public const string OrganizationAdmin = "ORGANIZATION_ADMIN";
-    public const string Coordinator = "COORDINATOR";
+    public const string Admin = "ADMIN";
+    public const string BrigadeCoordinator = "BRIGADE_COORDINATOR";
     public const string HealthProvider = "HEALTH_PROVIDER";
-    public const string Reception = "RECEPTION";
-    public const string Viewer = "VIEWER";
+    public const string ServiceStudent = "SERVICE_STUDENT";
     public const string Auditor = "AUDITOR";
+    public const string DataAnalyst = "DATA_ANALYST";
 
     public static readonly IReadOnlyCollection<string> All = new[]
     {
         SuperAdmin,
-        OrganizationAdmin,
-        Coordinator,
+        Admin,
+        BrigadeCoordinator,
         HealthProvider,
-        Reception,
-        Viewer,
-        Auditor
+        ServiceStudent,
+        Auditor,
+        DataAnalyst
     };
 }
