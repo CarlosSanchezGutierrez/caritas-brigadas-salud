@@ -284,6 +284,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
             entity.HasIndex(x => new { x.OrganizationId, x.PatientFolio }).IsUnique();
             entity.HasIndex(x => new { x.OrganizationId, x.FullNameNormalized });
+
+            entity.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<PatientGuardian>(entity =>
@@ -294,6 +299,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Relationship).HasMaxLength(100);
             entity.Property(x => x.Phone).HasMaxLength(50);
             entity.HasIndex(x => x.PatientId);
+
+            entity.HasOne<Patient>()
+                .WithMany()
+                .HasForeignKey(x => x.PatientId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<PatientVisit>(entity =>
@@ -305,6 +315,21 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.SyncStatus).HasConversion<string>().HasMaxLength(50).IsRequired();
             entity.HasIndex(x => new { x.OrganizationId, x.VisitFolio }).IsUnique();
             entity.HasIndex(x => new { x.BrigadeId, x.PatientId });
+
+            entity.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<Patient>()
+                .WithMany()
+                .HasForeignKey(x => x.PatientId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<Brigade>()
+                .WithMany()
+                .HasForeignKey(x => x.BrigadeId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<ServiceEncounter>(entity =>
@@ -316,6 +341,31 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.SyncStatus).HasConversion<string>().HasMaxLength(50).IsRequired();
             entity.HasIndex(x => new { x.OrganizationId, x.EncounterFolio }).IsUnique();
             entity.HasIndex(x => new { x.VisitId, x.ServiceId });
+
+            entity.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<Patient>()
+                .WithMany()
+                .HasForeignKey(x => x.PatientId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<PatientVisit>()
+                .WithMany()
+                .HasForeignKey(x => x.VisitId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<Brigade>()
+                .WithMany()
+                .HasForeignKey(x => x.BrigadeId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<Service>()
+                .WithMany()
+                .HasForeignKey(x => x.ServiceId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<MedicalReferral>(entity =>
@@ -325,6 +375,21 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.ReferralFolio).HasMaxLength(50).IsRequired();
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
             entity.HasIndex(x => new { x.OrganizationId, x.ReferralFolio }).IsUnique();
+
+            entity.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<Patient>()
+                .WithMany()
+                .HasForeignKey(x => x.PatientId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<ServiceEncounter>()
+                .WithMany()
+                .HasForeignKey(x => x.EncounterId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<MedicationDelivery>(entity =>
@@ -335,6 +400,21 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.ExpirationDate).HasColumnType("date");
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
             entity.HasIndex(x => new { x.OrganizationId, x.PatientId });
+
+            entity.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<Patient>()
+                .WithMany()
+                .HasForeignKey(x => x.PatientId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<ServiceEncounter>()
+                .WithMany()
+                .HasForeignKey(x => x.EncounterId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
     }
 

@@ -85,7 +85,7 @@ public sealed class EfDeleteBehaviorContractTests
     }
 
     [Fact]
-    public void EfModel_CurrentForeignKeysAreLimitedToReviewedP205AndP206Packages()
+    public void EfModel_CurrentForeignKeysAreLimitedToReviewedP205P206AndP207Packages()
     {
         var model = CreateModel();
 
@@ -105,6 +105,22 @@ public sealed class EfDeleteBehaviorContractTests
             "brigades.brigades(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
             "brigades.communities(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
             "brigades.mobile_units(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "clinical.medical_referrals(EncounterId) -> clinical.service_encounters(Id) DeleteBehavior=NoAction",
+            "clinical.medical_referrals(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "clinical.medical_referrals(PatientId) -> clinical.patients(Id) DeleteBehavior=NoAction",
+            "clinical.medication_deliveries(EncounterId) -> clinical.service_encounters(Id) DeleteBehavior=NoAction",
+            "clinical.medication_deliveries(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "clinical.medication_deliveries(PatientId) -> clinical.patients(Id) DeleteBehavior=NoAction",
+            "clinical.patient_guardians(PatientId) -> clinical.patients(Id) DeleteBehavior=NoAction",
+            "clinical.patient_visits(BrigadeId) -> brigades.brigades(Id) DeleteBehavior=NoAction",
+            "clinical.patient_visits(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "clinical.patient_visits(PatientId) -> clinical.patients(Id) DeleteBehavior=NoAction",
+            "clinical.patients(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "clinical.service_encounters(BrigadeId) -> brigades.brigades(Id) DeleteBehavior=NoAction",
+            "clinical.service_encounters(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "clinical.service_encounters(PatientId) -> clinical.patients(Id) DeleteBehavior=NoAction",
+            "clinical.service_encounters(ServiceId) -> core.services(Id) DeleteBehavior=NoAction",
+            "clinical.service_encounters(VisitId) -> clinical.patient_visits(Id) DeleteBehavior=NoAction",
             "core.role_permissions(PermissionId) -> core.permissions(Id) DeleteBehavior=NoAction",
             "core.role_permissions(RoleId) -> core.roles(Id) DeleteBehavior=NoAction",
             "core.roles(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",

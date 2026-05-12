@@ -77,9 +77,7 @@ public sealed class EfBrigadesForeignKeyContractTests
         var brigadesForeignKeys = model
             .GetEntityTypes()
             .SelectMany(entityType => entityType.GetForeignKeys())
-            .Where(foreignKey =>
-                foreignKey.DeclaringEntityType.GetSchema() == "brigades" ||
-                foreignKey.PrincipalEntityType.GetSchema() == "brigades")
+            .Where(foreignKey => foreignKey.DeclaringEntityType.GetSchema() == "brigades")
             .Select(DescribeForeignKey)
             .Order(StringComparer.Ordinal)
             .ToArray();
