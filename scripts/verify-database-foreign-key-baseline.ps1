@@ -45,6 +45,21 @@ function Assert-NotContains {
     }
 }
 
+function Get-SnapshotEntityBlocks {
+    param(
+        [string]$SnapshotContent,
+        [string]$EntityName
+    )
+
+    $FullName = "Caritas.Brigadas.Domain.Entities.$EntityName"
+
+    $EntityPattern = '(?s)modelBuilder\.Entity\("' +
+        [regex]::Escape($FullName) +
+        '", b =>\s*\{.*?\r?\n\s*\}\);'
+
+    return [regex]::Matches($SnapshotContent, $EntityPattern)
+}
+
 function Assert-SnapshotRelationship {
     param(
         [string]$SnapshotContent,
@@ -54,33 +69,60 @@ function Assert-SnapshotRelationship {
         [bool]$Required
     )
 
-    $DependentFullName = "Caritas.Brigadas.Domain.Entities.$DependentEntity"
     $PrincipalFullName = "Caritas.Brigadas.Domain.Entities.$PrincipalEntity"
+    $EntityBlocks = Get-SnapshotEntityBlocks `
+        -SnapshotContent $SnapshotContent `
+        -EntityName $DependentEntity
 
-    $RequiredPattern = if ($Required) {
-        '(?s)modelBuilder\.Entity\("' +
-        [regex]::Escape($DependentFullName) +
-        '".*?\.HasOne\("' +
+    if ($EntityBlocks.Count -eq 0) {
+        throw "EF model snapshot is missing dependent entity block: $DependentEntity."
+    }
+
+    $RelationshipPattern = '(?s)\.HasOne\("' +
         [regex]::Escape($PrincipalFullName) +
-        '".*?\.HasForeignKey\("' +
+        '"(?:,\s*null)?\).*?\.HasForeignKey\("' +
         [regex]::Escape($ForeignKeyProperty) +
-        '"\).*?\.OnDelete\(DeleteBehavior\.NoAction\).*?\.IsRequired\(\)'
-    }
-    else {
-        '(?s)modelBuilder\.Entity\("' +
-        [regex]::Escape($DependentFullName) +
-        '".*?\.HasOne\("' +
-        [regex]::Escape($PrincipalFullName) +
-        '".*?\.HasForeignKey\("' +
-        [regex]::Escape($ForeignKeyProperty) +
-        '"\).*?\.OnDelete\(DeleteBehavior\.NoAction\)'
+        '"\).*?;'
+
+    $FoundRelationship = $false
+    $WrongRelationshipDetails = New-Object System.Collections.Generic.List[string]
+
+    foreach ($EntityBlock in $EntityBlocks) {
+        $RelationshipMatches = [regex]::Matches($EntityBlock.Value, $RelationshipPattern)
+
+        foreach ($RelationshipMatch in $RelationshipMatches) {
+            $FoundRelationship = $true
+            $RelationshipText = $RelationshipMatch.Value
+
+            if (-not $RelationshipText.Contains(".OnDelete(DeleteBehavior.NoAction)")) {
+                $WrongRelationshipDetails.Add("missing DeleteBehavior.NoAction")
+                continue
+            }
+
+            $HasIsRequired = $RelationshipText.Contains(".IsRequired()")
+
+            if ($Required -and -not $HasIsRequired) {
+                $WrongRelationshipDetails.Add("missing IsRequired()")
+                continue
+            }
+
+            if (-not $Required -and $HasIsRequired) {
+                $WrongRelationshipDetails.Add("optional relationship is marked IsRequired()")
+                continue
+            }
+
+            return
+        }
     }
 
-    if ($SnapshotContent -notmatch $RequiredPattern) {
-        $RequiredText = if ($Required) { "required" } else { "optional" }
+    $RequiredText = if ($Required) { "required" } else { "optional" }
 
-        throw "EF model snapshot is missing expected $RequiredText relationship: $DependentEntity.$ForeignKeyProperty -> $PrincipalEntity.Id with DeleteBehavior.NoAction."
+    if ($FoundRelationship) {
+        $Details = ($WrongRelationshipDetails | Sort-Object -Unique) -join ", "
+        throw "EF model snapshot has $DependentEntity.$ForeignKeyProperty -> $PrincipalEntity.Id, but it is not the expected $RequiredText NoAction relationship. Details: $Details"
     }
+
+    throw "EF model snapshot is missing expected $RequiredText relationship inside $DependentEntity block: $DependentEntity.$ForeignKeyProperty -> $PrincipalEntity.Id with DeleteBehavior.NoAction."
 }
 
 Assert-FileExists $SqlBaselinePath
