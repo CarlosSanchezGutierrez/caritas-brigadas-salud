@@ -1,4 +1,5 @@
-﻿using Caritas.Brigadas.Api.Extensions;
+using System.Security.Claims;
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.Security;
@@ -88,6 +89,7 @@ var roles = await repository.ListUserRolesAsync(
     [ProducesResponseType(typeof(ApiResponse<UserRoleSummaryDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     [Authorize(Policy = PermissionCodes.RolesAssign)]
     public async Task<IActionResult> AssignRoleAsync(
@@ -96,6 +98,10 @@ var roles = await repository.ListUserRolesAsync(
         [FromBody] AssignUserRoleRequest request,
         CancellationToken cancellationToken)
     {
+        if (IsSuperAdminRoleRequest(request) && !IsSuperAdmin(User))
+        {
+            return Forbid();
+        }
         var repository = _serviceProvider.GetService<IUserRoleAssignmentRepository>();
 
         if (repository is null)
@@ -138,6 +144,20 @@ var roles = await repository.ListUserRolesAsync(
         }
     }
 
+
+    private static bool IsSuperAdminRoleRequest(AssignUserRoleRequest request)
+    {
+        return string.Equals(
+            request.RoleCode?.Trim(),
+            RoleCodes.SuperAdmin,
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsSuperAdmin(ClaimsPrincipal user)
+    {
+        return user.HasClaim(CurrentUserClaimTypes.RoleCode, RoleCodes.SuperAdmin) ||
+            user.IsInRole(RoleCodes.SuperAdmin);
+    }
     private ObjectResult DatabaseNotConfigured()
     {
         var error = ApiErrorResponse.Create(
