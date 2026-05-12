@@ -224,43 +224,43 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
             new RoleDefinition(
                 "SUPER_ADMIN",
                 "Superadministrador institucional",
-                "Control total de la organización, configuración, usuarios, permisos, auditoría y datos.",
+                "Control total de la organizaciÃ³n, configuraciÃ³n, usuarios, permisos, auditorÃ­a y datos.",
                 true),
 
             new RoleDefinition(
                 "ADMIN",
                 "Administrador institucional",
-                "Administración operativa de usuarios, brigadas, servicios y reportes.",
+                "AdministraciÃ³n operativa de usuarios, brigadas, servicios y reportes.",
                 true),
 
             new RoleDefinition(
                 "BRIGADE_COORDINATOR",
                 "Coordinador de brigada",
-                "Coordinación de brigadas, servicios disponibles, pacientes, visitas y operación en campo.",
+                "CoordinaciÃ³n de brigadas, servicios disponibles, pacientes, visitas y operaciÃ³n en campo.",
                 false),
 
             new RoleDefinition(
                 "HEALTH_PROVIDER",
                 "Prestador de servicio de salud",
-                "Usuario que brinda atención en un servicio de salud: medicina, psicología, nutrición, optometría, odontología u otro.",
+                "Usuario que brinda atenciÃ³n en un servicio de salud: medicina, psicologÃ­a, nutriciÃ³n, optometrÃ­a, odontologÃ­a u otro.",
                 false),
 
             new RoleDefinition(
                 "SERVICE_STUDENT",
                 "Estudiante prestador de servicio",
-                "Estudiante o voluntario supervisado que apoya captura, atención operativa o servicios asignados.",
+                "Estudiante o voluntario supervisado que apoya captura, atenciÃ³n operativa o servicios asignados.",
                 false),
 
             new RoleDefinition(
                 "AUDITOR",
                 "Auditor",
-                "Usuario con permisos de consulta para revisión, trazabilidad, cumplimiento y auditoría.",
+                "Usuario con permisos de consulta para revisiÃ³n, trazabilidad, cumplimiento y auditorÃ­a.",
                 false),
 
             new RoleDefinition(
                 "DATA_ANALYST",
                 "Analista de datos",
-                "Usuario enfocado en reportes, métricas, análisis y datos agregados no sensibles.",
+                "Usuario enfocado en reportes, mÃ©tricas, anÃ¡lisis y datos agregados no sensibles.",
                 false)
         };
     }

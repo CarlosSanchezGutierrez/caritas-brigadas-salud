@@ -27,17 +27,7 @@ public sealed class PermissionScopeContractTests
     [Fact]
     public void SecuritySeedRepository_TenantAdmin_DoesNotReceiveGlobalOrganizationWrite()
     {
-        var repositoryRoot = FindRepositoryRoot();
-        var sourcePath = Path.Combine(
-            repositoryRoot,
-            "services",
-            "api-dotnet",
-            "src",
-            "Caritas.Brigadas.Infrastructure",
-            "Security",
-            "SecuritySeedRepository.cs");
-
-        var source = File.ReadAllText(sourcePath);
+        var source = ReadSecuritySeedRepositorySource();
 
         var adminBlock = Regex.Match(
             source,
@@ -50,6 +40,33 @@ public sealed class PermissionScopeContractTests
             "\"organizations.write\"",
             adminBlock.Groups["body"].Value,
             StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void SecuritySeedRepository_RemovesGlobalOnlyPermissionsFromNonSuperAdminRoles()
+    {
+        var source = ReadSecuritySeedRepositorySource();
+
+        Assert.Contains("PermissionCodes.GlobalOnly", source, StringComparison.Ordinal);
+        Assert.Contains("staleGlobalOnlyRolePermissions", source, StringComparison.Ordinal);
+        Assert.Contains("RemoveRange(staleGlobalOnlyRolePermissions)", source, StringComparison.Ordinal);
+        Assert.Contains("RoleCodes.SuperAdmin", source, StringComparison.Ordinal);
+    }
+
+    private static string ReadSecuritySeedRepositorySource()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+
+        var sourcePath = Path.Combine(
+            repositoryRoot,
+            "services",
+            "api-dotnet",
+            "src",
+            "Caritas.Brigadas.Infrastructure",
+            "Security",
+            "SecuritySeedRepository.cs");
+
+        return File.ReadAllText(sourcePath);
     }
 
     private static string FindRepositoryRoot()
