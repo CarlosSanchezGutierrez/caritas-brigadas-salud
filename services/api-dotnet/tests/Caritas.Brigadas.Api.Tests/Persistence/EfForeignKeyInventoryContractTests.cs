@@ -86,14 +86,31 @@ public sealed class EfForeignKeyInventoryContractTests
                 failures.Add($"{candidate.Describe()} dependent property is not mapped.");
                 continue;
             }
-
-            if (dependentProperty.ClrType != typeof(Guid) &&
-                dependentProperty.ClrType != typeof(Guid?))
+            if (candidate.IsRequired)
             {
-                failures.Add($"{candidate.Describe()} dependent property must be Guid or Guid?.");
-            }
+                if (dependentProperty.ClrType != typeof(Guid))
+                {
+                    failures.Add($"{candidate.Describe()} is marked required, so dependent property must be non-nullable Guid.");
+                }
 
-            var principalProperty = principalEntityType.FindProperty(candidate.PrincipalKeyName);
+                if (dependentProperty.IsNullable)
+                {
+                    failures.Add($"{candidate.Describe()} is marked required, so EF property must be non-nullable.");
+                }
+            }
+            else
+            {
+                if (dependentProperty.ClrType != typeof(Guid?))
+                {
+                    failures.Add($"{candidate.Describe()} is marked optional, so dependent property must be nullable Guid?.");
+                }
+
+                if (!dependentProperty.IsNullable)
+                {
+                    failures.Add($"{candidate.Describe()} is marked optional, so EF property must be nullable.");
+                }
+            }
+var principalProperty = principalEntityType.FindProperty(candidate.PrincipalKeyName);
 
             if (principalProperty is null)
             {
@@ -220,9 +237,7 @@ public sealed class EfForeignKeyInventoryContractTests
             "MediaRelease.PatientId -> Patient.Id",
             "MediaRelease.VisitId -> PatientVisit.Id",
             "SyncBatch.OrganizationId -> Organization.Id",
-            "SyncBatch.BrigadeId -> Brigade.Id",
-            "SyncBatch.DeviceId -> Device.Id",
-            "SyncEvent.OrganizationId -> Organization.Id",
+            "SyncBatch.BrigadeId -> Brigade.Id",            "SyncEvent.OrganizationId -> Organization.Id",
             "SyncEvent.SyncBatchId -> SyncBatch.Id"
         };
 
