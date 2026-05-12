@@ -85,7 +85,7 @@ public sealed class EfDeleteBehaviorContractTests
     }
 
     [Fact]
-    public void EfModel_CurrentForeignKeysAreLimitedToReviewedP205CoreSecurityPackage()
+    public void EfModel_CurrentForeignKeysAreLimitedToReviewedP205AndP206Packages()
     {
         var model = CreateModel();
 
