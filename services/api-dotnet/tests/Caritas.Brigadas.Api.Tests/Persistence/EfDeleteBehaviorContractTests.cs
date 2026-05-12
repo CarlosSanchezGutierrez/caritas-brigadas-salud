@@ -34,7 +34,7 @@ public sealed class EfDeleteBehaviorContractTests
             .SelectMany(entityType => entityType.GetForeignKeys())
             .Where(foreignKey => foreignKey.PrincipalEntityType.ClrType is not null)
             .Where(foreignKey => protectedPrincipalTypes.Contains(foreignKey.PrincipalEntityType.ClrType))
-            .Where(foreignKey => foreignKey.DeleteBehavior == DeleteBehavior.Cascade)
+            .Where(HasDangerousCascadeDeleteBehavior)
             .Select(DescribeForeignKey)
             .Order(StringComparer.Ordinal)
             .ToArray();
@@ -72,7 +72,7 @@ public sealed class EfDeleteBehaviorContractTests
                 return protectedSchemas.Contains(dependentSchema, StringComparer.OrdinalIgnoreCase) ||
                     protectedSchemas.Contains(principalSchema, StringComparer.OrdinalIgnoreCase);
             })
-            .Where(foreignKey => foreignKey.DeleteBehavior == DeleteBehavior.Cascade)
+            .Where(HasDangerousCascadeDeleteBehavior)
             .Select(DescribeForeignKey)
             .Order(StringComparer.Ordinal)
             .ToArray();
@@ -101,6 +101,11 @@ public sealed class EfDeleteBehaviorContractTests
             "The current P2 baseline should not introduce implicit relationship drift before explicit FK packages are reviewed." +
             Environment.NewLine +
             string.Join(Environment.NewLine, foreignKeys));
+    }
+
+    private static bool HasDangerousCascadeDeleteBehavior(IForeignKey foreignKey)
+    {
+        return foreignKey.DeleteBehavior is DeleteBehavior.Cascade or DeleteBehavior.ClientCascade;
     }
 
     private static IModel CreateModel()
