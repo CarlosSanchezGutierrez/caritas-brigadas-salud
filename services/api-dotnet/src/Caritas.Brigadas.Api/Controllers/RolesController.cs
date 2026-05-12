@@ -23,7 +23,7 @@ public sealed class RolesController : ControllerBase
     }
 
     /// <summary>
-    /// Lista roles de una organizaciÃ³n.
+    /// Lista roles de una organización.
     /// </summary>
     [HttpGet("api/v1/organizations/{organizationId:guid}/roles")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyCollection<RoleSummaryDto>>), StatusCodes.Status200OK)]
@@ -83,7 +83,7 @@ var roles = await repository.ListUserRolesAsync(
     }
 
     /// <summary>
-    /// Asigna un rol a un usuario dentro de una organizaciÃ³n.
+    /// Asigna un rol a un usuario dentro de una organización.
     /// </summary>
     [HttpPost("api/v1/organizations/{organizationId:guid}/users/{userId:guid}/roles")]
     [ProducesResponseType(typeof(ApiResponse<UserRoleSummaryDto>), StatusCodes.Status201Created)]
