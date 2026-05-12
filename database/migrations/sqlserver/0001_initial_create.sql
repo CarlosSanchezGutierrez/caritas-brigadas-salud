@@ -1845,3 +1845,256 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_sync_events_OrganizationId] ON [sync].[sync_events] ([OrganizationId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_sync_batches_BrigadeId] ON [sync].[sync_batches] ([BrigadeId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_media_releases_PatientId] ON [documents].[media_releases] ([PatientId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_media_releases_VisitId] ON [documents].[media_releases] ([VisitId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_form_templates_ServiceId] ON [forms].[form_templates] ([ServiceId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_form_responses_EncounterId] ON [forms].[form_responses] ([EncounterId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_form_responses_FormTemplateId] ON [forms].[form_responses] ([FormTemplateId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_document_templates_AppliesToServiceId] ON [documents].[document_templates] ([AppliesToServiceId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_document_signatures_DocumentTemplateId] ON [documents].[document_signatures] ([DocumentTemplateId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_document_signatures_EncounterId] ON [documents].[document_signatures] ([EncounterId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    CREATE INDEX [IX_document_signatures_VisitId] ON [documents].[document_signatures] ([VisitId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [documents].[document_signatures] ADD CONSTRAINT [FK_document_signatures_document_templates_DocumentTemplateId] FOREIGN KEY ([DocumentTemplateId]) REFERENCES [documents].[document_templates] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [documents].[document_signatures] ADD CONSTRAINT [FK_document_signatures_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [documents].[document_signatures] ADD CONSTRAINT [FK_document_signatures_patient_visits_VisitId] FOREIGN KEY ([VisitId]) REFERENCES [clinical].[patient_visits] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [documents].[document_signatures] ADD CONSTRAINT [FK_document_signatures_patients_PatientId] FOREIGN KEY ([PatientId]) REFERENCES [clinical].[patients] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [documents].[document_signatures] ADD CONSTRAINT [FK_document_signatures_service_encounters_EncounterId] FOREIGN KEY ([EncounterId]) REFERENCES [clinical].[service_encounters] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [documents].[document_templates] ADD CONSTRAINT [FK_document_templates_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [documents].[document_templates] ADD CONSTRAINT [FK_document_templates_services_AppliesToServiceId] FOREIGN KEY ([AppliesToServiceId]) REFERENCES [core].[services] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [forms].[form_responses] ADD CONSTRAINT [FK_form_responses_form_templates_FormTemplateId] FOREIGN KEY ([FormTemplateId]) REFERENCES [forms].[form_templates] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [forms].[form_responses] ADD CONSTRAINT [FK_form_responses_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [forms].[form_responses] ADD CONSTRAINT [FK_form_responses_service_encounters_EncounterId] FOREIGN KEY ([EncounterId]) REFERENCES [clinical].[service_encounters] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [forms].[form_templates] ADD CONSTRAINT [FK_form_templates_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [forms].[form_templates] ADD CONSTRAINT [FK_form_templates_services_ServiceId] FOREIGN KEY ([ServiceId]) REFERENCES [core].[services] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [documents].[media_releases] ADD CONSTRAINT [FK_media_releases_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [documents].[media_releases] ADD CONSTRAINT [FK_media_releases_patient_visits_VisitId] FOREIGN KEY ([VisitId]) REFERENCES [clinical].[patient_visits] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [documents].[media_releases] ADD CONSTRAINT [FK_media_releases_patients_PatientId] FOREIGN KEY ([PatientId]) REFERENCES [clinical].[patients] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [sync].[sync_batches] ADD CONSTRAINT [FK_sync_batches_brigades_BrigadeId] FOREIGN KEY ([BrigadeId]) REFERENCES [brigades].[brigades] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [sync].[sync_batches] ADD CONSTRAINT [FK_sync_batches_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [sync].[sync_events] ADD CONSTRAINT [FK_sync_events_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    ALTER TABLE [sync].[sync_events] ADD CONSTRAINT [FK_sync_events_sync_batches_SyncBatchId] FOREIGN KEY ([SyncBatchId]) REFERENCES [sync].[sync_batches] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260512203657_AddFormsDocumentsSyncForeignKeys'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260512203657_AddFormsDocumentsSyncForeignKeys', N'10.0.7');
+END;
+
+COMMIT;
+GO
+

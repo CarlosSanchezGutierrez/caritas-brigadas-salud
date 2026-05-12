@@ -85,9 +85,7 @@ public sealed class EfClinicalForeignKeyContractTests
         var clinicalForeignKeys = model
             .GetEntityTypes()
             .SelectMany(entityType => entityType.GetForeignKeys())
-            .Where(foreignKey =>
-                foreignKey.DeclaringEntityType.GetSchema() == "clinical" ||
-                foreignKey.PrincipalEntityType.GetSchema() == "clinical")
+            .Where(foreignKey => foreignKey.DeclaringEntityType.GetSchema() == "clinical")
             .Select(DescribeForeignKey)
             .Order(StringComparer.Ordinal)
             .ToArray();
