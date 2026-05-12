@@ -4,6 +4,7 @@ using Caritas.Brigadas.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CaritasDbContext))]
-    partial class CaritasDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260512202316_AddClinicalForeignKeys")]
+    partial class AddClinicalForeignKeys
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -693,13 +696,7 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DocumentTemplateId");
-
-                    b.HasIndex("EncounterId");
-
                     b.HasIndex("IsDeleted");
-
-                    b.HasIndex("VisitId");
 
                     b.HasIndex("OrganizationId", "DocumentTemplateId");
 
@@ -789,8 +786,6 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AppliesToServiceId");
 
                     b.HasIndex("IsDeleted");
 
@@ -917,10 +912,6 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EncounterId");
-
-                    b.HasIndex("FormTemplateId");
-
                     b.HasIndex("IsDeleted");
 
                     b.HasIndex("OrganizationId", "EncounterId");
@@ -998,8 +989,6 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("IsDeleted");
 
-                    b.HasIndex("ServiceId");
-
                     b.HasIndex("OrganizationId", "ServiceId", "FormCode", "Version")
                         .IsUnique();
 
@@ -1067,10 +1056,6 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IsDeleted");
-
-                    b.HasIndex("PatientId");
-
-                    b.HasIndex("VisitId");
 
                     b.HasIndex("OrganizationId", "PatientId");
 
@@ -1991,8 +1976,6 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BrigadeId");
-
                     b.HasIndex("OrganizationId", "DeviceId", "StartedAt");
 
                     b.ToTable("sync_batches", "sync");
@@ -2052,8 +2035,6 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OrganizationId");
 
                     b.HasIndex("SyncBatchId", "LocalEventId")
                         .IsUnique();
@@ -2210,106 +2191,6 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Caritas.Brigadas.Domain.Entities.DocumentSignature", b =>
-                {
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.DocumentTemplate", null)
-                        .WithMany()
-                        .HasForeignKey("DocumentTemplateId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.ServiceEncounter", null)
-                        .WithMany()
-                        .HasForeignKey("EncounterId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.Organization", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.Patient", null)
-                        .WithMany()
-                        .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.PatientVisit", null)
-                        .WithMany()
-                        .HasForeignKey("VisitId")
-                        .OnDelete(DeleteBehavior.NoAction);
-                });
-
-            modelBuilder.Entity("Caritas.Brigadas.Domain.Entities.DocumentTemplate", b =>
-                {
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.Service", null)
-                        .WithMany()
-                        .HasForeignKey("AppliesToServiceId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.Organization", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Caritas.Brigadas.Domain.Entities.FormResponse", b =>
-                {
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.ServiceEncounter", null)
-                        .WithMany()
-                        .HasForeignKey("EncounterId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.FormTemplate", null)
-                        .WithMany()
-                        .HasForeignKey("FormTemplateId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.Organization", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Caritas.Brigadas.Domain.Entities.FormTemplate", b =>
-                {
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.Organization", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.Service", null)
-                        .WithMany()
-                        .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Caritas.Brigadas.Domain.Entities.MediaRelease", b =>
-                {
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.Organization", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.Patient", null)
-                        .WithMany()
-                        .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.PatientVisit", null)
-                        .WithMany()
-                        .HasForeignKey("VisitId")
-                        .OnDelete(DeleteBehavior.NoAction);
-                });
-
             modelBuilder.Entity("Caritas.Brigadas.Domain.Entities.MedicalReferral", b =>
                 {
                     b.HasOne("Caritas.Brigadas.Domain.Entities.ServiceEncounter", null)
@@ -2462,35 +2343,6 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
                     b.HasOne("Caritas.Brigadas.Domain.Entities.PatientVisit", null)
                         .WithMany()
                         .HasForeignKey("VisitId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Caritas.Brigadas.Domain.Entities.SyncBatch", b =>
-                {
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.Brigade", null)
-                        .WithMany()
-                        .HasForeignKey("BrigadeId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.Organization", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Caritas.Brigadas.Domain.Entities.SyncEvent", b =>
-                {
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.Organization", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Caritas.Brigadas.Domain.Entities.SyncBatch", null)
-                        .WithMany()
-                        .HasForeignKey("SyncBatchId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });

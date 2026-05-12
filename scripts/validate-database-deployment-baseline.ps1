@@ -2,6 +2,11 @@ $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $GenerateScriptPath = Join-Path $RepoRoot "scripts\db-generate-migration-script.ps1"
+$ForeignKeyBaselineScriptPath = Join-Path $RepoRoot "scripts\verify-database-foreign-key-baseline.ps1"
+$OrphanDetectionScriptPath = Join-Path $RepoRoot "scripts\verify-p2-orphan-detection-sql.ps1"
+$CleanupRemediationPlaybookScriptPath = Join-Path $RepoRoot "scripts\verify-p2-data-cleanup-remediation-playbook.ps1"
+$MigrationDryRunChecklistScriptPath = Join-Path $RepoRoot "scripts\verify-p2-migration-dry-run-checklist.ps1"
+$DeploymentEvidenceTemplateScriptPath = Join-Path $RepoRoot "scripts\verify-p2-deployment-evidence-template.ps1"
 $MigrationDocsPath = Join-Path $RepoRoot "docs\database\sql-server-migration-deployment-baseline.md"
 $RollbackDocsPath = Join-Path $RepoRoot "docs\database\sql-server-rollback-and-recovery.md"
 $PermissionsDocsPath = Join-Path $RepoRoot "docs\database\sql-server-permissions-baseline.md"
@@ -30,6 +35,11 @@ function Assert-Contains {
 }
 
 Assert-FileExists $GenerateScriptPath
+Assert-FileExists $ForeignKeyBaselineScriptPath
+Assert-FileExists $OrphanDetectionScriptPath
+Assert-FileExists $CleanupRemediationPlaybookScriptPath
+Assert-FileExists $MigrationDryRunChecklistScriptPath
+Assert-FileExists $DeploymentEvidenceTemplateScriptPath
 Assert-FileExists $MigrationDocsPath
 Assert-FileExists $RollbackDocsPath
 Assert-FileExists $PermissionsDocsPath
@@ -58,6 +68,12 @@ Assert-Contains $WorkflowPath "Database deployment baseline metadata gate"
 Assert-Contains $WorkflowPath "pwsh scripts/validate-database-deployment-baseline.ps1"
 
 Assert-Contains $DeploymentDocsPath "Las migraciones no deben ejecutarse automáticamente al iniciar la API"
+
+& $ForeignKeyBaselineScriptPath
+& $OrphanDetectionScriptPath
+& $CleanupRemediationPlaybookScriptPath
+& $MigrationDryRunChecklistScriptPath
+& $DeploymentEvidenceTemplateScriptPath
 
 Write-Host ""
 Write-Host "============================================================" -ForegroundColor Green
