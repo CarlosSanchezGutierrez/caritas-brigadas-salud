@@ -247,43 +247,43 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
             new RoleDefinition(
                 RoleCodes.SuperAdmin,
                 "Superadministrador institucional",
-                "Control total de la organizaciÃƒÆ’Ã‚Â³n, configuraciÃƒÆ’Ã‚Â³n, usuarios, permisos, auditorÃƒÆ’Ã‚Â­a y datos.",
+                "Control total de la organización, configuración, usuarios, permisos, auditoría y datos.",
                 true),
 
             new RoleDefinition(
                 RoleCodes.Admin,
                 "Administrador institucional",
-                "AdministraciÃƒÆ’Ã‚Â³n operativa de usuarios, brigadas, servicios y reportes.",
+                "Administración operativa de usuarios, brigadas, servicios y reportes.",
                 true),
 
             new RoleDefinition(
                 RoleCodes.BrigadeCoordinator,
                 "Coordinador de brigada",
-                "CoordinaciÃƒÆ’Ã‚Â³n de brigadas, servicios disponibles, pacientes, visitas y operaciÃƒÆ’Ã‚Â³n en campo.",
+                "Coordinación de brigadas, servicios disponibles, pacientes, visitas y operación en campo.",
                 false),
 
             new RoleDefinition(
                 RoleCodes.HealthProvider,
                 "Prestador de servicio de salud",
-                "Usuario que brinda atenciÃƒÆ’Ã‚Â³n en un servicio de salud: medicina, psicologÃƒÆ’Ã‚Â­a, nutriciÃƒÆ’Ã‚Â³n, optometrÃƒÆ’Ã‚Â­a, odontologÃƒÆ’Ã‚Â­a u otro.",
+                "Usuario que brinda atención en un servicio de salud: medicina, psicología, nutrición, optometría, odontología u otro.",
                 false),
 
             new RoleDefinition(
                 RoleCodes.ServiceStudent,
                 "Estudiante prestador de servicio",
-                "Estudiante o voluntario supervisado que apoya captura, atenciÃƒÆ’Ã‚Â³n operativa o servicios asignados.",
+                "Estudiante o voluntario supervisado que apoya captura, atención operativa o servicios asignados.",
                 false),
 
             new RoleDefinition(
                 RoleCodes.Auditor,
                 "Auditor",
-                "Usuario con permisos de consulta para revisiÃƒÆ’Ã‚Â³n, trazabilidad, cumplimiento y auditorÃƒÆ’Ã‚Â­a.",
+                "Usuario con permisos de consulta para revisión, trazabilidad, cumplimiento y auditoría.",
                 false),
 
             new RoleDefinition(
                 RoleCodes.DataAnalyst,
                 "Analista de datos",
-                "Usuario enfocado en reportes, mÃƒÆ’Ã‚Â©tricas, anÃƒÆ’Ã‚Â¡lisis y datos agregados no sensibles.",
+                "Usuario enfocado en reportes, métricas, análisis y datos agregados no sensibles.",
                 false)
         };
     }
