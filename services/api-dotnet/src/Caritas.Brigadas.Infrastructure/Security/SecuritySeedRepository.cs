@@ -1,4 +1,4 @@
-﻿using Caritas.Brigadas.Application.Security;
+using Caritas.Brigadas.Application.Security;
 using Caritas.Brigadas.Contracts.Security;
 using Caritas.Brigadas.Domain.Entities;
 using Caritas.Brigadas.Infrastructure.Persistence;
@@ -161,6 +161,29 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
 
         var roleIds = roles.Select(role => role.Id).ToArray();
 
+        var globalOnlyPermissionIds = permissions
+            .Where(permission => PermissionCodes.GlobalOnly.Contains(
+                permission.Code,
+                StringComparer.OrdinalIgnoreCase))
+            .Select(permission => permission.Id)
+            .ToHashSet();
+
+        var nonSuperAdminRoleIds = roles
+            .Where(role => !string.Equals(
+                role.Code,
+                RoleCodes.SuperAdmin,
+                StringComparison.OrdinalIgnoreCase))
+            .Select(role => role.Id)
+            .ToArray();
+
+        var staleGlobalOnlyRolePermissions = await _dbContext.RolePermissions
+            .Where(rolePermission =>
+                nonSuperAdminRoleIds.Contains(rolePermission.RoleId) &&
+                globalOnlyPermissionIds.Contains(rolePermission.PermissionId))
+            .ToListAsync(cancellationToken);
+
+        _dbContext.RolePermissions.RemoveRange(staleGlobalOnlyRolePermissions);
+
         var existingRolePermissions = await _dbContext.RolePermissions
             .AsNoTracking()
             .Where(rolePermission => roleIds.Contains(rolePermission.RoleId))
@@ -209,7 +232,7 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
             }
         }
 
-        if (created > 0)
+        if (created > 0 || staleGlobalOnlyRolePermissions.Count > 0)
         {
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
@@ -222,43 +245,43 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
         return new[]
         {
             new RoleDefinition(
-                "SUPER_ADMIN",
+                RoleCodes.SuperAdmin,
                 "Superadministrador institucional",
                 "Control total de la organización, configuración, usuarios, permisos, auditoría y datos.",
                 true),
 
             new RoleDefinition(
-                "ADMIN",
+                RoleCodes.Admin,
                 "Administrador institucional",
                 "Administración operativa de usuarios, brigadas, servicios y reportes.",
                 true),
 
             new RoleDefinition(
-                "BRIGADE_COORDINATOR",
+                RoleCodes.BrigadeCoordinator,
                 "Coordinador de brigada",
                 "Coordinación de brigadas, servicios disponibles, pacientes, visitas y operación en campo.",
                 false),
 
             new RoleDefinition(
-                "HEALTH_PROVIDER",
+                RoleCodes.HealthProvider,
                 "Prestador de servicio de salud",
                 "Usuario que brinda atención en un servicio de salud: medicina, psicología, nutrición, optometría, odontología u otro.",
                 false),
 
             new RoleDefinition(
-                "SERVICE_STUDENT",
+                RoleCodes.ServiceStudent,
                 "Estudiante prestador de servicio",
                 "Estudiante o voluntario supervisado que apoya captura, atención operativa o servicios asignados.",
                 false),
 
             new RoleDefinition(
-                "AUDITOR",
+                RoleCodes.Auditor,
                 "Auditor",
                 "Usuario con permisos de consulta para revisión, trazabilidad, cumplimiento y auditoría.",
                 false),
 
             new RoleDefinition(
-                "DATA_ANALYST",
+                RoleCodes.DataAnalyst,
                 "Analista de datos",
                 "Usuario enfocado en reportes, métricas, análisis y datos agregados no sensibles.",
                 false)
@@ -312,12 +335,11 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
 
         return new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase)
         {
-            ["SUPER_ADMIN"] = allPermissions,
+            [RoleCodes.SuperAdmin] = allPermissions,
 
-            ["ADMIN"] = new[]
+            [RoleCodes.Admin] = new[]
             {
                 "organizations.read",
-                "organizations.write",
                 "users.read",
                 "users.write",
                 "roles.read",
@@ -350,7 +372,7 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
                 "audit-logs.read"
             },
 
-            ["BRIGADE_COORDINATOR"] = new[]
+            [RoleCodes.BrigadeCoordinator] = new[]
             {
                 "organizations.read",
                 "users.read",
@@ -380,7 +402,7 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
                 "reports.read"
             },
 
-            ["HEALTH_PROVIDER"] = new[]
+            [RoleCodes.HealthProvider] = new[]
             {
                 "organizations.read",
                 "services.read",
@@ -399,7 +421,7 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
                 "consent-documents.write",
                 "sync-batches.write"
             },
-            ["SERVICE_STUDENT"] = new[]
+            [RoleCodes.ServiceStudent] = new[]
             {
                 "organizations.read",
                 "services.read",
@@ -421,7 +443,7 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
                 "sync-batches.write"
             },
 
-            ["AUDITOR"] = new[]
+            [RoleCodes.Auditor] = new[]
             {
                 "organizations.read",
                 "users.read",
@@ -442,7 +464,7 @@ public sealed class SecuritySeedRepository : ISecuritySeedRepository
                 "audit-logs.read"
             },
 
-            ["DATA_ANALYST"] = new[]
+            [RoleCodes.DataAnalyst] = new[]
             {
                 "organizations.read",
                 "communities.read",
