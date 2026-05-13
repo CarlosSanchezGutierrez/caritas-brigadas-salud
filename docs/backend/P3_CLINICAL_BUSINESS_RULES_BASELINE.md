@@ -355,3 +355,4 @@ P3-04 is complete when:
 - existing database and security gates remain green;
 - P3-05 can implement VitalSignsRecord from explicit rules.
 - P3-06 clinical record read model can aggregate patient, visits, encounters, and vital signs without duplicating or rewriting clinical history.
+- P3-06.1 clinical record expansion can include form response metadata, consent document metadata, medical referrals, and medication deliveries without exposing raw form JSON or raw signature payloads.

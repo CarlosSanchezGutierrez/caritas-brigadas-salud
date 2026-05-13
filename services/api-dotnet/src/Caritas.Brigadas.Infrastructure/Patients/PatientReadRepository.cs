@@ -224,6 +224,116 @@ public sealed class PatientReadRepository : IPatientReadRepository
             })
             .ToArrayAsync(cancellationToken);
 
+        var formResponses = await _dbContext.FormResponses
+            .AsNoTracking()
+            .Where(entity =>
+                entity.OrganizationId == organizationId &&
+                !entity.IsDeleted &&
+                _dbContext.ServiceEncounters.Any(encounter =>
+                    encounter.OrganizationId == organizationId &&
+                    encounter.PatientId == patientId &&
+                    encounter.Id == entity.EncounterId &&
+                    !encounter.IsDeleted))
+            .OrderByDescending(entity => entity.CompletedAt)
+            .ThenByDescending(entity => entity.Id)
+            .Select(entity => new PatientClinicalRecordFormResponseDto
+            {
+                Id = entity.Id,
+                OrganizationId = entity.OrganizationId,
+                EncounterId = entity.EncounterId,
+                FormTemplateId = entity.FormTemplateId,
+                ResponseHash = entity.ResponseHash,
+                CompletedByUserId = entity.CompletedByUserId,
+                CompletedAt = entity.CompletedAt,
+                Status = entity.Status,
+                CreatedOffline = entity.CreatedOffline,
+                DeviceId = entity.DeviceId,
+                SubmittedAt = entity.SubmittedAt,
+                CapturedAt = entity.CapturedAt,
+                SyncStatus = entity.SyncStatus.ToString()
+            })
+            .ToArrayAsync(cancellationToken);
+
+        var consentDocuments = await _dbContext.ConsentDocuments
+            .AsNoTracking()
+            .Where(entity =>
+                entity.OrganizationId == organizationId &&
+                entity.PatientId == patientId &&
+                !entity.IsDeleted)
+            .OrderByDescending(entity => entity.SignedAt)
+            .ThenByDescending(entity => entity.Id)
+            .Select(entity => new PatientClinicalRecordConsentDocumentDto
+            {
+                Id = entity.Id,
+                OrganizationId = entity.OrganizationId,
+                PatientId = entity.PatientId,
+                VisitId = entity.VisitId,
+                ConsentType = entity.ConsentType,
+                DocumentVersion = entity.DocumentVersion,
+                HasSignature = entity.SignatureDataUrl != null && entity.SignatureDataUrl != string.Empty,
+                GuardianFullName = entity.GuardianFullName,
+                GuardianRelationship = entity.GuardianRelationship,
+                SignedByUserId = entity.SignedByUserId,
+                SignedAt = entity.SignedAt,
+                CreatedOffline = entity.CreatedOffline,
+                DeviceId = entity.DeviceId,
+                SyncStatus = entity.SyncStatus,
+                CreatedAt = entity.CreatedAt
+            })
+            .ToArrayAsync(cancellationToken);
+
+        var medicalReferrals = await _dbContext.MedicalReferrals
+            .AsNoTracking()
+            .Where(entity =>
+                entity.OrganizationId == organizationId &&
+                entity.PatientId == patientId &&
+                !entity.IsDeleted)
+            .OrderByDescending(entity => entity.CreatedAt)
+            .ThenByDescending(entity => entity.Id)
+            .Select(entity => new PatientClinicalRecordMedicalReferralDto
+            {
+                Id = entity.Id,
+                OrganizationId = entity.OrganizationId,
+                EncounterId = entity.EncounterId,
+                PatientId = entity.PatientId,
+                ReferralFolio = entity.ReferralFolio,
+                DestinationInstitution = entity.DestinationInstitution,
+                ReferralReason = entity.ReferralReason,
+                Priority = entity.Priority,
+                ReferredByUserId = entity.ReferredByUserId,
+                ProviderSignatureId = entity.ProviderSignatureId,
+                Status = entity.Status,
+                CreatedAt = entity.CreatedAt
+            })
+            .ToArrayAsync(cancellationToken);
+
+        var medicationDeliveries = await _dbContext.MedicationDeliveries
+            .AsNoTracking()
+            .Where(entity =>
+                entity.OrganizationId == organizationId &&
+                entity.PatientId == patientId &&
+                !entity.IsDeleted)
+            .OrderByDescending(entity => entity.CreatedAt)
+            .ThenByDescending(entity => entity.Id)
+            .Select(entity => new PatientClinicalRecordMedicationDeliveryDto
+            {
+                Id = entity.Id,
+                OrganizationId = entity.OrganizationId,
+                EncounterId = entity.EncounterId,
+                PatientId = entity.PatientId,
+                MedicationName = entity.MedicationName,
+                Presentation = entity.Presentation,
+                Quantity = entity.Quantity,
+                LotNumber = entity.LotNumber,
+                ExpirationDate = entity.ExpirationDate,
+                Instructions = entity.Instructions,
+                DeliveredByUserId = entity.DeliveredByUserId,
+                ReceivedByName = entity.ReceivedByName,
+                SignatureId = entity.SignatureId,
+                Status = entity.Status,
+                CreatedAt = entity.CreatedAt
+            })
+            .ToArrayAsync(cancellationToken);
         return new PatientClinicalRecordDto
         {
             OrganizationId = organizationId,
@@ -232,11 +342,19 @@ public sealed class PatientReadRepository : IPatientReadRepository
             Visits = visits,
             Encounters = encounters,
             VitalSigns = vitalSigns,
+            FormResponses = formResponses,
+            ConsentDocuments = consentDocuments,
+            MedicalReferrals = medicalReferrals,
+            MedicationDeliveries = medicationDeliveries,
             Summary = new PatientClinicalRecordSummaryDto
             {
                 VisitCount = visits.Length,
                 EncounterCount = encounters.Length,
                 VitalSignsCount = vitalSigns.Length,
+                FormResponseCount = formResponses.Length,
+                ConsentDocumentCount = consentDocuments.Length,
+                MedicalReferralCount = medicalReferrals.Length,
+                MedicationDeliveryCount = medicationDeliveries.Length,
                 FirstVisitAt = visits
                     .Where(visit => visit.ArrivalTime.HasValue)
                     .OrderBy(visit => visit.ArrivalTime)
