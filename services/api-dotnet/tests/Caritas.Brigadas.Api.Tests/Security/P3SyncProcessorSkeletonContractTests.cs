@@ -33,7 +33,6 @@ public sealed class P3SyncProcessorSkeletonContractTests
 
         var forbiddenTokens = new[]
         {
-            "_dbContext.Patients.Add",
             "_dbContext.PatientVisits.Add",
             "_dbContext.ServiceEncounters.Add",
             "_dbContext.VitalSignsRecords.Add",
@@ -41,7 +40,7 @@ public sealed class P3SyncProcessorSkeletonContractTests
             "_dbContext.ConsentDocuments.Add",
             "_dbContext.MedicalReferrals.Add",
             "_dbContext.MedicationDeliveries.Add",
-            "syncEvent.Accept("
+
         };
 
         foreach (var token in forbiddenTokens)
@@ -105,6 +104,7 @@ public sealed class P3SyncProcessorSkeletonContractTests
             "create VitalSignsRecord records",
             "accept events as applied clinical writes",
             "Acceptance criteria",
+            "P3-13 supersedes the skeleton for patient create",
             "processor must not complete against client-supplied event totals"
         };
 

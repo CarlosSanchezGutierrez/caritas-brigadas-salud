@@ -98,3 +98,8 @@ P3-12 is complete when:
 - SyncBatchesController exposes process endpoint;
 - processor response does not expose PayloadJson;
 - repository governance and database deployment gates remain green.
+---
+
+## 6. P3-13 patient handler note
+
+P3-13 supersedes the skeleton for patient create only. After P3-13, SyncBatchProcessor may accept SyncEntityType.Patient with SyncOperation.Create and may create Patient records. All other entity types remain conflict-staged until their handlers are implemented.
