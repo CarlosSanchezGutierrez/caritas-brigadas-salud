@@ -95,3 +95,5 @@ Write-Host ""
 Write-Host "============================================================" -ForegroundColor Green
 Write-Host "REPOSITORY GOVERNANCE BASELINE VALIDATION PASO CORRECTAMENTE" -ForegroundColor Green
 Write-Host "============================================================" -ForegroundColor Green
+
+& (Join-Path $RepoRoot "scripts\verify-p3-sync-payload-governance-contracts.ps1")

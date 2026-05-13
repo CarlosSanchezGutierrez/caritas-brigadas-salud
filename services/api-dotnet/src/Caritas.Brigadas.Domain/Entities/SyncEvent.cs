@@ -204,3 +204,36 @@ public static class SyncOperation
     public const string Sign = "sign";
     public const string Sync = "sync";
 }
+
+public static class SyncEntityType
+{
+    public const string Patient = "patient";
+    public const string PatientVisit = "patient_visit";
+    public const string ServiceEncounter = "service_encounter";
+    public const string VitalSigns = "vital_signs";
+    public const string FormResponse = "form_response";
+    public const string ConsentDocument = "consent_document";
+    public const string DocumentSignature = "document_signature";
+    public const string MedicalReferral = "medical_referral";
+    public const string MedicationDelivery = "medication_delivery";
+    public const string MediaRelease = "media_release";
+
+    public static readonly IReadOnlySet<string> Allowed = new HashSet<string>(StringComparer.Ordinal)
+    {
+        Patient,
+        PatientVisit,
+        ServiceEncounter,
+        VitalSigns,
+        FormResponse,
+        ConsentDocument,
+        DocumentSignature,
+        MedicalReferral,
+        MedicationDelivery,
+        MediaRelease
+    };
+
+    public static bool IsAllowed(string entityType)
+    {
+        return Allowed.Contains(entityType);
+    }
+}
