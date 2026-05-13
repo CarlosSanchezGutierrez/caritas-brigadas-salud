@@ -16,7 +16,15 @@ public sealed class P3ClinicalRecordReadModelContractTests
             "IReadOnlyCollection<PatientClinicalRecordVisitDto> Visits",
             "IReadOnlyCollection<PatientClinicalRecordEncounterDto> Encounters",
             "IReadOnlyCollection<PatientClinicalRecordVitalSignsDto> VitalSigns",
+            "IReadOnlyCollection<PatientClinicalRecordFormResponseDto> FormResponses",
+            "IReadOnlyCollection<PatientClinicalRecordConsentDocumentDto> ConsentDocuments",
+            "IReadOnlyCollection<PatientClinicalRecordMedicalReferralDto> MedicalReferrals",
+            "IReadOnlyCollection<PatientClinicalRecordMedicationDeliveryDto> MedicationDeliveries",
             "PatientClinicalRecordSummaryDto Summary",
+            "FormResponseCount",
+            "ConsentDocumentCount",
+            "MedicalReferralCount",
+            "MedicationDeliveryCount",
             "SystolicBloodPressureMmHg",
             "DiastolicBloodPressureMmHg",
             "HeartRateBpm",
@@ -46,8 +54,16 @@ public sealed class P3ClinicalRecordReadModelContractTests
             "_dbContext.PatientVisits",
             "_dbContext.ServiceEncounters",
             "_dbContext.VitalSignsRecords",
+            "_dbContext.FormResponses",
+            "_dbContext.ConsentDocuments",
+            "_dbContext.MedicalReferrals",
+            "_dbContext.MedicationDeliveries",
             "PatientClinicalRecordDto",
-            "PatientClinicalRecordSummaryDto"
+            "PatientClinicalRecordSummaryDto",
+            "ResponseHash",
+            "HasSignature",
+            "ReferralFolio",
+            "MedicationName"
         };
 
         AssertRequiredTokens(source, requiredTokens, "PatientReadRepository clinical record query");
