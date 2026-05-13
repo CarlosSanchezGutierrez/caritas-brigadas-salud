@@ -39,7 +39,8 @@ $RequiredDocTokens = @(
     "duplicate PatientFolio values inside the same pending batch",
     "set SyncEvent.EntityId to the created Patient.Id",
     "patient update is not implemented in P3-13",
-    "Acceptance criteria"
+    "Acceptance criteria",
+    "P3-14 patient visit handler note"
 )
 
 foreach ($Token in $RequiredDocTokens) {
@@ -70,7 +71,6 @@ foreach ($Token in $RequiredProcessorTokens) {
 }
 
 $ForbiddenProcessorTokens = @(
-    "_dbContext.PatientVisits.Add",
     "_dbContext.ServiceEncounters.Add",
     "_dbContext.VitalSignsRecords.Add",
     "_dbContext.FormResponses.Add",

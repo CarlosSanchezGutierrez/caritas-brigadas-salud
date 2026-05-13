@@ -105,3 +105,5 @@ Write-Host "============================================================" -Foreg
 & (Join-Path $RepoRoot "scripts\verify-p3-sync-processor-skeleton.ps1")
 
 & (Join-Path $RepoRoot "scripts\verify-p3-sync-processor-patient-handler.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-sync-processor-patient-visit-handler.ps1")
