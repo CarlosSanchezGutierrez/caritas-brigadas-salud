@@ -145,11 +145,10 @@ public sealed class SyncBatchReadRepository : ISyncBatchReadRepository
                 CreatedAtDevice = syncEvent.CreatedAtDevice,
                 ReceivedAtServer = syncEvent.ReceivedAtServer,
                 ProcessedAt = syncEvent.ProcessedAt,
-                IsPending = syncEvent.IsPending,
-                IsAccepted = syncEvent.IsAccepted,
-                IsRejected = syncEvent.IsRejected,
-                IsConflict = syncEvent.IsConflict
-            })
+                IsPending = syncEvent.Status == SyncEventStatus.Pending,
+                IsAccepted = syncEvent.Status == SyncEventStatus.Accepted,
+                IsRejected = syncEvent.Status == SyncEventStatus.Rejected,
+                IsConflict = syncEvent.Status == SyncEventStatus.Conflict})
             .ToArrayAsync(cancellationToken);
 
         return new PaginatedResponse<SyncEventSummaryDto>
