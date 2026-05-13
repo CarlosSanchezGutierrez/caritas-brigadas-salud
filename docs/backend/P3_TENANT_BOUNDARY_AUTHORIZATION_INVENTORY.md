@@ -155,6 +155,11 @@ No composite classifications are allowed. Each row must use exactly one canonica
 | BrigadeServicesController | List brigade services | Authenticated tenant-scoped | Must filter through brigade/service tenant ownership. |
 | BrigadeServicesController | Attach service to brigade | Authenticated tenant-scoped | Must validate brigade and service belong to actor OrganizationId. |
 | BrigadeServicesController | Remove service from brigade | Authenticated tenant-scoped | Must validate brigade and service belong to actor OrganizationId. |
+| ConsentDocumentsController | List/read consent documents | Authenticated tenant-scoped | Must filter by actor OrganizationId and validate patient, visit, encounter, and document ownership when applicable. |
+| ConsentDocumentsController | Create/capture consent document | Authenticated tenant-scoped | Must validate OrganizationId, patient ownership, document template ownership, and actor permission. Must be auditable. |
+| SecuritySeedController | Seed security defaults | System/internal only | Must not be publicly exposed. Must require explicit seed/system permission or controlled environment guardrail. |
+| SyncBatchesController | List/read sync batches | Authenticated tenant-scoped | Must filter by actor OrganizationId. Must not expose sync batches from other organizations. |
+| SyncBatchesController | Create/update sync batch | Authenticated tenant-scoped | Must validate actor OrganizationId, payload OrganizationId, sync ownership, and deferred DeviceId policy. |
 | Seed/admin endpoints | Seed defaults or internal setup actions | System/internal only | Must not be publicly exposed. Must require explicit seed/system permission or controlled environment guardrail. |
 | Future PatientsController | Patient CRUD | Authenticated tenant-scoped | Must validate Patient.OrganizationId against actor OrganizationId. |
 | Future PatientVisitsController | Visit CRUD | Authenticated tenant-scoped | Must validate Patient, Brigade, and Visit tenant ownership. |
