@@ -16,7 +16,7 @@ public sealed class P3TenantScopeContractTests
 
             foreach (var action in GetControllerActions(controllerPath, source))
             {
-                if (!IsOrganizationScopedRoute(action.Source))
+                if (!IsOrganizationScopedRoute(action))
                 {
                     continue;
                 }
@@ -46,23 +46,21 @@ public sealed class P3TenantScopeContractTests
 
             foreach (var action in GetControllerActions(controllerPath, source))
             {
-                if (!IsOrganizationScopedRoute(action.Source))
+                if (!IsOrganizationScopedRoute(action))
                 {
                     continue;
                 }
 
-                var count = Regex.Matches(action.Source, @"\borganizationId\b").Count;
-
-                if (count < 3)
+                if (!ImplementationUsesOrganizationId(action.Source))
                 {
-                    failures.Add($"{Path.GetFileName(controllerPath)}:{GetLineNumber(source, action.HttpAttributeIndex)} declares organizationId but does not appear to use it beyond route/signature.");
+                    failures.Add($"{Path.GetFileName(controllerPath)}:{GetLineNumber(source, action.HttpAttributeIndex)} declares organizationId but does not use it in implementation.");
                 }
             }
         }
 
         Assert.True(
             failures.Count == 0,
-            "Organization-scoped endpoints must use organizationId in implementation, not only declare it in the route/signature." +
+            "Organization-scoped endpoints must use organizationId in implementation, not only in route/signature." +
             Environment.NewLine +
             string.Join(Environment.NewLine, failures));
     }
@@ -78,12 +76,12 @@ public sealed class P3TenantScopeContractTests
 
             foreach (var action in GetControllerActions(controllerPath, source))
             {
-                if (!IsOrganizationScopedRoute(action.Source))
+                if (!IsOrganizationScopedRoute(action))
                 {
                     continue;
                 }
 
-                if (!IsReadByIdAction(action.Source))
+                if (!IsReadByIdAction(action))
                 {
                     continue;
                 }
@@ -108,7 +106,7 @@ public sealed class P3TenantScopeContractTests
     }
 
     [Fact]
-    public void OrganizationScopedListActions_UseOrganizationScopedQueries()
+    public void OrganizationScopedListActions_UseRealOrganizationScopedQueries()
     {
         var failures = new List<string>();
 
@@ -118,7 +116,7 @@ public sealed class P3TenantScopeContractTests
 
             foreach (var action in GetControllerActions(controllerPath, source))
             {
-                if (!IsOrganizationScopedRoute(action.Source))
+                if (!IsOrganizationScopedRoute(action))
                 {
                     continue;
                 }
@@ -128,22 +126,21 @@ public sealed class P3TenantScopeContractTests
                     continue;
                 }
 
-                if (HasNonOrganizationRouteId(action.Source))
+                if (HasNonOrganizationRouteId(action.EffectiveRouteSource))
                 {
                     continue;
                 }
 
-                if (!action.Source.Contains("ListByOrganizationAsync", StringComparison.Ordinal) &&
-                    !action.Source.Contains("organizationId", StringComparison.Ordinal))
+                if (!UsesOrganizationScopedApplicationCall(action.Source))
                 {
-                    failures.Add($"{Path.GetFileName(controllerPath)}:{GetLineNumber(source, action.HttpAttributeIndex)} list endpoint does not use organization-scoped query semantics.");
+                    failures.Add($"{Path.GetFileName(controllerPath)}:{GetLineNumber(source, action.HttpAttributeIndex)} list/read endpoint does not call the application layer with organizationId.");
                 }
             }
         }
 
         Assert.True(
             failures.Count == 0,
-            "Organization-scoped list actions must use organization-scoped query semantics." +
+            "Organization-scoped list/read actions must call repository/service/application methods with organizationId." +
             Environment.NewLine +
             string.Join(Environment.NewLine, failures));
     }
@@ -159,7 +156,7 @@ public sealed class P3TenantScopeContractTests
 
             foreach (var action in GetControllerActions(controllerPath, source))
             {
-                if (!IsOrganizationScopedRoute(action.Source))
+                if (!IsOrganizationScopedRoute(action))
                 {
                     continue;
                 }
@@ -169,11 +166,9 @@ public sealed class P3TenantScopeContractTests
                     continue;
                 }
 
-                var count = Regex.Matches(action.Source, @"\borganizationId\b").Count;
-
-                if (count < 3)
+                if (!UsesOrganizationScopedApplicationCall(action.Source))
                 {
-                    failures.Add($"{Path.GetFileName(controllerPath)}:{GetLineNumber(source, action.HttpAttributeIndex)} mutation endpoint does not appear to pass organizationId to the application layer.");
+                    failures.Add($"{Path.GetFileName(controllerPath)}:{GetLineNumber(source, action.HttpAttributeIndex)} mutation endpoint does not pass organizationId into repository/service/application call.");
                 }
             }
         }
@@ -247,9 +242,11 @@ public sealed class P3TenantScopeContractTests
             string.Join(Environment.NewLine, failures));
     }
 
-    private static bool IsOrganizationScopedRoute(string actionSource)
+    private static bool IsOrganizationScopedRoute(ControllerActionSource action)
     {
-        return actionSource.Contains("organizations/{organizationId:guid}", StringComparison.OrdinalIgnoreCase);
+        return action.EffectiveRouteSource.Contains(
+            "organizations/{organizationId:guid}",
+            StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsHttpGetAction(string actionSource)
@@ -262,17 +259,17 @@ public sealed class P3TenantScopeContractTests
         return Regex.IsMatch(actionSource, @"^\s*\[Http(Post|Put|Patch|Delete)", RegexOptions.Multiline);
     }
 
-    private static bool IsReadByIdAction(string actionSource)
+    private static bool IsReadByIdAction(ControllerActionSource action)
     {
-        return IsHttpGetAction(actionSource) &&
-            HasNonOrganizationRouteId(actionSource) &&
-            actionSource.Contains("GetByIdAsync", StringComparison.Ordinal);
+        return IsHttpGetAction(action.Source) &&
+            HasNonOrganizationRouteId(action.EffectiveRouteSource) &&
+            action.Source.Contains("GetByIdAsync", StringComparison.Ordinal);
     }
 
-    private static bool HasNonOrganizationRouteId(string actionSource)
+    private static bool HasNonOrganizationRouteId(string routeSource)
     {
         var routeIdMatches = Regex
-            .Matches(actionSource, @"\{(?<name>[A-Za-z0-9_]+Id):guid\}")
+            .Matches(routeSource, @"\{(?<name>[A-Za-z0-9_]+Id):guid\}")
             .Cast<Match>()
             .Select(match => match.Groups["name"].Value)
             .Where(name => !name.Equals("organizationId", StringComparison.Ordinal))
@@ -285,7 +282,7 @@ public sealed class P3TenantScopeContractTests
     {
         return Regex.IsMatch(
             actionSource,
-            @"GetByIdAsync\s*\(\s*organizationId\s*,",
+            @"\bGetByIdAsync\s*\(\s*organizationId\s*,",
             RegexOptions.Multiline);
     }
 
@@ -301,10 +298,53 @@ public sealed class P3TenantScopeContractTests
                 RegexOptions.Multiline);
     }
 
+    private static bool ImplementationUsesOrganizationId(string actionSource)
+    {
+        var methodBody = ExtractMethodBody(actionSource);
+
+        return methodBody.Contains("organizationId", StringComparison.Ordinal);
+    }
+
+    private static bool UsesOrganizationScopedApplicationCall(string actionSource)
+    {
+        var methodBody = ExtractMethodBody(actionSource);
+
+        return Regex.IsMatch(
+            methodBody,
+            @"\b[A-Za-z0-9_]+Async\s*\(\s*organizationId\b",
+            RegexOptions.Multiline);
+    }
+
+    private static string ExtractMethodBody(string actionSource)
+    {
+        var methodStart = Regex.Match(
+            actionSource,
+            @"public\s+(async\s+)?[A-Za-z0-9_<>,\s]+\s+[A-Za-z0-9_]+\s*\(",
+            RegexOptions.Multiline);
+
+        if (!methodStart.Success)
+        {
+            return actionSource;
+        }
+
+        var firstBraceIndex = actionSource.IndexOf(
+            '{',
+            methodStart.Index);
+
+        if (firstBraceIndex < 0)
+        {
+            return actionSource[methodStart.Index..];
+        }
+
+        return actionSource[firstBraceIndex..];
+    }
+
     private static IReadOnlyCollection<ControllerActionSource> GetControllerActions(
         string sourcePath,
         string source)
     {
+        var classRouteSource = GetClassRouteSource(source);
+
         var httpAttributes = Regex.Matches(
                 source,
                 @"^\s*\[Http(Get|Post|Put|Patch|Delete)(\(|\])",
@@ -333,13 +373,36 @@ public sealed class P3TenantScopeContractTests
             }
 
             var actionSource = source[httpAttribute.Index..nextHttpAttributeIndex];
+            var effectiveRouteSource = classRouteSource + Environment.NewLine + actionSource;
 
             actions.Add(new ControllerActionSource(
                 httpAttribute.Index,
-                actionSource));
+                actionSource,
+                effectiveRouteSource));
         }
 
         return actions;
+    }
+
+    private static string GetClassRouteSource(string source)
+    {
+        var classMatch = Regex.Match(
+            source,
+            @"public\s+sealed\s+class\s+\w+Controller\s*:",
+            RegexOptions.Multiline);
+
+        if (!classMatch.Success)
+        {
+            return string.Empty;
+        }
+
+        var prefixStart = Math.Max(
+            source.LastIndexOf("\r\n\r\n", classMatch.Index, StringComparison.Ordinal),
+            source.LastIndexOf("\n\n", classMatch.Index, StringComparison.Ordinal));
+
+        prefixStart = prefixStart < 0 ? 0 : prefixStart;
+
+        return source[prefixStart..classMatch.Index];
     }
 
     private static IReadOnlyCollection<string> GetControllerSourcePaths()
@@ -391,5 +454,6 @@ public sealed class P3TenantScopeContractTests
 
     private sealed record ControllerActionSource(
         int HttpAttributeIndex,
-        string Source);
+        string Source,
+        string EffectiveRouteSource);
 }
