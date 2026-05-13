@@ -15,6 +15,7 @@ $P3ClinicalBusinessRulesScriptPath = Join-Path $RepoRoot "scripts\verify-p3-clin
 $P3ClinicalDataGovernancePrivacyAnalyticsScriptPath = Join-Path $RepoRoot "scripts\verify-p3-clinical-data-governance-privacy-analytics-baseline.ps1"
 $P3OperationalRolesPanelsAnalyticsAccessMatrixScriptPath = Join-Path $RepoRoot "scripts\verify-p3-operational-roles-panels-analytics-access-matrix.ps1"
 $P3OfflineSyncConflictPolicyScriptPath = Join-Path $RepoRoot "scripts\verify-p3-offline-sync-conflict-policy-baseline.ps1"
+$P3ExternalReferralPassTraceabilityScriptPath = Join-Path $RepoRoot "scripts\verify-p3-external-referral-pass-traceability-baseline.ps1"
 
 function Assert-FileExists {
     param([string]$Path)
@@ -51,6 +52,7 @@ Assert-FileExists $P3ClinicalBusinessRulesScriptPath
 Assert-FileExists $P3ClinicalDataGovernancePrivacyAnalyticsScriptPath
 Assert-FileExists $P3OperationalRolesPanelsAnalyticsAccessMatrixScriptPath
 Assert-FileExists $P3OfflineSyncConflictPolicyScriptPath
+Assert-FileExists $P3ExternalReferralPassTraceabilityScriptPath
 
 Assert-Contains $WorkflowPath "Repository governance metadata gate"
 Assert-Contains $WorkflowPath "pwsh scripts/validate-repo-governance-baseline.ps1"
@@ -87,6 +89,7 @@ Assert-Contains $ReleaseChecklistDocsPath "production approval"
 & $P3ClinicalDataGovernancePrivacyAnalyticsScriptPath
 & $P3OperationalRolesPanelsAnalyticsAccessMatrixScriptPath
 & $P3OfflineSyncConflictPolicyScriptPath
+& $P3ExternalReferralPassTraceabilityScriptPath
 
 Write-Host ""
 Write-Host "============================================================" -ForegroundColor Green
