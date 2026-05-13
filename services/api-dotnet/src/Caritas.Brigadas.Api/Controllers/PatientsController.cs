@@ -102,6 +102,46 @@ public sealed class PatientsController : ControllerBase
             HttpContext.GetCorrelationId()));
     }
 
+
+    /// <summary>
+    /// Obtiene el expediente clínico de lectura de un paciente.
+    /// </summary>
+    [HttpGet("api/v1/organizations/{organizationId:guid}/patients/{patientId:guid}/clinical-record")]
+    [ProducesResponseType(typeof(ApiResponse<PatientClinicalRecordDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.PatientsRead)]
+    public async Task<IActionResult> GetClinicalRecordAsync(
+        Guid organizationId,
+        Guid patientId,
+        CancellationToken cancellationToken)
+    {
+        var repository = _serviceProvider.GetService<IPatientReadRepository>();
+
+        if (repository is null)
+        {
+            return DatabaseNotConfigured();
+        }
+
+        var clinicalRecord = await repository.GetClinicalRecordAsync(
+            organizationId,
+            patientId,
+            cancellationToken);
+
+        if (clinicalRecord is null)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.NotFound,
+                "Patient clinical record was not found.",
+                HttpContext.GetCorrelationId());
+
+            return NotFound(error);
+        }
+
+        return Ok(ApiResponse<PatientClinicalRecordDto>.Ok(
+            clinicalRecord,
+            HttpContext.GetCorrelationId()));
+    }
     /// <summary>
     /// Crea un paciente dentro de una organización.
     /// </summary>

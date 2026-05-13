@@ -78,6 +78,182 @@ public sealed class PatientReadRepository : IPatientReadRepository
         };
     }
 
+
+    public async Task<PatientClinicalRecordDto?> GetClinicalRecordAsync(
+        Guid organizationId,
+        Guid patientId,
+        CancellationToken cancellationToken = default)
+    {
+        if (organizationId == Guid.Empty)
+        {
+            throw new ArgumentException("Organization id is required.", nameof(organizationId));
+        }
+
+        if (patientId == Guid.Empty)
+        {
+            throw new ArgumentException("Patient id is required.", nameof(patientId));
+        }
+
+        var patient = await _dbContext.Patients
+            .AsNoTracking()
+            .Where(entity =>
+                entity.OrganizationId == organizationId &&
+                entity.Id == patientId &&
+                !entity.IsDeleted)
+            .Select(entity => new PatientSummaryDto
+            {
+                Id = entity.Id,
+                OrganizationId = entity.OrganizationId,
+                PatientFolio = entity.PatientFolio,
+                FirstName = entity.FirstName,
+                PaternalLastName = entity.PaternalLastName,
+                MaternalLastName = entity.MaternalLastName,
+                FullNameNormalized = entity.FullNameNormalized,
+                BirthDate = entity.BirthDate,
+                ApproximateAge = entity.ApproximateAge,
+                Sex = entity.Sex.ToString(),
+                Curp = entity.Curp,
+                Phone = entity.Phone,
+                Municipality = entity.Municipality,
+                Colony = entity.Colony,
+                Community = entity.Community,
+                IsMinor = entity.IsMinor,
+                IsMigrant = entity.IsMigrant,
+                IsPartialRecord = entity.IsPartialRecord,
+                PartialRecordReason = entity.PartialRecordReason,
+                Status = entity.Status.ToString(),
+                IsActive = entity.IsActive
+            })
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (patient is null)
+        {
+            return null;
+        }
+
+        var visits = await _dbContext.PatientVisits
+            .AsNoTracking()
+            .Where(entity =>
+                entity.OrganizationId == organizationId &&
+                entity.PatientId == patientId &&
+                !entity.IsDeleted)
+            .OrderByDescending(entity => entity.ArrivalTime)
+            .ThenByDescending(entity => entity.Id)
+            .Select(entity => new PatientClinicalRecordVisitDto
+            {
+                Id = entity.Id,
+                OrganizationId = entity.OrganizationId,
+                VisitFolio = entity.VisitFolio,
+                PatientId = entity.PatientId,
+                BrigadeId = entity.BrigadeId,
+                ArrivalTime = entity.ArrivalTime,
+                RegisteredByUserId = entity.RegisteredByUserId,
+                VisitStatus = entity.VisitStatus.ToString(),
+                CreatedOffline = entity.CreatedOffline,
+                DeviceId = entity.DeviceId,
+                SyncStatus = entity.SyncStatus.ToString(),
+                ClosedAt = entity.ClosedAt,
+                ClosedByUserId = entity.ClosedByUserId,
+                IsActive = entity.IsActive,
+                IsClosed = entity.IsClosed,
+                NeedsReview = entity.NeedsReview
+            })
+            .ToArrayAsync(cancellationToken);
+
+        var encounters = await _dbContext.ServiceEncounters
+            .AsNoTracking()
+            .Where(entity =>
+                entity.OrganizationId == organizationId &&
+                entity.PatientId == patientId &&
+                !entity.IsDeleted)
+            .OrderByDescending(entity => entity.StartedAt)
+            .ThenByDescending(entity => entity.Id)
+            .Select(entity => new PatientClinicalRecordEncounterDto
+            {
+                Id = entity.Id,
+                OrganizationId = entity.OrganizationId,
+                EncounterFolio = entity.EncounterFolio,
+                VisitId = entity.VisitId,
+                PatientId = entity.PatientId,
+                BrigadeId = entity.BrigadeId,
+                ServiceId = entity.ServiceId,
+                ProviderUserId = entity.ProviderUserId,
+                StartedAt = entity.StartedAt,
+                CompletedAt = entity.EndedAt,
+                Status = entity.Status.ToString(),
+                CreatedOffline = entity.CreatedOffline,
+                DeviceId = entity.DeviceId,
+                SyncStatus = entity.SyncStatus.ToString(),
+                IsActive = entity.IsActive,
+                IsCompleted = entity.IsCompleted,
+                NeedsReview = entity.NeedsReview
+            })
+            .ToArrayAsync(cancellationToken);
+
+        var vitalSigns = await _dbContext.VitalSignsRecords
+            .AsNoTracking()
+            .Where(entity =>
+                entity.OrganizationId == organizationId &&
+                entity.PatientId == patientId &&
+                !entity.IsDeleted)
+            .OrderByDescending(entity => entity.MeasuredAt)
+            .ThenByDescending(entity => entity.Id)
+            .Select(entity => new PatientClinicalRecordVitalSignsDto
+            {
+                Id = entity.Id,
+                OrganizationId = entity.OrganizationId,
+                PatientId = entity.PatientId,
+                VisitId = entity.VisitId,
+                EncounterId = entity.EncounterId,
+                MeasuredByUserId = entity.MeasuredByUserId,
+                MeasuredAt = entity.MeasuredAt,
+                SystolicBloodPressureMmHg = entity.SystolicBloodPressureMmHg,
+                DiastolicBloodPressureMmHg = entity.DiastolicBloodPressureMmHg,
+                HeartRateBpm = entity.HeartRateBpm,
+                RespiratoryRatePerMinute = entity.RespiratoryRatePerMinute,
+                TemperatureCelsius = entity.TemperatureCelsius,
+                OxygenSaturationPercent = entity.OxygenSaturationPercent,
+                WeightKg = entity.WeightKg,
+                HeightCm = entity.HeightCm,
+                GlucoseMgDl = entity.GlucoseMgDl,
+                Source = entity.Source,
+                Notes = entity.Notes,
+                CreatedOffline = entity.CreatedOffline,
+                DeviceId = entity.DeviceId,
+                SyncStatus = entity.SyncStatus.ToString()
+            })
+            .ToArrayAsync(cancellationToken);
+
+        return new PatientClinicalRecordDto
+        {
+            OrganizationId = organizationId,
+            PatientId = patientId,
+            Patient = patient,
+            Visits = visits,
+            Encounters = encounters,
+            VitalSigns = vitalSigns,
+            Summary = new PatientClinicalRecordSummaryDto
+            {
+                VisitCount = visits.Length,
+                EncounterCount = encounters.Length,
+                VitalSignsCount = vitalSigns.Length,
+                FirstVisitAt = visits
+                    .Where(visit => visit.ArrivalTime.HasValue)
+                    .OrderBy(visit => visit.ArrivalTime)
+                    .Select(visit => visit.ArrivalTime)
+                    .FirstOrDefault(),
+                LastVisitAt = visits
+                    .Where(visit => visit.ArrivalTime.HasValue)
+                    .OrderByDescending(visit => visit.ArrivalTime)
+                    .Select(visit => visit.ArrivalTime)
+                    .FirstOrDefault(),
+                LastVitalSignsMeasuredAt = vitalSigns
+                    .OrderByDescending(record => record.MeasuredAt)
+                    .Select(record => (DateTimeOffset?)record.MeasuredAt)
+                    .FirstOrDefault()
+            }
+        };
+    }
     public async Task<PatientSummaryDto?> GetByIdAsync(
         Guid patientId,
         CancellationToken cancellationToken = default)
