@@ -87,6 +87,18 @@ if ($Repository.Contains("PayloadJson =")) {
     throw "SyncBatchReadRepository must not project PayloadJson into the read model."
 }
 
+if ($Repository.Contains("IsPending = syncEvent.IsPending") -or
+    $Repository.Contains("IsAccepted = syncEvent.IsAccepted") -or
+    $Repository.Contains("IsRejected = syncEvent.IsRejected") -or
+    $Repository.Contains("IsConflict = syncEvent.IsConflict")) {
+    throw "SyncBatchReadRepository must not project unmapped SyncEvent status getters because that can materialize PayloadJson."
+}
+
+Assert-Contains $Repository "IsPending = syncEvent.Status == SyncEventStatus.Pending" "SyncBatchReadRepository"
+Assert-Contains $Repository "IsAccepted = syncEvent.Status == SyncEventStatus.Accepted" "SyncBatchReadRepository"
+Assert-Contains $Repository "IsRejected = syncEvent.Status == SyncEventStatus.Rejected" "SyncBatchReadRepository"
+Assert-Contains $Repository "IsConflict = syncEvent.Status == SyncEventStatus.Conflict" "SyncBatchReadRepository"
+
 $RequiredControllerTokens = @(
     "ListEventsByBatchAsync",
     "api/v1/organizations/{organizationId:guid}/sync-batches/{syncBatchId:guid}/events",

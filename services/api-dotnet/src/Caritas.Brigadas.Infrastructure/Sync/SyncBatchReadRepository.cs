@@ -1,6 +1,7 @@
 using Caritas.Brigadas.Application.Sync;
 using Caritas.Brigadas.Contracts.Api;
 using Caritas.Brigadas.Contracts.Sync;
+using Caritas.Brigadas.Domain.Entities;
 using Caritas.Brigadas.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 

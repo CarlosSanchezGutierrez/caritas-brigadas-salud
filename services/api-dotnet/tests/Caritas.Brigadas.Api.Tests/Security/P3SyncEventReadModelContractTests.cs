@@ -49,12 +49,20 @@ public sealed class P3SyncEventReadModelContractTests
             "EntityType = syncEvent.EntityType",
             "Operation = syncEvent.Operation",
             "Status = syncEvent.Status",
-            "ReceivedAtServer = syncEvent.ReceivedAtServer"
+            "ReceivedAtServer = syncEvent.ReceivedAtServer",
+            "IsPending = syncEvent.Status == SyncEventStatus.Pending",
+            "IsAccepted = syncEvent.Status == SyncEventStatus.Accepted",
+            "IsRejected = syncEvent.Status == SyncEventStatus.Rejected",
+            "IsConflict = syncEvent.Status == SyncEventStatus.Conflict"
         };
 
         AssertRequiredTokens(source, requiredTokens, "SyncBatchReadRepository event read model");
 
         Assert.DoesNotContain("PayloadJson =", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("IsPending = syncEvent.IsPending", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("IsAccepted = syncEvent.IsAccepted", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("IsRejected = syncEvent.IsRejected", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("IsConflict = syncEvent.IsConflict", source, StringComparison.Ordinal);
     }
 
     [Fact]
