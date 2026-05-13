@@ -805,6 +805,7 @@ BEGIN
         [SyncBatchId] uniqueidentifier NOT NULL,
         [OrganizationId] uniqueidentifier NOT NULL,
         [LocalEventId] nvarchar(150) NOT NULL,
+    [IdempotencyKey] nvarchar(250) NOT NULL,
         [EntityType] nvarchar(100) NOT NULL,
         [EntityId] uniqueidentifier NULL,
         [Operation] nvarchar(50) NOT NULL,
@@ -2204,4 +2205,16 @@ END;
 GO
 
 COMMIT;
+GO
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE [name] = N'IX_sync_events_OrganizationId_IdempotencyKey'
+      AND [object_id] = OBJECT_ID(N'[sync].[sync_events]')
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_sync_events_OrganizationId_IdempotencyKey]
+    ON [sync].[sync_events] ([OrganizationId], [IdempotencyKey]);
+END;
 GO

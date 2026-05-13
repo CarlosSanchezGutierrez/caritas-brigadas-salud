@@ -1,10 +1,11 @@
-﻿using Caritas.Brigadas.Domain.Common;
+using Caritas.Brigadas.Domain.Common;
 
 namespace Caritas.Brigadas.Domain.Entities;
 
 public sealed class SyncEvent : Entity
 {
     private const int MaxLocalEventIdLength = 150;
+    private const int MaxIdempotencyKeyLength = 250;
     private const int MaxEntityTypeLength = 100;
     private const int MaxOperationLength = 50;
     private const int MaxErrorMessageLength = 4000;
@@ -13,6 +14,7 @@ public sealed class SyncEvent : Entity
     private SyncEvent()
     {
         LocalEventId = string.Empty;
+        IdempotencyKey = string.Empty;
         EntityType = string.Empty;
         Operation = SyncOperation.Create;
         PayloadJson = string.Empty;
@@ -30,12 +32,14 @@ public sealed class SyncEvent : Entity
         string payloadJson,
         Guid? entityId = null,
         DateTimeOffset? createdAtDevice = null,
-        DateTimeOffset? receivedAtServer = null)
+        DateTimeOffset? receivedAtServer = null,
+        string? idempotencyKey = null)
         : base(id)
     {
         SyncBatchId = RequireGuid(syncBatchId, nameof(syncBatchId));
         OrganizationId = RequireGuid(organizationId, nameof(organizationId));
         LocalEventId = NormalizeRequired(localEventId, nameof(localEventId), MaxLocalEventIdLength);
+        IdempotencyKey = NormalizeIdempotencyKey(idempotencyKey, LocalEventId);
         EntityType = NormalizeRequired(entityType, nameof(entityType), MaxEntityTypeLength).ToLowerInvariant();
         EntityId = entityId;
         Operation = NormalizeRequired(operation, nameof(operation), MaxOperationLength).ToLowerInvariant();
@@ -50,6 +54,8 @@ public sealed class SyncEvent : Entity
     public Guid OrganizationId { get; private set; }
 
     public string LocalEventId { get; private set; }
+
+    public string IdempotencyKey { get; private set; }
 
     public string EntityType { get; private set; }
 
@@ -159,6 +165,15 @@ public sealed class SyncEvent : Entity
         }
 
         return normalized;
+    }
+
+    private static string NormalizeIdempotencyKey(string? value, string fallbackLocalEventId)
+    {
+        var candidate = string.IsNullOrWhiteSpace(value)
+            ? fallbackLocalEventId
+            : value;
+
+        return NormalizeRequired(candidate, nameof(IdempotencyKey), MaxIdempotencyKeyLength);
     }
 
     private static string NormalizeJson(string value, string fieldName)
