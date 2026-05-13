@@ -161,11 +161,11 @@ No composite classifications are allowed. Each row must use exactly one canonica
 | SyncBatchesController | List/read sync batches | Authenticated tenant-scoped | Must filter by actor OrganizationId. Must not expose sync batches from other organizations. |
 | SyncBatchesController | Create/update sync batch | Authenticated tenant-scoped | Must validate actor OrganizationId, payload OrganizationId, sync ownership, and deferred DeviceId policy. |
 | Seed/admin endpoints | Seed defaults or internal setup actions | System/internal only | Must not be publicly exposed. Must require explicit seed/system permission or controlled environment guardrail. |
-| Future PatientsController | Patient CRUD | Authenticated tenant-scoped | Must validate Patient.OrganizationId against actor OrganizationId. |
-| Future PatientVisitsController | Visit CRUD | Authenticated tenant-scoped | Must validate Patient, Brigade, and Visit tenant ownership. |
-| Future ServiceEncountersController | Encounter CRUD | Authenticated tenant-scoped | Must validate Patient, Visit, Brigade, Service, and Encounter tenant ownership. |
-| Future FormTemplatesController | Form template management | Authenticated tenant-scoped | Must validate OrganizationId and Service tenant ownership. |
-| Future FormResponsesController | Form response submission/read | Authenticated tenant-scoped | Must validate OrganizationId, FormTemplate, and Encounter tenant ownership. |
+| PatientsController | Patient CRUD | Authenticated tenant-scoped | Must validate Patient.OrganizationId against actor OrganizationId. |
+| PatientVisitsController | Visit CRUD | Authenticated tenant-scoped | Must validate Patient, Brigade, and Visit tenant ownership. |
+| ServiceEncountersController | Encounter CRUD | Authenticated tenant-scoped | Must validate Patient, Visit, Brigade, Service, and Encounter tenant ownership. |
+| FormTemplatesController | Form template management | Authenticated tenant-scoped | Must validate OrganizationId and Service tenant ownership. |
+| FormResponsesController | Form response submission/read | Authenticated tenant-scoped | Must validate OrganizationId, FormTemplate, and Encounter tenant ownership. |
 | Future DocumentTemplatesController | Document template management | Authenticated tenant-scoped | Must validate OrganizationId and optional service ownership. |
 | Future DocumentSignaturesController | Document signature capture/read | Authenticated tenant-scoped | Must validate OrganizationId, patient, visit, encounter, and document template ownership. |
 | Future MediaReleasesController | Media release capture/read | Authenticated tenant-scoped | Must validate OrganizationId, patient, and visit ownership. |

@@ -11,24 +11,31 @@ public sealed class P3EndpointAuthorizationContractTests
     ];
 
     [Fact]
-    public void CurrentControllers_AreRepresentedInP3TenantBoundaryInventory()
+    public void CurrentControllers_AreRepresentedByExactEndpointInventoryRows()
     {
         var inventory = File.ReadAllText(GetInventoryPath());
+        var endpointSection = ExtractEndpointInventorySection(inventory);
+        var controllerCells = GetEndpointInventoryControllerCells(endpointSection);
         var failures = new List<string>();
 
         foreach (var controllerPath in GetControllerSourcePaths())
         {
             var controllerName = Path.GetFileNameWithoutExtension(controllerPath);
 
-            if (!inventory.Contains(controllerName, StringComparison.Ordinal))
+            if (!controllerCells.Contains(controllerName, StringComparer.Ordinal))
             {
-                failures.Add($"{controllerName} is missing from P3 tenant boundary authorization inventory.");
+                failures.Add($"{controllerName} is missing an exact controller/area row in P3 tenant boundary authorization inventory.");
+            }
+
+            if (controllerCells.Contains($"Future {controllerName}", StringComparer.Ordinal))
+            {
+                failures.Add($"{controllerName} is a current controller but is still classified as Future in P3 tenant boundary authorization inventory.");
             }
         }
 
         Assert.True(
             failures.Count == 0,
-            "Every current controller must be represented in P3 tenant boundary authorization inventory." +
+            "Every current controller must have an exact controller/area row in P3 tenant boundary authorization inventory." +
             Environment.NewLine +
             string.Join(Environment.NewLine, failures));
     }
@@ -173,7 +180,7 @@ public sealed class P3EndpointAuthorizationContractTests
 
         foreach (var row in GetMarkdownTableRows(endpointSection))
         {
-            var columns = row.Trim().Trim('|').Split('|').Select(column => column.Trim()).ToArray();
+            var columns = GetMarkdownTableColumns(row);
 
             if (columns.Length < 4)
             {
@@ -261,6 +268,15 @@ public sealed class P3EndpointAuthorizationContractTests
         return match.Value;
     }
 
+    private static IReadOnlyCollection<string> GetEndpointInventoryControllerCells(string markdownSection)
+    {
+        return GetMarkdownTableRows(markdownSection)
+            .Select(row => GetMarkdownTableColumns(row))
+            .Where(columns => columns.Length >= 4)
+            .Select(columns => columns[0])
+            .ToHashSet(StringComparer.Ordinal);
+    }
+
     private static IReadOnlyCollection<string> GetMarkdownTableRows(string markdownSection)
     {
         return markdownSection
@@ -270,6 +286,11 @@ public sealed class P3EndpointAuthorizationContractTests
                 !line.Contains("|---", StringComparison.Ordinal) &&
                 !line.Contains("Controller / area", StringComparison.Ordinal))
             .ToArray();
+    }
+
+    private static string[] GetMarkdownTableColumns(string row)
+    {
+        return row.Trim().Trim('|').Split('|').Select(column => column.Trim()).ToArray();
     }
 
     private static IReadOnlyCollection<string> GetControllerSourcePaths()
