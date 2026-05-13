@@ -13,4 +13,10 @@ public interface ISyncBatchReadRepository
     Task<SyncBatchSummaryDto?> GetByIdAsync(
         Guid syncBatchId,
         CancellationToken cancellationToken = default);
+
+    Task<PaginatedResponse<SyncEventSummaryDto>> ListEventsByBatchAsync(
+        Guid organizationId,
+        Guid syncBatchId,
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default);
 }

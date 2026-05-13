@@ -102,6 +102,52 @@ public sealed class SyncBatchesController : ControllerBase
             HttpContext.GetCorrelationId()));
     }
 
+
+    /// <summary>
+    /// Lista eventos de sincronización de un lote sin exponer PayloadJson.
+    /// </summary>
+    [HttpGet("api/v1/organizations/{organizationId:guid}/sync-batches/{syncBatchId:guid}/events")]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<SyncEventSummaryDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.SyncBatchesRead)]
+    public async Task<IActionResult> ListEventsByBatchAsync(
+        Guid organizationId,
+        Guid syncBatchId,
+        [FromQuery] PaginationRequest pagination,
+        CancellationToken cancellationToken)
+    {
+        var repository = _serviceProvider.GetService<ISyncBatchReadRepository>();
+
+        if (repository is null)
+        {
+            return DatabaseNotConfigured();
+        }
+
+        var batch = await repository.GetByIdAsync(
+            syncBatchId,
+            cancellationToken);
+
+        if (batch is null || batch.OrganizationId != organizationId)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.NotFound,
+                "Sync batch was not found.",
+                HttpContext.GetCorrelationId());
+
+            return NotFound(error);
+        }
+
+        var events = await repository.ListEventsByBatchAsync(
+            organizationId,
+            syncBatchId,
+            pagination,
+            cancellationToken);
+
+        return Ok(ApiResponse<PaginatedResponse<SyncEventSummaryDto>>.Ok(
+            events,
+            HttpContext.GetCorrelationId()));
+    }
     /// <summary>
     /// Recibe un lote de sincronización offline.
     /// </summary>

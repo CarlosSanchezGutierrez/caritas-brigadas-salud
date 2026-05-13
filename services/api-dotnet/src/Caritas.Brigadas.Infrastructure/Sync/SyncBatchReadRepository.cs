@@ -1,6 +1,6 @@
 using Caritas.Brigadas.Application.Sync;
-using Caritas.Brigadas.Contracts.Sync;
 using Caritas.Brigadas.Contracts.Api;
+using Caritas.Brigadas.Contracts.Sync;
 using Caritas.Brigadas.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -69,6 +69,11 @@ public sealed class SyncBatchReadRepository : ISyncBatchReadRepository
         Guid syncBatchId,
         CancellationToken cancellationToken = default)
     {
+        if (syncBatchId == Guid.Empty)
+        {
+            throw new ArgumentException("Sync batch id is required.", nameof(syncBatchId));
+        }
+
         return await _dbContext.SyncBatches
             .AsNoTracking()
             .Where(batch => batch.Id == syncBatchId)
@@ -87,5 +92,71 @@ public sealed class SyncBatchReadRepository : ISyncBatchReadRepository
                 IsCompleted = batch.IsCompleted
             })
             .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<PaginatedResponse<SyncEventSummaryDto>> ListEventsByBatchAsync(
+        Guid organizationId,
+        Guid syncBatchId,
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default)
+    {
+        if (organizationId == Guid.Empty)
+        {
+            throw new ArgumentException("Organization id is required.", nameof(organizationId));
+        }
+
+        if (syncBatchId == Guid.Empty)
+        {
+            throw new ArgumentException("Sync batch id is required.", nameof(syncBatchId));
+        }
+
+        ArgumentNullException.ThrowIfNull(pagination);
+
+        var pageNumber = pagination.NormalizedPageNumber;
+        var pageSize = pagination.NormalizedPageSize;
+
+        var query = _dbContext.SyncEvents
+            .AsNoTracking()
+            .Where(syncEvent =>
+                syncEvent.OrganizationId == organizationId &&
+                syncEvent.SyncBatchId == syncBatchId);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderBy(syncEvent => syncEvent.ReceivedAtServer)
+            .ThenBy(syncEvent => syncEvent.Id)
+            .Skip(pagination.Skip)
+            .Take(pageSize)
+            .Select(syncEvent => new SyncEventSummaryDto
+            {
+                Id = syncEvent.Id,
+                SyncBatchId = syncEvent.SyncBatchId,
+                OrganizationId = syncEvent.OrganizationId,
+                LocalEventId = syncEvent.LocalEventId,
+                IdempotencyKey = syncEvent.IdempotencyKey,
+                EntityType = syncEvent.EntityType,
+                EntityId = syncEvent.EntityId,
+                Operation = syncEvent.Operation,
+                Status = syncEvent.Status,
+                ErrorMessage = syncEvent.ErrorMessage,
+                ConflictReason = syncEvent.ConflictReason,
+                CreatedAtDevice = syncEvent.CreatedAtDevice,
+                ReceivedAtServer = syncEvent.ReceivedAtServer,
+                ProcessedAt = syncEvent.ProcessedAt,
+                IsPending = syncEvent.IsPending,
+                IsAccepted = syncEvent.IsAccepted,
+                IsRejected = syncEvent.IsRejected,
+                IsConflict = syncEvent.IsConflict
+            })
+            .ToArrayAsync(cancellationToken);
+
+        return new PaginatedResponse<SyncEventSummaryDto>
+        {
+            Items = items,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
     }
 }
