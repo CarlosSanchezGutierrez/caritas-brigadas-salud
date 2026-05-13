@@ -622,11 +622,13 @@ public sealed class CaritasDbContext : DbContext
             ConfigureEntity(entity);
             entity.ToTable("sync_events", "sync");
             entity.Property(x => x.LocalEventId).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(250).IsRequired();
             entity.Property(x => x.EntityType).HasMaxLength(100).IsRequired();
             entity.Property(x => x.Operation).HasMaxLength(50).IsRequired();
             entity.Property(x => x.PayloadJson).HasColumnType("nvarchar(max)").IsRequired();
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
             entity.HasIndex(x => new { x.SyncBatchId, x.LocalEventId }).IsUnique();
+            entity.HasIndex(x => new { x.OrganizationId, x.IdempotencyKey }).IsUnique();
 
             entity.HasOne<Organization>()
                 .WithMany()
