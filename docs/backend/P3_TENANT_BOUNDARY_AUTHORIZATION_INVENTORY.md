@@ -109,30 +109,67 @@ Hardening rules:
 
 ## 6. Endpoint classification inventory
 
-This inventory must be refined as endpoints are added. Initial expected classifications:
+This inventory must include every current controller before P3-02 converts it into endpoint authorization contract tests.
 
-| Area | Endpoint/action type | Classification | Required enforcement |
+Canonical classifications allowed in this table:
+
+- Public
+- Authenticated global
+- Authenticated tenant-scoped
+- Authenticated self-scoped
+- Global-only
+- System/internal only
+
+No composite classifications are allowed. Each row must use exactly one canonical classification.
+
+| Controller / area | Endpoint/action type | Classification | Required enforcement |
 |---|---|---|---|
-| Health | Health/liveness/readiness | Public or system-safe | No sensitive config or tenant data. |
-| Organizations | Create organization | Global-only | SuperAdmin + global permission + audit. |
-| Organizations | List organizations | Global-only or constrained admin view | Must not expose all tenants to tenant admin. |
-| Organizations | Read organization | Tenant-scoped or global-only | Tenant users can only read own org unless global. |
-| Roles | List roles | Tenant-scoped | Must filter by OrganizationId unless global-only. |
-| Roles | Assign role | Tenant-scoped with global guardrails | Cannot assign SuperAdmin unless actor is SuperAdmin. |
-| Roles | Permission assignment | Global-only or tightly tenant-scoped | Must not create global grants for tenant roles. |
-| Patients | Create/read/update patient | Tenant-scoped | Must validate OrganizationId. |
-| Visits | Create/read/update visit | Tenant-scoped | Must validate OrganizationId and patient ownership. |
-| Encounters | Create/read/update encounter | Tenant-scoped | Must validate OrganizationId, visit, patient, service, brigade. |
-| Forms | Template management | Tenant-scoped or global template governance | Must validate OrganizationId and service ownership. |
-| Forms | Response submission | Tenant-scoped | Must validate encounter and template ownership. |
-| Documents | Template management | Tenant-scoped or global template governance | Must validate OrganizationId. |
-| Documents | Signatures/media releases | Tenant-scoped | Must validate patient/visit/encounter ownership. |
-| Sync | Sync batch/event submission | Tenant-scoped/system constrained | Must validate OrganizationId and actor/device policy. |
-| Seed/admin operations | Seed endpoints | System/internal or global-only | Must be disabled/restricted outside controlled environments. |
-
-P3-02 must convert this inventory into endpoint authorization contract tests.
-
----
+| HealthController | Health, liveness, readiness | Public | Must not expose secrets, connection strings, tenant data, patient data, role data, permission data, or deployment internals. |
+| OrganizationsController | Create organization | Global-only | Requires SuperAdmin/global permission. Tenant admins must not create organizations. Must be audited. |
+| OrganizationsController | List organizations | Global-only | Tenant users must not enumerate all organizations. Any future own-organization read must be a separate tenant-scoped action. |
+| OrganizationsController | Read own organization if supported | Authenticated tenant-scoped | Must filter by actor OrganizationId unless actor is global. |
+| OrganizationsController | Update organization if supported | Global-only | Tenant-level organization updates require a separate approved tenant-scoped rule before implementation. |
+| RolesController | List roles | Authenticated tenant-scoped | Must return roles only for actor OrganizationId unless actor is global. |
+| RolesController | Assign tenant role | Authenticated tenant-scoped | Must validate target user, role, and actor organization. |
+| RolesController | Assign SuperAdmin/global role | Global-only | Must require SuperAdmin actor and explicit global guardrail. |
+| RolesController | Permission assignment | Global-only | Must not allow tenant admins to grant global-only permissions. |
+| UsersController | List users | Authenticated tenant-scoped | Must filter users by actor OrganizationId unless actor is global. |
+| UsersController | Read user | Authenticated tenant-scoped | Must validate target user belongs to actor OrganizationId unless actor is global. |
+| UsersController | Create user | Authenticated tenant-scoped | Must create user only inside actor OrganizationId unless global provisioning is explicitly approved. |
+| UsersController | Update user | Authenticated tenant-scoped | Must validate target user belongs to actor OrganizationId and audit sensitive changes. |
+| ServicesController | List services | Authenticated tenant-scoped | Must filter by actor OrganizationId. |
+| ServicesController | Create service | Authenticated tenant-scoped | Must create service only inside actor OrganizationId. |
+| ServicesController | Update service | Authenticated tenant-scoped | Must validate service belongs to actor OrganizationId. |
+| ReportsController | Generate/read reports | Authenticated tenant-scoped | Must filter report data by actor OrganizationId. Must not expose cross-tenant aggregates unless a separate global report endpoint is approved. |
+| AuditLogsController | Read tenant audit logs | Authenticated tenant-scoped | Must filter audit logs by actor OrganizationId and avoid sensitive payload leakage. |
+| AuditLogsController | Read global audit logs if supported | Global-only | Must require SuperAdmin/global permission and be audited. |
+| CommunitiesController | List communities | Authenticated tenant-scoped | Must filter by actor OrganizationId. |
+| CommunitiesController | Create community | Authenticated tenant-scoped | Must create community only inside actor OrganizationId. |
+| CommunitiesController | Update community | Authenticated tenant-scoped | Must validate community belongs to actor OrganizationId. |
+| MobileUnitsController | List mobile units | Authenticated tenant-scoped | Must filter by actor OrganizationId. |
+| MobileUnitsController | Create mobile unit | Authenticated tenant-scoped | Must create mobile unit only inside actor OrganizationId. |
+| MobileUnitsController | Update mobile unit | Authenticated tenant-scoped | Must validate mobile unit belongs to actor OrganizationId. |
+| BrigadesController | List brigades | Authenticated tenant-scoped | Must filter by actor OrganizationId. |
+| BrigadesController | Create brigade | Authenticated tenant-scoped | Must validate organization, community, and mobile unit tenant ownership. |
+| BrigadesController | Update brigade | Authenticated tenant-scoped | Must validate brigade and related entities belong to actor OrganizationId. |
+| BrigadeServicesController | List brigade services | Authenticated tenant-scoped | Must filter through brigade/service tenant ownership. |
+| BrigadeServicesController | Attach service to brigade | Authenticated tenant-scoped | Must validate brigade and service belong to actor OrganizationId. |
+| BrigadeServicesController | Remove service from brigade | Authenticated tenant-scoped | Must validate brigade and service belong to actor OrganizationId. |
+| ConsentDocumentsController | List/read consent documents | Authenticated tenant-scoped | Must filter by actor OrganizationId and validate patient, visit, encounter, and document ownership when applicable. |
+| ConsentDocumentsController | Create/capture consent document | Authenticated tenant-scoped | Must validate OrganizationId, patient ownership, document template ownership, and actor permission. Must be auditable. |
+| SecuritySeedController | Seed security defaults | System/internal only | Must not be publicly exposed. Must require explicit seed/system permission or controlled environment guardrail. |
+| SyncBatchesController | List/read sync batches | Authenticated tenant-scoped | Must filter by actor OrganizationId. Must not expose sync batches from other organizations. |
+| SyncBatchesController | Create/update sync batch | Authenticated tenant-scoped | Must validate actor OrganizationId, payload OrganizationId, sync ownership, and deferred DeviceId policy. |
+| Seed/admin endpoints | Seed defaults or internal setup actions | System/internal only | Must not be publicly exposed. Must require explicit seed/system permission or controlled environment guardrail. |
+| Future PatientsController | Patient CRUD | Authenticated tenant-scoped | Must validate Patient.OrganizationId against actor OrganizationId. |
+| Future PatientVisitsController | Visit CRUD | Authenticated tenant-scoped | Must validate Patient, Brigade, and Visit tenant ownership. |
+| Future ServiceEncountersController | Encounter CRUD | Authenticated tenant-scoped | Must validate Patient, Visit, Brigade, Service, and Encounter tenant ownership. |
+| Future FormTemplatesController | Form template management | Authenticated tenant-scoped | Must validate OrganizationId and Service tenant ownership. |
+| Future FormResponsesController | Form response submission/read | Authenticated tenant-scoped | Must validate OrganizationId, FormTemplate, and Encounter tenant ownership. |
+| Future DocumentTemplatesController | Document template management | Authenticated tenant-scoped | Must validate OrganizationId and optional service ownership. |
+| Future DocumentSignaturesController | Document signature capture/read | Authenticated tenant-scoped | Must validate OrganizationId, patient, visit, encounter, and document template ownership. |
+| Future MediaReleasesController | Media release capture/read | Authenticated tenant-scoped | Must validate OrganizationId, patient, and visit ownership. |
+| Future SyncController | Sync batch/event submission | Authenticated tenant-scoped | Must validate actor OrganizationId, payload OrganizationId, and deferred DeviceId policy. |
 
 ## 7. Data domain tenant scope inventory
 
