@@ -43,6 +43,8 @@ Assert-Contains $DbContext "entity.HasIndex(x => new { x.OrganizationId, x.Idemp
 
 Assert-Contains $SqlBaseline "[IdempotencyKey] nvarchar(250) NOT NULL" "SQL Server baseline"
 Assert-Contains $SqlBaseline "IX_sync_events_OrganizationId_IdempotencyKey" "SQL Server baseline"
+Assert-Contains $SqlBaseline "__EFMigrationsHistory" "SQL Server baseline"
+Assert-Contains $SqlBaseline "AddSyncEventIdempotencyKey" "SQL Server baseline"
 
 $MigrationFiles = Get-ChildItem $MigrationsPath -File -Filter "*_AddSyncEventIdempotencyKey.cs"
 

@@ -2218,3 +2218,14 @@ BEGIN
     ON [sync].[sync_events] ([OrganizationId], [IdempotencyKey]);
 END;
 GO
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260513034211_AddSyncEventIdempotencyKey'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260513034211_AddSyncEventIdempotencyKey', N'10.0.7');
+END;
+GO
