@@ -46,9 +46,9 @@ $RequiredDocTokens = @(
     "P3 Sync Processor Skeleton Baseline",
     "must not expose PayloadJson in the response",
     "mark valid pending events as conflict because domain handlers are not implemented yet",
-    "accept events as applied clinical writes",
-    "Acceptance criteria",
-    "processor must not complete against client-supplied event totals"
+    "processor must not complete against client-supplied event totals",
+    "P3-13 supersedes the skeleton for patient create",
+    "Acceptance criteria"
 )
 
 foreach ($Token in $RequiredDocTokens) {
@@ -80,15 +80,13 @@ foreach ($Token in $RequiredProcessorTokens) {
 }
 
 $ForbiddenProcessorTokens = @(
-    "_dbContext.Patients.Add",
     "_dbContext.PatientVisits.Add",
     "_dbContext.ServiceEncounters.Add",
     "_dbContext.VitalSignsRecords.Add",
     "_dbContext.FormResponses.Add",
     "_dbContext.ConsentDocuments.Add",
     "_dbContext.MedicalReferrals.Add",
-    "_dbContext.MedicationDeliveries.Add",
-    "syncEvent.Accept("
+    "_dbContext.MedicationDeliveries.Add"
 )
 
 foreach ($Token in $ForbiddenProcessorTokens) {

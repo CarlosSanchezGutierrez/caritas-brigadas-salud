@@ -1,8 +1,10 @@
 using System.Text.Json;
 using Caritas.Brigadas.Application.Sync;
+using Caritas.Brigadas.Contracts.Patients;
 using Caritas.Brigadas.Contracts.Sync;
 using Caritas.Brigadas.Domain.Common;
 using Caritas.Brigadas.Domain.Entities;
+using Caritas.Brigadas.Domain.Enums;
 using Caritas.Brigadas.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,7 +12,8 @@ namespace Caritas.Brigadas.Infrastructure.Sync;
 
 public sealed class SyncBatchProcessor : ISyncBatchProcessor
 {
-    private const string SkeletonConflictReason = "sync_processor_skeleton_domain_handlers_not_implemented";
+    private const string SkeletonConflictReason = "sync_processor_domain_handler_not_implemented";
+    private static readonly JsonSerializerOptions PayloadJsonOptions = new(JsonSerializerDefaults.Web);
 
     private readonly CaritasDbContext _dbContext;
 
@@ -81,6 +84,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         var processedAt = DateTimeOffset.UtcNow;
         var processedCount = 0;
+        var acceptedPatientFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var syncEvent in pendingEvents)
         {
@@ -91,6 +95,19 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 syncEvent.Reject(
                     processedAt,
                     rejectionReason ?? "Sync event payload is invalid.");
+
+                processedCount++;
+                continue;
+            }
+
+            if (syncEvent.EntityType == SyncEntityType.Patient)
+            {
+                await HandlePatientEventAsync(
+                    organizationId,
+                    syncEvent,
+                    processedAt,
+                    acceptedPatientFoliosInBatch,
+                    cancellationToken);
 
                 processedCount++;
                 continue;
@@ -119,7 +136,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             rejectedCount,
             conflictCount,
             conflictCount > 0
-                ? "Sync processor skeleton marked events as conflicts because domain handlers are not implemented yet."
+                ? "Sync processor marked unsupported or conflicting events as conflicts."
                 : null);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -132,8 +149,161 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             RejectedCount = rejectedCount,
             ConflictCount = conflictCount,
             Completed = batch.IsCompleted,
-            Message = "Sync batch processor skeleton completed without applying clinical domain writes."
+            Message = "Sync batch processor completed patient handler processing."
         };
+    }
+
+    private async Task HandlePatientEventAsync(
+        Guid organizationId,
+        SyncEvent syncEvent,
+        DateTimeOffset processedAt,
+        ISet<string> acceptedPatientFoliosInBatch,
+        CancellationToken cancellationToken)
+    {
+        if (syncEvent.Operation != SyncOperation.Create)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "patient_operation_not_implemented");
+
+            return;
+        }
+
+        CreatePatientRequest? request;
+
+        try
+        {
+            using var document = JsonDocument.Parse(syncEvent.PayloadJson);
+
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                syncEvent.Reject(
+                    processedAt,
+                    "Patient payload must be a JSON object.");
+
+                return;
+            }
+
+            request = JsonSerializer.Deserialize<CreatePatientRequest>(
+                syncEvent.PayloadJson,
+                PayloadJsonOptions);
+        }
+        catch (JsonException)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "Patient payload JSON is invalid.");
+
+            return;
+        }
+
+        if (request is null)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "Patient payload is required.");
+
+            return;
+        }
+
+        var patientFolio = string.IsNullOrWhiteSpace(request.PatientFolio)
+            ? GenerateSyncPatientFolio(syncEvent)
+            : request.PatientFolio.Trim();
+
+        var normalizedFolio = patientFolio.ToUpperInvariant();
+
+        if (acceptedPatientFoliosInBatch.Contains(normalizedFolio))
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "patient_folio_duplicate_in_pending_batch");
+
+            return;
+        }
+
+        var folioExists = await _dbContext.Patients
+            .AsNoTracking()
+            .AnyAsync(
+                patient =>
+                    patient.OrganizationId == organizationId &&
+                    patient.PatientFolio == normalizedFolio &&
+                    !patient.IsDeleted,
+                cancellationToken);
+
+        if (folioExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "patient_folio_already_exists");
+
+            return;
+        }
+
+        try
+        {
+            var patient = new Patient(
+                Guid.NewGuid(),
+                organizationId,
+                patientFolio,
+                request.FirstName,
+                request.PaternalLastName,
+                request.MaternalLastName,
+                request.BirthDate,
+                request.ApproximateAge,
+                ParseSex(request.Sex));
+
+            patient.UpdateSensitiveIdentifiers(
+                request.Curp,
+                request.Phone);
+
+            patient.UpdateLocation(
+                request.AddressLine,
+                request.Municipality,
+                request.Colony,
+                request.Community);
+
+            if (request.IsMigrant)
+            {
+                patient.MarkAsMigrant();
+            }
+
+            if (request.IsPartialRecord)
+            {
+                if (string.IsNullOrWhiteSpace(request.PartialRecordReason))
+                {
+                    syncEvent.Reject(
+                        processedAt,
+                        "Partial record reason is required when patient record is marked as partial.");
+
+                    return;
+                }
+
+                patient.MarkAsPartialRecord(request.PartialRecordReason);
+            }
+
+            patient.UpdateAdminNotes(request.NotesAdmin);
+
+            if (!acceptedPatientFoliosInBatch.Add(normalizedFolio))
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "patient_folio_duplicate_in_pending_batch");
+
+                return;
+            }
+
+            _dbContext.Patients.Add(patient);
+
+            syncEvent.Accept(
+                processedAt,
+                patient.Id);
+        }
+        catch (DomainException exception)
+        {
+            syncEvent.Reject(
+                processedAt,
+                exception.Message);
+        }
     }
 
     private static bool TryValidateEvent(
@@ -171,6 +341,28 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         }
 
         return true;
+    }
+
+    private static string GenerateSyncPatientFolio(SyncEvent syncEvent)
+    {
+        return $"PAT-SYNC-{syncEvent.Id:N}"[..41];
+    }
+
+    private static Sex ParseSex(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return Sex.NotSpecified;
+        }
+
+        var normalized = value.Trim().ToLowerInvariant();
+
+        return normalized switch
+        {
+            "male" or "masculino" or "m" => Sex.Male,
+            "female" or "femenino" or "f" => Sex.Female,
+            _ => Sex.NotSpecified
+        };
     }
 
     private static SyncBatchSummaryDto ToSummary(SyncBatch batch)
