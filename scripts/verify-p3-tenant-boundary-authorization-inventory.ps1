@@ -90,6 +90,15 @@ $AllowedClassifications = @(
     "System/internal only"
 )
 
+$ForbiddenCompositeClassifications = @(
+    "Public or system-safe",
+    "Tenant-scoped with global guardrails",
+    "Tenant-scoped/system constrained",
+    "Authenticated tenant-scoped with global guardrails",
+    "System constrained",
+    "System-safe"
+)
+
 $EndpointSectionMatch = [regex]::Match(
     $Inventory,
     "(?s)## 6\. Endpoint classification inventory.*?(?=## 7\. Data domain tenant scope inventory)"
@@ -124,8 +133,8 @@ foreach ($Row in $EndpointRows) {
         throw "Endpoint row uses non-canonical classification '$Classification'. Row: $Row"
     }
 
-    if ($Classification -match "\bor\b|/| with | constrained |safe|guardrails") {
-        throw "Endpoint row uses ambiguous classification '$Classification'. Row: $Row"
+    if ($ForbiddenCompositeClassifications -contains $Classification) {
+        throw "Endpoint row uses forbidden composite classification '$Classification'. Row: $Row"
     }
 }
 
