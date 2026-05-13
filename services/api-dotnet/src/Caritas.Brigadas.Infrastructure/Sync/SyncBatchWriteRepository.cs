@@ -53,7 +53,14 @@ public sealed class SyncBatchWriteRepository : ISyncBatchWriteRepository
 
         var syncPayloadEvents = ExtractSyncPayloadEvents(request.PayloadJson);
 
-        var organizationExists = await _dbContext.Organizations
+        
+
+        if (request.EventsCount.HasValue &&
+            request.EventsCount.Value != syncPayloadEvents.Count)
+        {
+            throw new DomainException("Events count does not match payload event count.");
+        }
+var organizationExists = await _dbContext.Organizations
             .AsNoTracking()
             .AnyAsync(
                 organization =>
@@ -101,7 +108,7 @@ public sealed class SyncBatchWriteRepository : ISyncBatchWriteRepository
             brigadeId: request.BrigadeId,
             deviceId: request.DeviceId,
             startedAt: request.StartedAt ?? DateTimeOffset.UtcNow,
-            eventsCount: request.EventsCount ?? syncPayloadEvents.Count);
+            eventsCount: syncPayloadEvents.Count);
 
         _dbContext.SyncBatches.Add(batch);
 

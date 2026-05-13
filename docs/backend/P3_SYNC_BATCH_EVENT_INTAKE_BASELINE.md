@@ -59,6 +59,8 @@ Rules:
 - duplicate idempotency keys inside the same payload must be rejected.
 - duplicate idempotency keys already stored for the same organization must not create new SyncEvent records.
 - duplicate retry batches may still create SyncBatch evidence, but must not duplicate SyncEvent rows.
+- EventsCount is advisory input only and must match the server-parsed payload event count when provided.
+- SyncBatch.EventsCount must be persisted from the server-parsed payload event count, not blindly from client input.
 
 ---
 
@@ -114,6 +116,7 @@ P3-10 is complete when:
 
 - CreateSyncBatchRequest supports ClientInstanceId fallback.
 - SyncBatchWriteRepository parses payload events.
+- SyncBatchWriteRepository rejects EventsCount mismatches when the client-provided count differs from parsed payload events.
 - SyncBatchWriteRepository creates pending SyncEvent rows.
 - SyncBatchWriteRepository suppresses cross-batch duplicate events by OrganizationId + IdempotencyKey.
 - SyncBatchWriteRepository rejects duplicate idempotency keys inside one payload.
