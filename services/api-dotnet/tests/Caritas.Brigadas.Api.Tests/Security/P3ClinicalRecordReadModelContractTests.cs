@@ -107,8 +107,7 @@ public sealed class P3ClinicalRecordReadModelContractTests
     private static string GetApplicationPath(params string[] segments)
     {
         return Path.Combine(
-            FindRepositoryRoot(),
-            new[] { "services", "api-dotnet", "src", "Caritas.Brigadas.Application" }
+            new[] { FindRepositoryRoot(), "services", "api-dotnet", "src", "Caritas.Brigadas.Application" }
                 .Concat(segments)
                 .ToArray());
     }
@@ -116,8 +115,7 @@ public sealed class P3ClinicalRecordReadModelContractTests
     private static string GetContractPath(params string[] segments)
     {
         return Path.Combine(
-            FindRepositoryRoot(),
-            new[] { "services", "api-dotnet", "src", "Caritas.Brigadas.Contracts" }
+            new[] { FindRepositoryRoot(), "services", "api-dotnet", "src", "Caritas.Brigadas.Contracts" }
                 .Concat(segments)
                 .ToArray());
     }
@@ -125,8 +123,7 @@ public sealed class P3ClinicalRecordReadModelContractTests
     private static string GetInfrastructurePath(params string[] segments)
     {
         return Path.Combine(
-            FindRepositoryRoot(),
-            new[] { "services", "api-dotnet", "src", "Caritas.Brigadas.Infrastructure" }
+            new[] { FindRepositoryRoot(), "services", "api-dotnet", "src", "Caritas.Brigadas.Infrastructure" }
                 .Concat(segments)
                 .ToArray());
     }
@@ -134,8 +131,7 @@ public sealed class P3ClinicalRecordReadModelContractTests
     private static string GetControllerPath(params string[] segments)
     {
         return Path.Combine(
-            FindRepositoryRoot(),
-            new[] { "services", "api-dotnet", "src", "Caritas.Brigadas.Api", "Controllers" }
+            new[] { FindRepositoryRoot(), "services", "api-dotnet", "src", "Caritas.Brigadas.Api", "Controllers" }
                 .Concat(segments)
                 .ToArray());
     }
