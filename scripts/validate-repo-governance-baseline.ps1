@@ -12,6 +12,7 @@ $ReleaseChecklistDocsPath = Join-Path $RepoRoot "docs\operations\release-checkli
 $P3DecisionRegisterScriptPath = Join-Path $RepoRoot "scripts\verify-p3-architecture-business-rules-decision-register.ps1"
 $P3TenantBoundaryInventoryScriptPath = Join-Path $RepoRoot "scripts\verify-p3-tenant-boundary-authorization-inventory.ps1"
 $P3ClinicalBusinessRulesScriptPath = Join-Path $RepoRoot "scripts\verify-p3-clinical-business-rules-baseline.ps1"
+$P3ClinicalDataGovernancePrivacyAnalyticsScriptPath = Join-Path $RepoRoot "scripts\verify-p3-clinical-data-governance-privacy-analytics-baseline.ps1"
 
 function Assert-FileExists {
     param([string]$Path)
@@ -45,6 +46,7 @@ Assert-FileExists $ReleaseChecklistDocsPath
 Assert-FileExists $P3DecisionRegisterScriptPath
 Assert-FileExists $P3TenantBoundaryInventoryScriptPath
 Assert-FileExists $P3ClinicalBusinessRulesScriptPath
+Assert-FileExists $P3ClinicalDataGovernancePrivacyAnalyticsScriptPath
 
 Assert-Contains $WorkflowPath "Repository governance metadata gate"
 Assert-Contains $WorkflowPath "pwsh scripts/validate-repo-governance-baseline.ps1"
@@ -78,6 +80,7 @@ Assert-Contains $ReleaseChecklistDocsPath "production approval"
 & $P3DecisionRegisterScriptPath
 & $P3TenantBoundaryInventoryScriptPath
 & $P3ClinicalBusinessRulesScriptPath
+& $P3ClinicalDataGovernancePrivacyAnalyticsScriptPath
 
 Write-Host ""
 Write-Host "============================================================" -ForegroundColor Green
