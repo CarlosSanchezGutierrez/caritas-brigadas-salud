@@ -33,6 +33,7 @@ The patient create handler must:
 - normalize or generate PatientFolio;
 - reject invalid patient payloads;
 - conflict duplicate PatientFolio inside the organization;
+- conflict duplicate PatientFolio values inside the same pending batch before SaveChangesAsync;
 - accept the SyncEvent only after the Patient entity is staged;
 - set SyncEvent.EntityId to the created Patient.Id through Accept;
 - complete batch counters from stored SyncEvent statuses.
@@ -73,6 +74,7 @@ P3-13 is complete when:
 - SyncBatchProcessor accepts successful patient create SyncEvents;
 - SyncBatchProcessor stores created Patient.Id on SyncEvent.EntityId;
 - SyncBatchProcessor marks duplicate folio as conflict;
+- SyncBatchProcessor detects duplicate patient folios inside the same pending batch before database save;
 - SyncBatchProcessor rejects invalid patient payloads;
 - SyncBatchProcessor still marks non-patient entity types as conflict;
 - contract tests protect the patient-only scope;

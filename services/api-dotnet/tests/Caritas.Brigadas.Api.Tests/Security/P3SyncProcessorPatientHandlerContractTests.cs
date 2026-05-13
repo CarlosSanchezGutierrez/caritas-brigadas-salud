@@ -21,6 +21,10 @@ public sealed class P3SyncProcessorPatientHandlerContractTests
             "syncEvent.Accept(",
             "patient.Id",
             "patient_folio_already_exists",
+            "patient_folio_duplicate_in_pending_batch",
+            "acceptedPatientFoliosInBatch",
+            "acceptedPatientFoliosInBatch.Contains(normalizedFolio)",
+            "!acceptedPatientFoliosInBatch.Add(normalizedFolio)",
             "GenerateSyncPatientFolio",
             "ParseSex"
         };
@@ -57,6 +61,7 @@ public sealed class P3SyncProcessorPatientHandlerContractTests
             "parse PayloadJson as CreatePatientRequest",
             "create Patient with OrganizationId from the sync batch route/context",
             "conflict duplicate PatientFolio inside the organization",
+            "duplicate PatientFolio values inside the same pending batch",
             "set SyncEvent.EntityId to the created Patient.Id",
             "patient update is not implemented in P3-13",
             "patient void is not implemented in P3-13",

@@ -36,6 +36,7 @@ $RequiredDocTokens = @(
     "Operation: create",
     "parse PayloadJson as CreatePatientRequest",
     "conflict duplicate PatientFolio inside the organization",
+    "duplicate PatientFolio values inside the same pending batch",
     "set SyncEvent.EntityId to the created Patient.Id",
     "patient update is not implemented in P3-13",
     "Acceptance criteria"
@@ -56,6 +57,10 @@ $RequiredProcessorTokens = @(
     "syncEvent.Accept(",
     "patient.Id",
     "patient_folio_already_exists",
+    "patient_folio_duplicate_in_pending_batch",
+    "acceptedPatientFoliosInBatch",
+    "acceptedPatientFoliosInBatch.Contains(normalizedFolio)",
+    "!acceptedPatientFoliosInBatch.Add(normalizedFolio)",
     "GenerateSyncPatientFolio",
     "ParseSex"
 )
