@@ -15,7 +15,7 @@ public sealed class SyncEvent : Entity
     {
         LocalEventId = string.Empty;
         IdempotencyKey = string.Empty;
-        EntityType = string.Empty;
+        EntityType = SyncEntityType.Patient;
         Operation = SyncOperation.Create;
         PayloadJson = string.Empty;
         Status = SyncEventStatus.Pending;
@@ -40,9 +40,25 @@ public sealed class SyncEvent : Entity
         OrganizationId = RequireGuid(organizationId, nameof(organizationId));
         LocalEventId = NormalizeRequired(localEventId, nameof(localEventId), MaxLocalEventIdLength);
         IdempotencyKey = NormalizeIdempotencyKey(idempotencyKey, LocalEventId);
-        EntityType = NormalizeRequired(entityType, nameof(entityType), MaxEntityTypeLength).ToLowerInvariant();
+
+        EntityType = NormalizeRequired(entityType, nameof(entityType), MaxEntityTypeLength)
+            .ToLowerInvariant();
+
+        if (!SyncEntityType.IsAllowed(EntityType))
+        {
+            throw new DomainException($"{nameof(entityType)} is not allowed.");
+        }
+
         EntityId = entityId;
-        Operation = NormalizeRequired(operation, nameof(operation), MaxOperationLength).ToLowerInvariant();
+
+        Operation = NormalizeRequired(operation, nameof(operation), MaxOperationLength)
+            .ToLowerInvariant();
+
+        if (!SyncOperation.IsAllowed(Operation))
+        {
+            throw new DomainException($"{nameof(operation)} is not allowed.");
+        }
+
         PayloadJson = NormalizeJson(payloadJson, nameof(payloadJson));
         Status = SyncEventStatus.Pending;
         CreatedAtDevice = createdAtDevice;
@@ -203,6 +219,20 @@ public static class SyncOperation
     public const string Void = "void";
     public const string Sign = "sign";
     public const string Sync = "sync";
+
+    public static readonly IReadOnlySet<string> Allowed = new HashSet<string>(StringComparer.Ordinal)
+    {
+        Create,
+        Update,
+        Void,
+        Sign,
+        Sync
+    };
+
+    public static bool IsAllowed(string operation)
+    {
+        return Allowed.Contains(operation);
+    }
 }
 
 public static class SyncEntityType
