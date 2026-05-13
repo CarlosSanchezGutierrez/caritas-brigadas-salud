@@ -188,6 +188,7 @@ No composite classifications are allowed. Each row must use exactly one canonica
 | clinical.patient_guardians | Derived tenant scope through Patient. |
 | clinical.patient_visits | Tenant-scoped by OrganizationId; must match Patient and Brigade tenant. |
 | clinical.service_encounters | Tenant-scoped by OrganizationId; must match Patient, Visit, Brigade, Service tenant. |
+| clinical.vital_signs | Tenant-scoped by OrganizationId; must match Patient, Visit, optional Encounter, and optional MeasuredByUser tenant. |
 | clinical.medical_referrals | Tenant-scoped by OrganizationId; must match Patient and Encounter. |
 | clinical.medication_deliveries | Tenant-scoped by OrganizationId; must match Patient and Encounter. |
 | forms.form_templates | Tenant-scoped by OrganizationId and Service. |

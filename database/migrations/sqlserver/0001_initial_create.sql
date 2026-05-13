@@ -1,4 +1,4 @@
-﻿IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
 BEGIN
     CREATE TABLE [__EFMigrationsHistory] (
         [MigrationId] nvarchar(150) NOT NULL,
@@ -2098,3 +2098,62 @@ END;
 COMMIT;
 GO
 
+-- P3-05 Vital signs baseline
+CREATE TABLE [clinical].[vital_signs] (
+    [Id] uniqueidentifier NOT NULL,
+    [OrganizationId] uniqueidentifier NOT NULL,
+    [PatientId] uniqueidentifier NOT NULL,
+    [VisitId] uniqueidentifier NOT NULL,
+    [EncounterId] uniqueidentifier NULL,
+    [MeasuredByUserId] uniqueidentifier NULL,
+    [MeasuredAt] datetimeoffset NOT NULL,
+    [SystolicBloodPressureMmHg] int NULL,
+    [DiastolicBloodPressureMmHg] int NULL,
+    [HeartRateBpm] int NULL,
+    [RespiratoryRatePerMinute] int NULL,
+    [TemperatureCelsius] decimal(4,1) NULL,
+    [OxygenSaturationPercent] int NULL,
+    [WeightKg] decimal(6,2) NULL,
+    [HeightCm] decimal(5,2) NULL,
+    [GlucoseMgDl] decimal(7,2) NULL,
+    [Source] nvarchar(100) NULL,
+    [Notes] nvarchar(1000) NULL,
+    [CreatedOffline] bit NOT NULL,
+    [DeviceId] uniqueidentifier NULL,
+    [SyncStatus] nvarchar(50) NOT NULL,
+    [CreatedAt] datetimeoffset NOT NULL,
+    [UpdatedAt] datetimeoffset NULL,
+    [CreatedByUserId] uniqueidentifier NULL,
+    [UpdatedByUserId] uniqueidentifier NULL,
+    [IsDeleted] bit NOT NULL,
+    [DeletedAt] datetimeoffset NULL,
+    [DeletedByUserId] uniqueidentifier NULL,
+    CONSTRAINT [PK_vital_signs] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_vital_signs_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]) ON DELETE NO ACTION,
+    CONSTRAINT [FK_vital_signs_patients_PatientId] FOREIGN KEY ([PatientId]) REFERENCES [clinical].[patients] ([Id]) ON DELETE NO ACTION,
+    CONSTRAINT [FK_vital_signs_patient_visits_VisitId] FOREIGN KEY ([VisitId]) REFERENCES [clinical].[patient_visits] ([Id]) ON DELETE NO ACTION,
+    CONSTRAINT [FK_vital_signs_service_encounters_EncounterId] FOREIGN KEY ([EncounterId]) REFERENCES [clinical].[service_encounters] ([Id]) ON DELETE NO ACTION,
+    CONSTRAINT [FK_vital_signs_users_MeasuredByUserId] FOREIGN KEY ([MeasuredByUserId]) REFERENCES [core].[users] ([Id]) ON DELETE NO ACTION
+);
+GO
+
+CREATE INDEX [IX_vital_signs_EncounterId] ON [clinical].[vital_signs] ([EncounterId]);
+GO
+
+CREATE INDEX [IX_vital_signs_IsDeleted] ON [clinical].[vital_signs] ([IsDeleted]);
+GO
+
+CREATE INDEX [IX_vital_signs_MeasuredByUserId] ON [clinical].[vital_signs] ([MeasuredByUserId]);
+GO
+
+CREATE INDEX [IX_vital_signs_OrganizationId_PatientId_MeasuredAt] ON [clinical].[vital_signs] ([OrganizationId], [PatientId], [MeasuredAt]);
+GO
+
+CREATE INDEX [IX_vital_signs_OrganizationId_SyncStatus] ON [clinical].[vital_signs] ([OrganizationId], [SyncStatus]);
+GO
+
+CREATE INDEX [IX_vital_signs_PatientId] ON [clinical].[vital_signs] ([PatientId]);
+GO
+
+CREATE INDEX [IX_vital_signs_VisitId] ON [clinical].[vital_signs] ([VisitId]);
+GO
