@@ -452,26 +452,27 @@ Future useful artifacts:
 
 ## 19. Access matrix
 
-| Capability | SuperAdmin | OrganizationAdmin | MedicalUser | OfficeCapturer | DataAnalyst | DataEngineer | DataScientist | Developer |
-|---|---|---|---|---|---|---|---|---|
-| Create organization | Yes | No | No | No | No | No | No | No |
-| Manage tenant users | Yes | Own tenant | No | No | No | No | No | No |
-| Assign SuperAdmin | Yes | No | No | No | No | No | No | No |
-| Manage tenant services | Yes | Own tenant | No | No | No | No | No | No |
-| Manage brigades | Yes | Own tenant | Limited read | Limited read | Aggregated | Pipeline only | Dataset only | Synthetic only |
-| Search patient | Audited | Own tenant | Own tenant | Own tenant | No by default | No by default | No by default | Synthetic only |
-| Create patient | Audited | Own tenant if approved | Own tenant | Own tenant | No | No | No | Synthetic only |
-| Update patient identity | Audited | Own tenant if approved | Limited | Own tenant if approved | No | No | No | Synthetic only |
-| Capture vital signs | No by default | No by default | Own tenant | No by default | No | No | No | Synthetic only |
-| View clinical history | Audited | Limited if approved | Own tenant | Limited if approved | Aggregated | Curated only | De-identified only | Synthetic only |
-| Export identified patient data | Exceptional | Approved only | No by default | No | No by default | Approved only | No by default | No |
-| View dashboards | Global/tenant | Own tenant | Limited | Limited operational | Own approved scope | Pipeline metrics | Approved scope | Non-prod |
-| Access raw production DB | Exceptional | No | No | No | No | Exceptional approved | No | No |
-| Use analytics dataset | No by default | Aggregated | No by default | No | Approved | Approved | Approved | Synthetic/anonymized |
-| Manage migrations | No by default | No | No | No | No | No | No | Approved engineer only |
-
----
-
+| Capability | SuperAdmin | OrganizationAdmin | MedicalUser | OfficeCapturer | AuditReviewer | DataAnalyst | DataEngineer | DataScientist | Developer |
+|---|---|---|---|---|---|---|---|---|---|
+| Create organization | Yes | No | No | No | No | No | No | No | No |
+| Manage tenant users | Yes | Own tenant | No | No | Audit only | No | No | No | No |
+| Assign SuperAdmin | Yes | No | No | No | No | No | No | No | No |
+| Manage tenant services | Yes | Own tenant | No | No | Audit only | No | No | No | No |
+| Manage brigades | Yes | Own tenant | Limited read | Limited read | Audit only | Aggregated | Pipeline only | Dataset only | Synthetic only |
+| Search patient | Audited | Own tenant | Own tenant | Own tenant | Audit evidence only | No by default | No by default | No by default | Synthetic only |
+| Create patient | Audited | Own tenant if approved | Own tenant | Own tenant | No | No | No | No | Synthetic only |
+| Update patient identity | Audited | Own tenant if approved | Limited | Own tenant if approved | Audit evidence only | No | No | No | Synthetic only |
+| Capture vital signs | No by default | No by default | Own tenant | No by default | No | No | No | No | Synthetic only |
+| View clinical history | Audited | Limited if approved | Own tenant | Limited if approved | Audit evidence only if approved | Aggregated | Curated only | De-identified only | Synthetic only |
+| Review tenant audit logs | Yes | Own tenant | No | No | Own assigned scope | No by default | Pipeline evidence only | No by default | Non-production only |
+| Review global audit logs | Yes | No | No | No | Global only if assigned | No | No | No | No |
+| Review data export evidence | Yes | Own tenant if approved | No | No | Own assigned scope | Own approved scope | Own approved scope | Own approved scope | No |
+| Review sync conflict evidence | Yes | Own tenant if approved | Limited if assigned | Limited if assigned | Own assigned scope | Aggregated only | Pipeline evidence only | No by default | Non-production only |
+| Export identified patient data | Exceptional | Approved only | No by default | No | No by default | No by default | Approved only | No by default | No |
+| View dashboards | Global/tenant | Own tenant | Limited | Limited operational | Audit dashboards | Own approved scope | Pipeline metrics | Approved scope | Non-prod |
+| Access raw production DB | Exceptional | No | No | No | No | No | Exceptional approved | No | No |
+| Use analytics dataset | No by default | Aggregated | No by default | No | Audit aggregates only | Approved | Approved | Approved | Synthetic/anonymized |
+| Manage migrations | No by default | No | No | No | No | No | No | No | Approved engineer only |
 ## 20. Acceptance criteria
 
 P3-04.2 is complete when:
