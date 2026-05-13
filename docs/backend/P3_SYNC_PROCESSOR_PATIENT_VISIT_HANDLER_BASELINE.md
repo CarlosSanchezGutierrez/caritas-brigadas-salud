@@ -53,6 +53,7 @@ Rules:
 
 - patient create may use SyncEvent.EntityId as the Patient.Id;
 - patient_visit create may reference that PatientId;
+- the processor must process patient create events before patient_visit create events;
 - the processor must check tracked Patients in the current DbContext before checking only the database;
 - missing patient reference must become conflict, not database failure.
 
@@ -87,6 +88,7 @@ Rules:
 P3-14 is complete when:
 
 - SyncBatchProcessor handles patient_visit create events;
+- SyncBatchProcessor processes patient create events before patient_visit create events even when uploaded out of order;
 - SyncBatchProcessor creates PatientVisit records from CreatePatientVisitRequest;
 - SyncBatchProcessor accepts successful patient_visit create SyncEvents;
 - SyncBatchProcessor stores created PatientVisit.Id on SyncEvent.EntityId;

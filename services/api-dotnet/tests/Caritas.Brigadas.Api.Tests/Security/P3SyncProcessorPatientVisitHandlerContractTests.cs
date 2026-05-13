@@ -29,7 +29,13 @@ public sealed class P3SyncProcessorPatientVisitHandlerContractTests
             "acceptedVisitFoliosInBatch",
             "acceptedVisitFoliosInBatch.Contains(normalizedVisitFolio)",
             "!acceptedVisitFoliosInBatch.Add(normalizedVisitFolio)",
-            "GenerateSyncVisitFolio"
+            "GenerateSyncVisitFolio",
+            "GetSyncProcessingOrder",
+            ".OrderBy(GetSyncProcessingOrder)",
+            "pendingEvents = pendingEvents",
+            "return 0;",
+            "return 1;",
+            "return 2;"
         };
 
         AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor patient visit handler");
@@ -63,6 +69,7 @@ public sealed class P3SyncProcessorPatientVisitHandlerContractTests
             "parse PayloadJson as CreatePatientVisitRequest",
             "validate PatientId belongs to the same OrganizationId",
             "validate PatientId can be found either in persisted Patients or in Patients staged in the same DbContext",
+            "process patient create events before patient_visit create events",
             "patient_visit update is not implemented in P3-14",
             "patient_visit void/cancel is not implemented in P3-14",
             "processor must not create service encounters, vital signs, forms, documents, referrals, or medication deliveries in P3-14",

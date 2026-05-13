@@ -83,7 +83,13 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             .ThenBy(syncEvent => syncEvent.Id)
             .ToArrayAsync(cancellationToken);
 
-        var processedAt = DateTimeOffset.UtcNow;
+        
+        pendingEvents = pendingEvents
+            .OrderBy(GetSyncProcessingOrder)
+            .ThenBy(syncEvent => syncEvent.ReceivedAtServer)
+            .ThenBy(syncEvent => syncEvent.Id)
+            .ToArray();
+var processedAt = DateTimeOffset.UtcNow;
         var processedCount = 0;
         var acceptedPatientFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
         var acceptedVisitFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
@@ -167,6 +173,23 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             Completed = batch.IsCompleted,
             Message = "Sync batch processor completed patient and visit handler processing."
         };
+    }
+
+    private static int GetSyncProcessingOrder(SyncEvent syncEvent)
+    {
+        if (syncEvent.EntityType == SyncEntityType.Patient &&
+            syncEvent.Operation == SyncOperation.Create)
+        {
+            return 0;
+        }
+
+        if (syncEvent.EntityType == SyncEntityType.PatientVisit &&
+            syncEvent.Operation == SyncOperation.Create)
+        {
+            return 1;
+        }
+
+        return 2;
     }
 
     private async Task HandlePatientEventAsync(

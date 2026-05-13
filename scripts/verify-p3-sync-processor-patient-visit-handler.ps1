@@ -37,6 +37,7 @@ $RequiredDocTokens = @(
     "parse PayloadJson as CreatePatientVisitRequest",
     "validate PatientId belongs to the same OrganizationId",
     "validate PatientId can be found either in persisted Patients or in Patients staged in the same DbContext",
+    "process patient create events before patient_visit create events",
     "conflict duplicate VisitFolio values inside the same pending batch",
     "set SyncEvent.EntityId to the created PatientVisit.Id",
     "Acceptance criteria"
@@ -65,7 +66,13 @@ $RequiredProcessorTokens = @(
     "acceptedVisitFoliosInBatch",
     "acceptedVisitFoliosInBatch.Contains(normalizedVisitFolio)",
     "!acceptedVisitFoliosInBatch.Add(normalizedVisitFolio)",
-    "GenerateSyncVisitFolio"
+    "GenerateSyncVisitFolio",
+    "GetSyncProcessingOrder",
+    ".OrderBy(GetSyncProcessingOrder)",
+    "pendingEvents = pendingEvents",
+    "return 0;",
+    "return 1;",
+    "return 2;"
 )
 
 foreach ($Token in $RequiredProcessorTokens) {
