@@ -354,3 +354,4 @@ P3-04 is complete when:
 - repository governance gate validates it;
 - existing database and security gates remain green;
 - P3-05 can implement VitalSignsRecord from explicit rules.
+- P3-06 clinical record read model can aggregate patient, visits, encounters, and vital signs without duplicating or rewriting clinical history.
