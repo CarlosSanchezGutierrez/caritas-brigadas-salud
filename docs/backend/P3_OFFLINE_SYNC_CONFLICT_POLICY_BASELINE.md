@@ -115,22 +115,28 @@ Rules:
 
 ## 6. Idempotency policy
 
-Sync must be idempotent.
+Sync must be idempotent across retries, including retries that create a new SyncBatch.
 
 Rules:
 
-- LocalEventId should be unique per device or per batch policy.
-- duplicate LocalEventId submissions must not create duplicate clinical records.
+- LocalEventId must be stable across client retries for the same offline event.
+- LocalEventId idempotency scope must exist outside a single SyncBatch.
+- per-batch idempotency scope is not allowed as the only duplicate-prevention mechanism.
+- preferred scope when DeviceId is present: OrganizationId + DeviceId + LocalEventId.
+- fallback scope when DeviceId is null must still be outside a single batch, such as OrganizationId + UserId + LocalEventId + client installation key or another approved client identity key.
+- fallback scope must be documented before sync processor implementation.
+- duplicate LocalEventId submissions within the approved idempotency scope must not create duplicate clinical records.
 - duplicate accepted events should return consistent status.
-- retrying the same batch should not duplicate patients, visits, encounters, vital signs, documents, forms, referrals, or medication deliveries.
+- retrying the same offline event in a new batch should not duplicate patients, visits, encounters, vital signs, documents, forms, referrals, or medication deliveries.
 - server-generated ids must be returned or traceable after acceptance.
 - accepted events must not later become different records because of retry order.
 
 Required future contract:
 
-- unique or logical idempotency constraint for SyncEvent scope;
-- deterministic duplicate detection;
-- explicit duplicate result behavior.
+- unique or logical idempotency constraint outside SyncBatchId-only scope;
+- deterministic duplicate detection across batch retries;
+- explicit duplicate result behavior;
+- explicit fallback idempotency behavior when DeviceId is null.
 
 ---
 
