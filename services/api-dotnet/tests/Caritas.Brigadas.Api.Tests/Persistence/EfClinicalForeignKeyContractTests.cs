@@ -78,7 +78,7 @@ public sealed class EfClinicalForeignKeyContractTests
     }
 
     [Fact]
-    public void ClinicalForeignKeyCount_MatchesP207Package()
+    public void ClinicalForeignKeyCount_MatchesP207AndP305Packages()
     {
         var model = CreateModel();
 
@@ -107,7 +107,12 @@ public sealed class EfClinicalForeignKeyContractTests
             "clinical.service_encounters(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
             "clinical.service_encounters(PatientId) -> clinical.patients(Id) DeleteBehavior=NoAction",
             "clinical.service_encounters(ServiceId) -> core.services(Id) DeleteBehavior=NoAction",
-            "clinical.service_encounters(VisitId) -> clinical.patient_visits(Id) DeleteBehavior=NoAction"
+            "clinical.service_encounters(VisitId) -> clinical.patient_visits(Id) DeleteBehavior=NoAction",
+            "clinical.vital_signs(EncounterId) -> clinical.service_encounters(Id) DeleteBehavior=NoAction",
+            "clinical.vital_signs(MeasuredByUserId) -> core.users(Id) DeleteBehavior=NoAction",
+            "clinical.vital_signs(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "clinical.vital_signs(PatientId) -> clinical.patients(Id) DeleteBehavior=NoAction",
+            "clinical.vital_signs(VisitId) -> clinical.patient_visits(Id) DeleteBehavior=NoAction"
         };
 
         Assert.Equal(expected, clinicalForeignKeys);

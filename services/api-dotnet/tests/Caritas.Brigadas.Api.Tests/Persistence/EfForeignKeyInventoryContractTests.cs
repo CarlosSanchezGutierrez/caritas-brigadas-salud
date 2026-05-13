@@ -439,6 +439,26 @@ var principalProperty = principalEntityType.FindProperty(candidate.PrincipalKeyN
                 "P2-07-clinical",
                 "Medication deliveries originate from an encounter."),
 
+            CandidateForeignKey.Required<VitalSignsRecord, Organization>(
+                nameof(VitalSignsRecord.OrganizationId),
+                "P3-05-vital-signs",
+                "Vital signs are tenant-owned clinical measurements."),
+            CandidateForeignKey.Required<VitalSignsRecord, Patient>(
+                nameof(VitalSignsRecord.PatientId),
+                "P3-05-vital-signs",
+                "Vital signs belong to a patient."),
+            CandidateForeignKey.Required<VitalSignsRecord, PatientVisit>(
+                nameof(VitalSignsRecord.VisitId),
+                "P3-05-vital-signs",
+                "Vital signs are captured during a patient visit."),
+            CandidateForeignKey.Optional<VitalSignsRecord, ServiceEncounter>(
+                nameof(VitalSignsRecord.EncounterId),
+                "P3-05-vital-signs",
+                "Vital signs can optionally be associated with a specific service encounter."),
+            CandidateForeignKey.Optional<VitalSignsRecord, User>(
+                nameof(VitalSignsRecord.MeasuredByUserId),
+                "P3-05-vital-signs",
+                "Vital signs can optionally record the user who measured or captured them."),
             CandidateForeignKey.Required<FormTemplate, Organization>(
                 nameof(FormTemplate.OrganizationId),
                 "P2-08-forms-documents-sync",
