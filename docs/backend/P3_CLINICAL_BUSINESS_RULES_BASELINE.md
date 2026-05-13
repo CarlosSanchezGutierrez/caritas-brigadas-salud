@@ -141,12 +141,12 @@ Expected fields:
 - PatientId;
 - VisitId;
 - EncounterId optional;
-- SystolicBloodPressure;
-- DiastolicBloodPressure;
-- HeartRate;
-- RespiratoryRate;
-- Temperature;
-- OxygenSaturation;
+- SystolicBloodPressureMmHg;
+- DiastolicBloodPressureMmHg;
+- HeartRateBpm;
+- RespiratoryRatePerMinute;
+- TemperatureCelsius;
+- OxygenSaturationPercent;
 - WeightKg;
 - HeightCm;
 - GlucoseMgDl optional;
@@ -160,13 +160,13 @@ Expected fields:
 
 Rules:
 
-- systolic and diastolic blood pressure must be separate fields;
+- systolic and diastolic blood pressure must be separate fields with mmHg units;
 - vital signs must not be stored only on Patient;
 - vital signs must not overwrite previous vital signs;
 - vital signs must belong to a PatientVisit;
 - EncounterId can be optional because some brigades may measure signs before assigning a specific service;
 - OrganizationId, PatientId, VisitId, and optional EncounterId must be tenant-consistent;
-- values must have domain validation before production use;
+- values must have domain validation before production use; all persisted measurement fields must use canonical units in the field name or an explicit unit field;
 - updates must be auditable;
 - deletion must be soft delete if deletion is allowed.
 
@@ -180,12 +180,12 @@ Minimum rules:
 
 | Field | Baseline rule |
 |---|---|
-| SystolicBloodPressure | Optional until workflow requires it. Must be numeric and positive when present. |
-| DiastolicBloodPressure | Optional until workflow requires it. Must be numeric and positive when present. |
-| HeartRate | Optional. Must be numeric and positive when present. |
-| RespiratoryRate | Optional. Must be numeric and positive when present. |
-| Temperature | Optional. Must be numeric and positive when present. |
-| OxygenSaturation | Optional. Must be between 0 and 100 when present. |
+| SystolicBloodPressureMmHg | Optional until workflow requires it. Must be numeric and positive when present. Unit: mmHg. |
+| DiastolicBloodPressureMmHg | Optional until workflow requires it. Must be numeric and positive when present. Unit: mmHg. |
+| HeartRateBpm | Optional. Must be numeric and positive when present. Unit: beats per minute. |
+| RespiratoryRatePerMinute | Optional. Must be numeric and positive when present. Unit: breaths per minute. |
+| TemperatureCelsius | Optional. Must be numeric and positive when present. Unit: Celsius. |
+| OxygenSaturationPercent | Optional. Must be between 0 and 100 when present. Unit: percent. |
 | WeightKg | Optional. Must be positive when present. |
 | HeightCm | Optional. Must be positive when present. |
 | GlucoseMgDl | Optional. Must be positive when present. |
