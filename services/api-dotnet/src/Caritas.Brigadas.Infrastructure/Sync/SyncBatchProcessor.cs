@@ -84,6 +84,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         var processedAt = DateTimeOffset.UtcNow;
         var processedCount = 0;
+        var acceptedPatientFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var syncEvent in pendingEvents)
         {
@@ -105,6 +106,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     organizationId,
                     syncEvent,
                     processedAt,
+                    acceptedPatientFoliosInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -155,6 +157,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         Guid organizationId,
         SyncEvent syncEvent,
         DateTimeOffset processedAt,
+        ISet<string> acceptedPatientFoliosInBatch,
         CancellationToken cancellationToken)
     {
         if (syncEvent.Operation != SyncOperation.Create)
@@ -208,6 +211,15 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             : request.PatientFolio.Trim();
 
         var normalizedFolio = patientFolio.ToUpperInvariant();
+
+        if (acceptedPatientFoliosInBatch.Contains(normalizedFolio))
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "patient_folio_duplicate_in_pending_batch");
+
+            return;
+        }
 
         var folioExists = await _dbContext.Patients
             .AsNoTracking()
@@ -270,6 +282,15 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             }
 
             patient.UpdateAdminNotes(request.NotesAdmin);
+
+            if (!acceptedPatientFoliosInBatch.Add(normalizedFolio))
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "patient_folio_duplicate_in_pending_batch");
+
+                return;
+            }
 
             _dbContext.Patients.Add(patient);
 
