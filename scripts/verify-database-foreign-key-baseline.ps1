@@ -206,6 +206,11 @@ foreach ($ForeignKey in $RequiredForeignKeys) {
 
 Assert-Contains $MigrationContent "AddForeignKey" "EF migration files"
 
+Assert-Contains $SqlContent "__EFMigrationsHistory" "SQL Server deployment baseline"
+Assert-Contains $SqlContent "P3-05 Vital signs baseline" "SQL Server deployment baseline"
+Assert-Contains $SqlContent "IF OBJECT_ID(N''[clinical].[vital_signs]'', N''U'') IS NULL" "SQL Server deployment baseline"
+Assert-Contains $SqlContent "FK_vital_signs_organizations_OrganizationId" "SQL Server deployment baseline"
+
 $RequiredSnapshotRelationships = @(
     @{ Dependent = "Role"; Principal = "Organization"; Property = "OrganizationId"; Required = $true },
     @{ Dependent = "User"; Principal = "Organization"; Property = "OrganizationId"; Required = $true },

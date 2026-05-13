@@ -2099,61 +2099,109 @@ COMMIT;
 GO
 
 -- P3-05 Vital signs baseline
-CREATE TABLE [clinical].[vital_signs] (
-    [Id] uniqueidentifier NOT NULL,
-    [OrganizationId] uniqueidentifier NOT NULL,
-    [PatientId] uniqueidentifier NOT NULL,
-    [VisitId] uniqueidentifier NOT NULL,
-    [EncounterId] uniqueidentifier NULL,
-    [MeasuredByUserId] uniqueidentifier NULL,
-    [MeasuredAt] datetimeoffset NOT NULL,
-    [SystolicBloodPressureMmHg] int NULL,
-    [DiastolicBloodPressureMmHg] int NULL,
-    [HeartRateBpm] int NULL,
-    [RespiratoryRatePerMinute] int NULL,
-    [TemperatureCelsius] decimal(4,1) NULL,
-    [OxygenSaturationPercent] int NULL,
-    [WeightKg] decimal(6,2) NULL,
-    [HeightCm] decimal(5,2) NULL,
-    [GlucoseMgDl] decimal(7,2) NULL,
-    [Source] nvarchar(100) NULL,
-    [Notes] nvarchar(1000) NULL,
-    [CreatedOffline] bit NOT NULL,
-    [DeviceId] uniqueidentifier NULL,
-    [SyncStatus] nvarchar(50) NOT NULL,
-    [CreatedAt] datetimeoffset NOT NULL,
-    [UpdatedAt] datetimeoffset NULL,
-    [CreatedByUserId] uniqueidentifier NULL,
-    [UpdatedByUserId] uniqueidentifier NULL,
-    [IsDeleted] bit NOT NULL,
-    [DeletedAt] datetimeoffset NULL,
-    [DeletedByUserId] uniqueidentifier NULL,
-    CONSTRAINT [PK_vital_signs] PRIMARY KEY ([Id]),
-    CONSTRAINT [FK_vital_signs_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]) ON DELETE NO ACTION,
-    CONSTRAINT [FK_vital_signs_patients_PatientId] FOREIGN KEY ([PatientId]) REFERENCES [clinical].[patients] ([Id]) ON DELETE NO ACTION,
-    CONSTRAINT [FK_vital_signs_patient_visits_VisitId] FOREIGN KEY ([VisitId]) REFERENCES [clinical].[patient_visits] ([Id]) ON DELETE NO ACTION,
-    CONSTRAINT [FK_vital_signs_service_encounters_EncounterId] FOREIGN KEY ([EncounterId]) REFERENCES [clinical].[service_encounters] ([Id]) ON DELETE NO ACTION,
-    CONSTRAINT [FK_vital_signs_users_MeasuredByUserId] FOREIGN KEY ([MeasuredByUserId]) REFERENCES [core].[users] ([Id]) ON DELETE NO ACTION
-);
+BEGIN TRANSACTION;
 GO
 
-CREATE INDEX [IX_vital_signs_EncounterId] ON [clinical].[vital_signs] ([EncounterId]);
+IF OBJECT_ID(N'[clinical].[vital_signs]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [clinical].[vital_signs] (
+        [Id] uniqueidentifier NOT NULL,
+        [OrganizationId] uniqueidentifier NOT NULL,
+        [PatientId] uniqueidentifier NOT NULL,
+        [VisitId] uniqueidentifier NOT NULL,
+        [EncounterId] uniqueidentifier NULL,
+        [MeasuredByUserId] uniqueidentifier NULL,
+        [MeasuredAt] datetimeoffset NOT NULL,
+        [SystolicBloodPressureMmHg] int NULL,
+        [DiastolicBloodPressureMmHg] int NULL,
+        [HeartRateBpm] int NULL,
+        [RespiratoryRatePerMinute] int NULL,
+        [TemperatureCelsius] decimal(4,1) NULL,
+        [OxygenSaturationPercent] int NULL,
+        [WeightKg] decimal(6,2) NULL,
+        [HeightCm] decimal(5,2) NULL,
+        [GlucoseMgDl] decimal(7,2) NULL,
+        [Source] nvarchar(100) NULL,
+        [Notes] nvarchar(1000) NULL,
+        [CreatedOffline] bit NOT NULL,
+        [DeviceId] uniqueidentifier NULL,
+        [SyncStatus] nvarchar(50) NOT NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [UpdatedAt] datetimeoffset NULL,
+        [CreatedByUserId] uniqueidentifier NULL,
+        [UpdatedByUserId] uniqueidentifier NULL,
+        [IsDeleted] bit NOT NULL,
+        [DeletedAt] datetimeoffset NULL,
+        [DeletedByUserId] uniqueidentifier NULL,
+        CONSTRAINT [PK_vital_signs] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_vital_signs_organizations_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [core].[organizations] ([Id]) ON DELETE NO ACTION,
+        CONSTRAINT [FK_vital_signs_patients_PatientId] FOREIGN KEY ([PatientId]) REFERENCES [clinical].[patients] ([Id]) ON DELETE NO ACTION,
+        CONSTRAINT [FK_vital_signs_patient_visits_VisitId] FOREIGN KEY ([VisitId]) REFERENCES [clinical].[patient_visits] ([Id]) ON DELETE NO ACTION,
+        CONSTRAINT [FK_vital_signs_service_encounters_EncounterId] FOREIGN KEY ([EncounterId]) REFERENCES [clinical].[service_encounters] ([Id]) ON DELETE NO ACTION,
+        CONSTRAINT [FK_vital_signs_users_MeasuredByUserId] FOREIGN KEY ([MeasuredByUserId]) REFERENCES [core].[users] ([Id]) ON DELETE NO ACTION
+    );
+END;
 GO
 
-CREATE INDEX [IX_vital_signs_IsDeleted] ON [clinical].[vital_signs] ([IsDeleted]);
+IF OBJECT_ID(N'[clinical].[vital_signs]', N'U') IS NOT NULL
+    AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE [name] = N'IX_vital_signs_EncounterId' AND [object_id] = OBJECT_ID(N'[clinical].[vital_signs]'))
+BEGIN
+    CREATE INDEX [IX_vital_signs_EncounterId] ON [clinical].[vital_signs] ([EncounterId]);
+END;
 GO
 
-CREATE INDEX [IX_vital_signs_MeasuredByUserId] ON [clinical].[vital_signs] ([MeasuredByUserId]);
+IF OBJECT_ID(N'[clinical].[vital_signs]', N'U') IS NOT NULL
+    AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE [name] = N'IX_vital_signs_IsDeleted' AND [object_id] = OBJECT_ID(N'[clinical].[vital_signs]'))
+BEGIN
+    CREATE INDEX [IX_vital_signs_IsDeleted] ON [clinical].[vital_signs] ([IsDeleted]);
+END;
 GO
 
-CREATE INDEX [IX_vital_signs_OrganizationId_PatientId_MeasuredAt] ON [clinical].[vital_signs] ([OrganizationId], [PatientId], [MeasuredAt]);
+IF OBJECT_ID(N'[clinical].[vital_signs]', N'U') IS NOT NULL
+    AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE [name] = N'IX_vital_signs_MeasuredByUserId' AND [object_id] = OBJECT_ID(N'[clinical].[vital_signs]'))
+BEGIN
+    CREATE INDEX [IX_vital_signs_MeasuredByUserId] ON [clinical].[vital_signs] ([MeasuredByUserId]);
+END;
 GO
 
-CREATE INDEX [IX_vital_signs_OrganizationId_SyncStatus] ON [clinical].[vital_signs] ([OrganizationId], [SyncStatus]);
+IF OBJECT_ID(N'[clinical].[vital_signs]', N'U') IS NOT NULL
+    AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE [name] = N'IX_vital_signs_OrganizationId_PatientId_MeasuredAt' AND [object_id] = OBJECT_ID(N'[clinical].[vital_signs]'))
+BEGIN
+    CREATE INDEX [IX_vital_signs_OrganizationId_PatientId_MeasuredAt] ON [clinical].[vital_signs] ([OrganizationId], [PatientId], [MeasuredAt]);
+END;
 GO
 
-CREATE INDEX [IX_vital_signs_PatientId] ON [clinical].[vital_signs] ([PatientId]);
+IF OBJECT_ID(N'[clinical].[vital_signs]', N'U') IS NOT NULL
+    AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE [name] = N'IX_vital_signs_OrganizationId_SyncStatus' AND [object_id] = OBJECT_ID(N'[clinical].[vital_signs]'))
+BEGIN
+    CREATE INDEX [IX_vital_signs_OrganizationId_SyncStatus] ON [clinical].[vital_signs] ([OrganizationId], [SyncStatus]);
+END;
 GO
 
-CREATE INDEX [IX_vital_signs_VisitId] ON [clinical].[vital_signs] ([VisitId]);
+IF OBJECT_ID(N'[clinical].[vital_signs]', N'U') IS NOT NULL
+    AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE [name] = N'IX_vital_signs_PatientId' AND [object_id] = OBJECT_ID(N'[clinical].[vital_signs]'))
+BEGIN
+    CREATE INDEX [IX_vital_signs_PatientId] ON [clinical].[vital_signs] ([PatientId]);
+END;
+GO
+
+IF OBJECT_ID(N'[clinical].[vital_signs]', N'U') IS NOT NULL
+    AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE [name] = N'IX_vital_signs_VisitId' AND [object_id] = OBJECT_ID(N'[clinical].[vital_signs]'))
+BEGIN
+    CREATE INDEX [IX_vital_signs_VisitId] ON [clinical].[vital_signs] ([VisitId]);
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260513013508_AddVitalSignsRecords'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260513013508_AddVitalSignsRecords', N'10.0.7');
+END;
+GO
+
+COMMIT;
 GO

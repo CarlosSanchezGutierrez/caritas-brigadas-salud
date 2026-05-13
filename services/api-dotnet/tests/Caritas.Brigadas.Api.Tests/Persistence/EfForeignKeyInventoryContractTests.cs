@@ -442,97 +442,78 @@ var principalProperty = principalEntityType.FindProperty(candidate.PrincipalKeyN
             CandidateForeignKey.Required<FormTemplate, Organization>(
                 nameof(FormTemplate.OrganizationId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Form templates are tenant-owned form records."),
             CandidateForeignKey.Required<FormTemplate, Service>(
                 nameof(FormTemplate.ServiceId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Form templates are attached to a service."),
             CandidateForeignKey.Required<FormResponse, Organization>(
                 nameof(FormResponse.OrganizationId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Form responses are tenant-owned form records."),
             CandidateForeignKey.Required<FormResponse, FormTemplate>(
                 nameof(FormResponse.FormTemplateId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Form responses use a known form template."),
             CandidateForeignKey.Required<FormResponse, ServiceEncounter>(
                 nameof(FormResponse.EncounterId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Form responses belong to a service encounter."),
             CandidateForeignKey.Required<DocumentTemplate, Organization>(
                 nameof(DocumentTemplate.OrganizationId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Document templates are tenant-owned document records."),
             CandidateForeignKey.Optional<DocumentTemplate, Service>(
                 nameof(DocumentTemplate.AppliesToServiceId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Document templates can optionally apply to a service."),
             CandidateForeignKey.Required<DocumentSignature, Organization>(
                 nameof(DocumentSignature.OrganizationId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Document signatures are tenant-owned document records."),
             CandidateForeignKey.Required<DocumentSignature, DocumentTemplate>(
                 nameof(DocumentSignature.DocumentTemplateId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Document signatures must reference a template."),
             CandidateForeignKey.Optional<DocumentSignature, Patient>(
                 nameof(DocumentSignature.PatientId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Document signatures can optionally reference a patient."),
             CandidateForeignKey.Optional<DocumentSignature, PatientVisit>(
                 nameof(DocumentSignature.VisitId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Document signatures can optionally reference a visit."),
             CandidateForeignKey.Optional<DocumentSignature, ServiceEncounter>(
                 nameof(DocumentSignature.EncounterId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Document signatures can optionally reference an encounter."),
             CandidateForeignKey.Required<MediaRelease, Organization>(
                 nameof(MediaRelease.OrganizationId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Media releases are tenant-owned document records."),
             CandidateForeignKey.Required<MediaRelease, Patient>(
                 nameof(MediaRelease.PatientId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Media releases belong to a patient."),
             CandidateForeignKey.Optional<MediaRelease, PatientVisit>(
                 nameof(MediaRelease.VisitId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Media releases can optionally reference a visit."),
             CandidateForeignKey.Required<SyncBatch, Organization>(
                 nameof(SyncBatch.OrganizationId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Sync batches are tenant-owned sync records."),
             CandidateForeignKey.Optional<SyncBatch, Brigade>(
                 nameof(SyncBatch.BrigadeId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Sync batches can optionally be tied to a brigade."),
             CandidateForeignKey.Required<SyncEvent, Organization>(
                 nameof(SyncEvent.OrganizationId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Sync events are tenant-owned sync records."),
             CandidateForeignKey.Required<SyncEvent, SyncBatch>(
                 nameof(SyncEvent.SyncBatchId),
                 "P2-08-forms-documents-sync",
-        "P3-05-vital-signs",
                 "Sync events belong to a sync batch.")
         };
     }
