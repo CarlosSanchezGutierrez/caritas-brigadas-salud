@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Caritas.Brigadas.Contracts.Sync;
 
@@ -9,6 +9,9 @@ public sealed record CreateSyncBatchRequest
     public Guid BrigadeId { get; init; }
 
     public Guid? DeviceId { get; init; }
+
+    [MaxLength(150)]
+    public string? ClientInstanceId { get; init; }
 
     [Required]
     public string PayloadJson { get; init; } = string.Empty;
