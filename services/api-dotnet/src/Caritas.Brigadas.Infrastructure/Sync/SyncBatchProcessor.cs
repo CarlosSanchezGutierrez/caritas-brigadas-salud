@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Caritas.Brigadas.Application.Sync;
 using Caritas.Brigadas.Contracts.Patients;
+using Caritas.Brigadas.Contracts.PatientVisits;
 using Caritas.Brigadas.Contracts.Sync;
 using Caritas.Brigadas.Domain.Common;
 using Caritas.Brigadas.Domain.Entities;
@@ -82,9 +83,16 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             .ThenBy(syncEvent => syncEvent.Id)
             .ToArrayAsync(cancellationToken);
 
-        var processedAt = DateTimeOffset.UtcNow;
+        
+        pendingEvents = pendingEvents
+            .OrderBy(GetSyncProcessingOrder)
+            .ThenBy(syncEvent => syncEvent.ReceivedAtServer)
+            .ThenBy(syncEvent => syncEvent.Id)
+            .ToArray();
+var processedAt = DateTimeOffset.UtcNow;
         var processedCount = 0;
         var acceptedPatientFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
+        var acceptedVisitFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var syncEvent in pendingEvents)
         {
@@ -107,6 +115,20 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     syncEvent,
                     processedAt,
                     acceptedPatientFoliosInBatch,
+                    cancellationToken);
+
+                processedCount++;
+                continue;
+            }
+
+            if (syncEvent.EntityType == SyncEntityType.PatientVisit)
+            {
+                await HandlePatientVisitEventAsync(
+                    organizationId,
+                    batch,
+                    syncEvent,
+                    processedAt,
+                    acceptedVisitFoliosInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -149,8 +171,25 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             RejectedCount = rejectedCount,
             ConflictCount = conflictCount,
             Completed = batch.IsCompleted,
-            Message = "Sync batch processor completed patient handler processing."
+            Message = "Sync batch processor completed patient and visit handler processing."
         };
+    }
+
+    private static int GetSyncProcessingOrder(SyncEvent syncEvent)
+    {
+        if (syncEvent.EntityType == SyncEntityType.Patient &&
+            syncEvent.Operation == SyncOperation.Create)
+        {
+            return 0;
+        }
+
+        if (syncEvent.EntityType == SyncEntityType.PatientVisit &&
+            syncEvent.Operation == SyncOperation.Create)
+        {
+            return 1;
+        }
+
+        return 2;
     }
 
     private async Task HandlePatientEventAsync(
@@ -206,6 +245,27 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             return;
         }
 
+        var patientId = syncEvent.EntityId ?? Guid.NewGuid();
+
+        var patientIdAlreadyExists = await _dbContext.Patients
+            .AsNoTracking()
+            .AnyAsync(
+                patient =>
+                    patient.Id == patientId &&
+                    patient.OrganizationId == organizationId &&
+                    !patient.IsDeleted,
+                cancellationToken);
+
+        if (patientIdAlreadyExists ||
+            _dbContext.Patients.Local.Any(patient => patient.Id == patientId && patient.OrganizationId == organizationId && !patient.IsDeleted))
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "patient_id_already_exists");
+
+            return;
+        }
+
         var patientFolio = string.IsNullOrWhiteSpace(request.PatientFolio)
             ? GenerateSyncPatientFolio(syncEvent)
             : request.PatientFolio.Trim();
@@ -242,7 +302,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         try
         {
             var patient = new Patient(
-                Guid.NewGuid(),
+                patientId,
                 organizationId,
                 patientFolio,
                 request.FirstName,
@@ -306,6 +366,243 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         }
     }
 
+    private async Task HandlePatientVisitEventAsync(
+        Guid organizationId,
+        SyncBatch batch,
+        SyncEvent syncEvent,
+        DateTimeOffset processedAt,
+        ISet<string> acceptedVisitFoliosInBatch,
+        CancellationToken cancellationToken)
+    {
+        if (syncEvent.Operation != SyncOperation.Create)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "patient_visit_operation_not_implemented");
+
+            return;
+        }
+
+        CreatePatientVisitRequest? request;
+
+        try
+        {
+            using var document = JsonDocument.Parse(syncEvent.PayloadJson);
+
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                syncEvent.Reject(
+                    processedAt,
+                    "Patient visit payload must be a JSON object.");
+
+                return;
+            }
+
+            request = JsonSerializer.Deserialize<CreatePatientVisitRequest>(
+                syncEvent.PayloadJson,
+                PayloadJsonOptions);
+        }
+        catch (JsonException)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "Patient visit payload JSON is invalid.");
+
+            return;
+        }
+
+        if (request is null)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "Patient visit payload is required.");
+
+            return;
+        }
+
+        if (request.PatientId == Guid.Empty)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "PatientId is required for patient visit sync.");
+
+            return;
+        }
+
+        if (request.BrigadeId == Guid.Empty)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "BrigadeId is required for patient visit sync.");
+
+            return;
+        }
+
+        if (request.BrigadeId != batch.BrigadeId)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "patient_visit_brigade_mismatch");
+
+            return;
+        }
+
+        var patientExists =
+            _dbContext.Patients.Local.Any(patient =>
+                patient.Id == request.PatientId &&
+                patient.OrganizationId == organizationId &&
+                !patient.IsDeleted) ||
+            await _dbContext.Patients
+                .AsNoTracking()
+                .AnyAsync(
+                    patient =>
+                        patient.Id == request.PatientId &&
+                        patient.OrganizationId == organizationId &&
+                        !patient.IsDeleted,
+                    cancellationToken);
+
+        if (!patientExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "patient_visit_patient_not_found");
+
+            return;
+        }
+
+        var brigadeExists = await _dbContext.Brigades
+            .AsNoTracking()
+            .AnyAsync(
+                brigade =>
+                    brigade.Id == request.BrigadeId &&
+                    brigade.OrganizationId == organizationId &&
+                    !brigade.IsDeleted,
+                cancellationToken);
+
+        if (!brigadeExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "patient_visit_brigade_not_found");
+
+            return;
+        }
+
+        if (request.RegisteredByUserId.HasValue)
+        {
+            var userExists = await _dbContext.Users
+                .AsNoTracking()
+                .AnyAsync(
+                    user =>
+                        user.Id == request.RegisteredByUserId.Value &&
+                        user.OrganizationId == organizationId &&
+                        !user.IsDeleted,
+                    cancellationToken);
+
+            if (!userExists)
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "patient_visit_registered_by_user_not_found");
+
+                return;
+            }
+        }
+
+        var visitId = syncEvent.EntityId ?? Guid.NewGuid();
+
+        var visitIdAlreadyExists =
+            _dbContext.PatientVisits.Local.Any(visit =>
+                visit.Id == visitId &&
+                visit.OrganizationId == organizationId &&
+                !visit.IsDeleted) ||
+            await _dbContext.PatientVisits
+                .AsNoTracking()
+                .AnyAsync(
+                    visit =>
+                        visit.Id == visitId &&
+                        visit.OrganizationId == organizationId &&
+                        !visit.IsDeleted,
+                    cancellationToken);
+
+        if (visitIdAlreadyExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "patient_visit_id_already_exists");
+
+            return;
+        }
+
+        var visitFolio = string.IsNullOrWhiteSpace(request.VisitFolio)
+            ? GenerateSyncVisitFolio(syncEvent)
+            : request.VisitFolio.Trim();
+
+        var normalizedVisitFolio = visitFolio.ToUpperInvariant();
+
+        if (acceptedVisitFoliosInBatch.Contains(normalizedVisitFolio))
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "patient_visit_folio_duplicate_in_pending_batch");
+
+            return;
+        }
+
+        var visitFolioExists = await _dbContext.PatientVisits
+            .AsNoTracking()
+            .AnyAsync(
+                visit =>
+                    visit.OrganizationId == organizationId &&
+                    visit.VisitFolio == normalizedVisitFolio &&
+                    !visit.IsDeleted,
+                cancellationToken);
+
+        if (visitFolioExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "patient_visit_folio_already_exists");
+
+            return;
+        }
+
+        try
+        {
+            var visit = new PatientVisit(
+                visitId,
+                organizationId,
+                visitFolio,
+                request.PatientId,
+                request.BrigadeId,
+                request.ArrivalTime,
+                request.RegisteredByUserId,
+                createdOffline: true,
+                deviceId: request.DeviceId ?? batch.DeviceId);
+
+            if (!acceptedVisitFoliosInBatch.Add(normalizedVisitFolio))
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "patient_visit_folio_duplicate_in_pending_batch");
+
+                return;
+            }
+
+            _dbContext.PatientVisits.Add(visit);
+
+            syncEvent.Accept(
+                processedAt,
+                visit.Id);
+        }
+        catch (DomainException exception)
+        {
+            syncEvent.Reject(
+                processedAt,
+                exception.Message);
+        }
+    }
+
     private static bool TryValidateEvent(
         SyncEvent syncEvent,
         out string? rejectionReason)
@@ -346,6 +643,11 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
     private static string GenerateSyncPatientFolio(SyncEvent syncEvent)
     {
         return $"PAT-SYNC-{syncEvent.Id:N}"[..41];
+    }
+
+    private static string GenerateSyncVisitFolio(SyncEvent syncEvent)
+    {
+        return $"VIS-SYNC-{syncEvent.Id:N}"[..41];
     }
 
     private static Sex ParseSex(string? value)

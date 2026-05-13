@@ -79,3 +79,8 @@ P3-13 is complete when:
 - SyncBatchProcessor still marks non-patient entity types as conflict;
 - contract tests protect the patient-only scope;
 - repository governance and database deployment gates remain green.
+---
+
+## 6. P3-14 patient visit handler note
+
+P3-14 adds patient_visit create handling. After P3-14, PatientVisit creation is no longer forbidden in the sync processor. Service encounters, vital signs, forms, documents, referrals, and medication deliveries remain out of scope.

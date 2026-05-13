@@ -2,34 +2,43 @@ using Xunit;
 
 namespace Caritas.Brigadas.Api.Tests.Security;
 
-public sealed class P3SyncProcessorPatientHandlerContractTests
+public sealed class P3SyncProcessorPatientVisitHandlerContractTests
 {
     [Fact]
-    public void SyncBatchProcessor_HandlesPatientCreateOnly()
+    public void SyncBatchProcessor_HandlesPatientVisitCreateOnly()
     {
         var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
 
         var requiredTokens = new[]
         {
-            "HandlePatientEventAsync",
-            "syncEvent.EntityType == SyncEntityType.Patient",
+            "HandlePatientVisitEventAsync",
+            "syncEvent.EntityType == SyncEntityType.PatientVisit",
             "syncEvent.Operation != SyncOperation.Create",
-            "patient_operation_not_implemented",
-            "JsonSerializer.Deserialize<CreatePatientRequest>",
-            "new Patient(",
-            "_dbContext.Patients.Add(patient)",
+            "patient_visit_operation_not_implemented",
+            "JsonSerializer.Deserialize<CreatePatientVisitRequest>",
+            "new PatientVisit(",
+            "_dbContext.PatientVisits.Add(visit)",
             "syncEvent.Accept(",
-            "patient.Id",
-            "patient_folio_already_exists",
-            "patient_folio_duplicate_in_pending_batch",
-            "acceptedPatientFoliosInBatch",
-            "acceptedPatientFoliosInBatch.Contains(normalizedFolio)",
-            "!acceptedPatientFoliosInBatch.Add(normalizedFolio)",
-            "GenerateSyncPatientFolio",
-            "ParseSex"
+            "visit.Id",
+            "patient_visit_patient_not_found",
+            "patient_visit_brigade_not_found",
+            "patient_visit_brigade_mismatch",
+            "patient_visit_registered_by_user_not_found",
+            "patient_visit_folio_already_exists",
+            "patient_visit_folio_duplicate_in_pending_batch",
+            "acceptedVisitFoliosInBatch",
+            "acceptedVisitFoliosInBatch.Contains(normalizedVisitFolio)",
+            "!acceptedVisitFoliosInBatch.Add(normalizedVisitFolio)",
+            "GenerateSyncVisitFolio",
+            "GetSyncProcessingOrder",
+            ".OrderBy(GetSyncProcessingOrder)",
+            "pendingEvents = pendingEvents",
+            "return 0;",
+            "return 1;",
+            "return 2;"
         };
 
-        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor patient handler");
+        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor patient visit handler");
 
         var forbiddenTokens = new[]
         {
@@ -48,28 +57,26 @@ public sealed class P3SyncProcessorPatientHandlerContractTests
     }
 
     [Fact]
-    public void PatientHandlerBaseline_DefinesPatientOnlyScope()
+    public void PatientVisitHandlerBaseline_DefinesPatientVisitOnlyScope()
     {
-        var source = File.ReadAllText(GetDocPath("P3_SYNC_PROCESSOR_PATIENT_HANDLER_BASELINE.md"));
+        var source = File.ReadAllText(GetDocPath("P3_SYNC_PROCESSOR_PATIENT_VISIT_HANDLER_BASELINE.md"));
 
         var requiredTokens = new[]
         {
-            "P3 Sync Processor Patient Handler Baseline",
-            "EntityType: patient",
+            "P3 Sync Processor Patient Visit Handler Baseline",
+            "EntityType: patient_visit",
             "Operation: create",
-            "parse PayloadJson as CreatePatientRequest",
-            "create Patient with OrganizationId from the sync batch route/context",
-            "conflict duplicate PatientFolio inside the organization",
-            "duplicate PatientFolio values inside the same pending batch",
-            "set SyncEvent.EntityId to the created Patient.Id",
-            "patient update is not implemented in P3-13",
-            "patient void is not implemented in P3-13",
-            "processor must not create visits, encounters, vital signs, forms, documents, referrals, or medication deliveries in P3-13",
-            "Acceptance criteria",
-            "P3-14 patient visit handler note"
+            "parse PayloadJson as CreatePatientVisitRequest",
+            "validate PatientId belongs to the same OrganizationId",
+            "validate PatientId can be found either in persisted Patients or in Patients staged in the same DbContext",
+            "process patient create events before patient_visit create events",
+            "patient_visit update is not implemented in P3-14",
+            "patient_visit void/cancel is not implemented in P3-14",
+            "processor must not create service encounters, vital signs, forms, documents, referrals, or medication deliveries in P3-14",
+            "Acceptance criteria"
         };
 
-        AssertRequiredTokens(source, requiredTokens, "P3 sync processor patient handler baseline");
+        AssertRequiredTokens(source, requiredTokens, "P3 sync processor patient visit handler baseline");
     }
 
     private static void AssertRequiredTokens(

@@ -103,3 +103,8 @@ P3-12 is complete when:
 ## 6. P3-13 patient handler note
 
 P3-13 supersedes the skeleton for patient create only. After P3-13, SyncBatchProcessor may accept SyncEntityType.Patient with SyncOperation.Create and may create Patient records. All other entity types remain conflict-staged until their handlers are implemented.
+---
+
+## 7. P3-14 patient visit handler note
+
+P3-14 supersedes the skeleton for patient_visit create only. After P3-14, SyncBatchProcessor may accept SyncEntityType.PatientVisit with SyncOperation.Create and may create PatientVisit records. Service encounters, vital signs, forms, documents, referrals, and medication deliveries remain conflict-staged until their handlers are implemented.
