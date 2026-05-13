@@ -121,7 +121,7 @@ public sealed class PatientReadRepository : IPatientReadRepository
                 IsMigrant = entity.IsMigrant,
                 IsPartialRecord = entity.IsPartialRecord,
                 PartialRecordReason = entity.PartialRecordReason,
-                Status = entity.Status,
+                Status = entity.Status.ToString(),
                 IsActive = entity.IsActive
             })
             .SingleOrDefaultAsync(cancellationToken);
@@ -148,7 +148,7 @@ public sealed class PatientReadRepository : IPatientReadRepository
                 BrigadeId = entity.BrigadeId,
                 ArrivalTime = entity.ArrivalTime,
                 RegisteredByUserId = entity.RegisteredByUserId,
-                VisitStatus = entity.VisitStatus,
+                VisitStatus = entity.VisitStatus.ToString(),
                 CreatedOffline = entity.CreatedOffline,
                 DeviceId = entity.DeviceId,
                 SyncStatus = entity.SyncStatus.ToString(),
@@ -179,8 +179,8 @@ public sealed class PatientReadRepository : IPatientReadRepository
                 ServiceId = entity.ServiceId,
                 ProviderUserId = entity.ProviderUserId,
                 StartedAt = entity.StartedAt,
-                CompletedAt = entity.CompletedAt,
-                Status = entity.Status,
+                CompletedAt = entity.EndedAt,
+                Status = entity.Status.ToString(),
                 CreatedOffline = entity.CreatedOffline,
                 DeviceId = entity.DeviceId,
                 SyncStatus = entity.SyncStatus.ToString(),
