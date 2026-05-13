@@ -101,7 +101,7 @@ public sealed class SyncBatchWriteRepository : ISyncBatchWriteRepository
             brigadeId: request.BrigadeId,
             deviceId: request.DeviceId,
             startedAt: request.StartedAt ?? DateTimeOffset.UtcNow,
-            eventsCount: request.EventsCount ?? syncPayloadEvents.Count);
+            eventsCount: syncPayloadEvents.Count);
 
         _dbContext.SyncBatches.Add(batch);
 

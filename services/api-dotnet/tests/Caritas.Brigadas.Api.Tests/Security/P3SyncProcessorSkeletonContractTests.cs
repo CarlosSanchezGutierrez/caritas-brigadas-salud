@@ -23,7 +23,10 @@ public sealed class P3SyncProcessorSkeletonContractTests
             "syncEvent.Reject(",
             "syncEvent.MarkConflict(",
             "SkeletonConflictReason",
-            "batch.Complete("
+            "batch.Complete(",
+            "allEvents.Count(syncEvent => syncEvent.Status == SyncEventStatus.Accepted)",
+            "allEvents.Count(syncEvent => syncEvent.Status == SyncEventStatus.Rejected)",
+            "allEvents.Count(syncEvent => syncEvent.Status == SyncEventStatus.Conflict)"
         };
 
         AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor skeleton");
@@ -101,7 +104,8 @@ public sealed class P3SyncProcessorSkeletonContractTests
             "create Patient records",
             "create VitalSignsRecord records",
             "accept events as applied clinical writes",
-            "Acceptance criteria"
+            "Acceptance criteria",
+            "processor must not complete against client-supplied event totals"
         };
 
         AssertRequiredTokens(source, requiredTokens, "P3 sync processor skeleton baseline");

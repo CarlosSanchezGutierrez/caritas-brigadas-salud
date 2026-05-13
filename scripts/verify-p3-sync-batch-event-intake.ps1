@@ -73,6 +73,8 @@ $RequiredRepositoryTokens = @(
     "existingKeys",
     "existingKeySet",
     "Payload contains duplicate sync event idempotency keys.",
+    "Events count does not match payload event count.",
+    "eventsCount: syncPayloadEvents.Count",
     "new SyncEvent("
 )
 

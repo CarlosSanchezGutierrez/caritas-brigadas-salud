@@ -47,7 +47,8 @@ $RequiredDocTokens = @(
     "must not expose PayloadJson in the response",
     "mark valid pending events as conflict because domain handlers are not implemented yet",
     "accept events as applied clinical writes",
-    "Acceptance criteria"
+    "Acceptance criteria",
+    "processor must not complete against client-supplied event totals"
 )
 
 foreach ($Token in $RequiredDocTokens) {
@@ -68,7 +69,10 @@ $RequiredProcessorTokens = @(
     "JsonDocument.Parse(syncEvent.PayloadJson)",
     "syncEvent.Reject(",
     "syncEvent.MarkConflict(",
-    "batch.Complete("
+    "batch.Complete(",
+    "allEvents.Count(syncEvent => syncEvent.Status == SyncEventStatus.Accepted)",
+    "allEvents.Count(syncEvent => syncEvent.Status == SyncEventStatus.Rejected)",
+    "allEvents.Count(syncEvent => syncEvent.Status == SyncEventStatus.Conflict)"
 )
 
 foreach ($Token in $RequiredProcessorTokens) {

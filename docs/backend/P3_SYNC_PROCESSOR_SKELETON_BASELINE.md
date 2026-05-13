@@ -48,6 +48,7 @@ The skeleton processor may:
 - reject invalid pending events;
 - mark valid pending events as conflict because domain handlers are not implemented yet;
 - complete the batch with counters.
+- processor must not complete against client-supplied event totals; intake must persist SyncBatch.EventsCount from server-parsed event count.
 
 The skeleton processor must not:
 
