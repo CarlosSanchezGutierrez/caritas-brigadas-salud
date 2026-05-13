@@ -172,6 +172,11 @@ $RequiredForeignKeys = @(
     "FK_medication_deliveries_organizations_OrganizationId",
     "FK_medication_deliveries_patients_PatientId",
     "FK_medication_deliveries_service_encounters_EncounterId",
+    "FK_vital_signs_organizations_OrganizationId",
+    "FK_vital_signs_patients_PatientId",
+    "FK_vital_signs_patient_visits_VisitId",
+    "FK_vital_signs_service_encounters_EncounterId",
+    "FK_vital_signs_users_MeasuredByUserId",
 
     "FK_form_templates_organizations_OrganizationId",
     "FK_form_templates_services_ServiceId",
@@ -200,6 +205,11 @@ foreach ($ForeignKey in $RequiredForeignKeys) {
 }
 
 Assert-Contains $MigrationContent "AddForeignKey" "EF migration files"
+
+Assert-Contains $SqlContent "__EFMigrationsHistory" "SQL Server deployment baseline"
+Assert-Contains $SqlContent "P3-05 Vital signs baseline" "SQL Server deployment baseline"
+Assert-Contains $SqlContent "IF OBJECT_ID(N'[clinical].[vital_signs]', N'U') IS NULL" "SQL Server deployment baseline"
+Assert-Contains $SqlContent "FK_vital_signs_organizations_OrganizationId" "SQL Server deployment baseline"
 
 $RequiredSnapshotRelationships = @(
     @{ Dependent = "Role"; Principal = "Organization"; Property = "OrganizationId"; Required = $true },
@@ -235,6 +245,11 @@ $RequiredSnapshotRelationships = @(
     @{ Dependent = "MedicationDelivery"; Principal = "Organization"; Property = "OrganizationId"; Required = $true },
     @{ Dependent = "MedicationDelivery"; Principal = "Patient"; Property = "PatientId"; Required = $true },
     @{ Dependent = "MedicationDelivery"; Principal = "ServiceEncounter"; Property = "EncounterId"; Required = $true },
+    @{ Dependent = "VitalSignsRecord"; Principal = "Organization"; Property = "OrganizationId"; Required = $true },
+    @{ Dependent = "VitalSignsRecord"; Principal = "Patient"; Property = "PatientId"; Required = $true },
+    @{ Dependent = "VitalSignsRecord"; Principal = "PatientVisit"; Property = "VisitId"; Required = $true },
+    @{ Dependent = "VitalSignsRecord"; Principal = "ServiceEncounter"; Property = "EncounterId"; Required = $false },
+    @{ Dependent = "VitalSignsRecord"; Principal = "User"; Property = "MeasuredByUserId"; Required = $false },
 
     @{ Dependent = "FormTemplate"; Principal = "Organization"; Property = "OrganizationId"; Required = $true },
     @{ Dependent = "FormTemplate"; Principal = "Service"; Property = "ServiceId"; Required = $true },

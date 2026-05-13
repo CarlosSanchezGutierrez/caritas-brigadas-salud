@@ -52,6 +52,8 @@ $RequiredSqlTokens = @(
     "UserRole.UserId -> User.Id",
     "PatientVisit.BrigadeId -> Brigade.Id",
     "ServiceEncounter.VisitId -> PatientVisit.Id",
+    "VitalSignsRecord.VisitId -> PatientVisit.Id",
+    "VitalSignsRecord.MeasuredByUserId -> User.Id",
     "DocumentSignature.DocumentTemplateId -> DocumentTemplate.Id",
     "SyncEvent.SyncBatchId -> SyncBatch.Id"
 )

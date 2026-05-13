@@ -318,6 +318,36 @@ FROM [sync].[sync_events] d
 LEFT JOIN [sync].[sync_batches] p ON p.[Id] = d.[SyncBatchId]
 WHERE p.[Id] IS NULL;
 
+
+INSERT INTO #p2_fk_orphan_results
+SELECT 'VitalSignsRecord.OrganizationId -> Organization.Id', 'clinical.vital_signs', 'OrganizationId', 'core.organizations', 'Id', 1, COUNT_BIG(*)
+FROM [clinical].[vital_signs] d
+LEFT JOIN [core].[organizations] p ON p.[Id] = d.[OrganizationId]
+WHERE p.[Id] IS NULL;
+
+INSERT INTO #p2_fk_orphan_results
+SELECT 'VitalSignsRecord.PatientId -> Patient.Id', 'clinical.vital_signs', 'PatientId', 'clinical.patients', 'Id', 1, COUNT_BIG(*)
+FROM [clinical].[vital_signs] d
+LEFT JOIN [clinical].[patients] p ON p.[Id] = d.[PatientId]
+WHERE p.[Id] IS NULL;
+
+INSERT INTO #p2_fk_orphan_results
+SELECT 'VitalSignsRecord.VisitId -> PatientVisit.Id', 'clinical.vital_signs', 'VisitId', 'clinical.patient_visits', 'Id', 1, COUNT_BIG(*)
+FROM [clinical].[vital_signs] d
+LEFT JOIN [clinical].[patient_visits] p ON p.[Id] = d.[VisitId]
+WHERE p.[Id] IS NULL;
+
+INSERT INTO #p2_fk_orphan_results
+SELECT 'VitalSignsRecord.EncounterId -> ServiceEncounter.Id', 'clinical.vital_signs', 'EncounterId', 'clinical.service_encounters', 'Id', 0, COUNT_BIG(*)
+FROM [clinical].[vital_signs] d
+LEFT JOIN [clinical].[service_encounters] p ON p.[Id] = d.[EncounterId]
+WHERE d.[EncounterId] IS NOT NULL AND p.[Id] IS NULL;
+
+INSERT INTO #p2_fk_orphan_results
+SELECT 'VitalSignsRecord.MeasuredByUserId -> User.Id', 'clinical.vital_signs', 'MeasuredByUserId', 'core.users', 'Id', 0, COUNT_BIG(*)
+FROM [clinical].[vital_signs] d
+LEFT JOIN [core].[users] p ON p.[Id] = d.[MeasuredByUserId]
+WHERE d.[MeasuredByUserId] IS NOT NULL AND p.[Id] IS NULL;
 SELECT 'DEFERRED_DEVICE_REFERENCE' AS result_type, 'SyncBatch.DeviceId -> Device.Id' AS check_name, COUNT_BIG(*) AS rows_with_device_id FROM [sync].[sync_batches] WHERE [DeviceId] IS NOT NULL
 UNION ALL
 SELECT 'DEFERRED_DEVICE_REFERENCE', 'FormResponse.DeviceId -> Device.Id', COUNT_BIG(*) FROM [forms].[form_responses] WHERE [DeviceId] IS NOT NULL
