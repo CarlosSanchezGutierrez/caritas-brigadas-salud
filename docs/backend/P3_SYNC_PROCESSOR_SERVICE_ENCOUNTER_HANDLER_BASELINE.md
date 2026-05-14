@@ -116,3 +116,8 @@ P3-16 is complete when:
 ## 7. P3-17 form response handler note
 
 P3-17 adds form_response create handling. After P3-17, form_response create events can resolve encounters staged earlier in the same DbContext because service_encounter create is processed before form_response create.
+---
+
+## 8. P3-19 medical referral handler note
+
+P3-19 adds medical_referral create handling. Medical referrals are valid after service_encounter create because they are linked to ServiceEncounter through EncounterId and derive PatientId from the encounter.
