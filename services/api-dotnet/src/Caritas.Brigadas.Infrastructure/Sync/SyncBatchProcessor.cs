@@ -284,14 +284,14 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         return SyncProcessingOrder.GetOrder(syncEvent);
     }
 
-    private Task HandlePatientEventAsync(
+    private async Task HandlePatientEventAsync(
         Guid organizationId,
         SyncEvent syncEvent,
         DateTimeOffset processedAt,
         ISet<string> acceptedPatientFoliosInBatch,
         CancellationToken cancellationToken)
     {
-        return _patientSyncEventHandler.HandleAsync(
+        await _patientSyncEventHandler.HandleAsync(
             organizationId,
             syncEvent,
             processedAt,
