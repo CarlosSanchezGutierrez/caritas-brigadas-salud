@@ -51,6 +51,7 @@ The successful endpoint test must assert:
 - RejectedCount equals 0;
 - ConflictCount equals 0;
 - response batch status equals completed;
+- response batch isCompleted equals true;
 - one Patient is persisted;
 - one SyncEvent is persisted;
 - the SyncEvent status is accepted;

@@ -33,6 +33,7 @@ public sealed class P3SyncProcessEndpointApiRegressionContractTests
             "SyncOperation.Create",
             "Assert.Equal(HttpStatusCode.OK, response.StatusCode)",
             "Sync batch processed successfully.",
+            "batch.GetProperty(""isCompleted"")",
             "pendingEventsProcessed",
             "acceptedCount",
             "rejectedCount",
@@ -77,6 +78,7 @@ public sealed class P3SyncProcessEndpointApiRegressionContractTests
             "PermissionCodes.SyncBatchesWrite",
             "401 Unauthorized",
             "Sync batch processed successfully.",
+            "batch.GetProperty(""isCompleted"")",
             "stale skeleton wording is removed",
             "Acceptance criteria"
         };
