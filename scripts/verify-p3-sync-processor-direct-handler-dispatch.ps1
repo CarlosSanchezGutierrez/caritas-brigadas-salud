@@ -71,7 +71,7 @@ $ForbiddenProcessorTokens = @(
     "HandleMedicalReferralEventAsync",
     "HandleMedicationDeliveryEventAsync",
     "GetSyncProcessingOrder",
-    "return SyncProcessingOrder.GetOrder(syncEvent);"
+    ".OrderBy(SyncProcessingOrder.GetOrder)"
 )
 
 foreach ($Token in $ForbiddenProcessorTokens) {

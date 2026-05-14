@@ -67,7 +67,7 @@ foreach ($Token in $RequiredDocTokens) {
 }
 
 $RequiredProcessorTokens = @(
-    "private static int GetSyncProcessingOrder(SyncEvent syncEvent)",
+    ".OrderBy(SyncProcessingOrder.GetOrder)",
     "syncEvent.EntityType == SyncEntityType.Patient",
     "return 0;",
     "syncEvent.EntityType == SyncEntityType.PatientVisit",

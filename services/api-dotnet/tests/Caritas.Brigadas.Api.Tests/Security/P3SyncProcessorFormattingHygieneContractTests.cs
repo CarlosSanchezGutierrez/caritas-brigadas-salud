@@ -40,12 +40,12 @@ public sealed class P3SyncProcessorFormattingHygieneContractTests
 
         var requiredTokens = new[]
         {
-            "    private async Task await _patientSyncEventHandler.HandleAsync(",
+            "    await _patientSyncEventHandler.HandleAsync(",
             "await _patientVisitSyncEventHandler.HandleAsync(",
-            "    private async Task await _serviceEncounterSyncEventHandler.HandleAsync(",
-            "    private async Task await _vitalSignsSyncEventHandler.HandleAsync(",
+            "    await _serviceEncounterSyncEventHandler.HandleAsync(",
+            "    await _vitalSignsSyncEventHandler.HandleAsync(",
             "await _formResponseSyncEventHandler.HandleAsync(",
-            "    private async Task await _consentDocumentSyncEventHandler.HandleAsync(",
+            "    await _consentDocumentSyncEventHandler.HandleAsync(",
             "await _medicalReferralSyncEventHandler.HandleAsync(",
             "await _medicationDeliverySyncEventHandler.HandleAsync(",
             ".OrderBy(SyncProcessingOrder.GetOrder)",

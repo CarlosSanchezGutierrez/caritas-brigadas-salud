@@ -54,7 +54,7 @@ public sealed class P3SyncProcessorConsentDocumentHandlerContractTests
         {
             "private readonly ConsentDocumentSyncEventHandler _consentDocumentSyncEventHandler;",
             "_consentDocumentSyncEventHandler = new ConsentDocumentSyncEventHandler(dbContext, PayloadJsonOptions);",
-            "    private async Task await _consentDocumentSyncEventHandler.HandleAsync(",
+            "    await _consentDocumentSyncEventHandler.HandleAsync(",
             "await _consentDocumentSyncEventHandler.HandleAsync("
         };
 

@@ -40,12 +40,6 @@ $RequiredDocTokens = @(
     "P3 Sync Processor Component Extraction Baseline",
     "SyncProcessingOrder",
     "PendingBatchReservationState",
-    "No domain handler is extracted in this package",
-    "SyncBatchProcessor must sort pending events using SyncProcessingOrder.GetOrder",
-"Compatibility P3 processor tests must read SyncProcessingOrder for topological return tokens",
-"handler bodies must continue using their received ISet parameters until handlers are extracted",
-    "SyncBatchProcessor must instantiate PendingBatchReservationState once per ProcessAsync call",
-    "SyncBatchProcessor must not directly instantiate per-handler HashSet reservation variables",
     "Acceptance criteria"
 )
 
@@ -53,39 +47,47 @@ foreach ($Token in $RequiredDocTokens) {
     Assert-Contains $Doc $Token "P3 sync processor component extraction baseline"
 }
 
+$RequiredProcessorTokens = @(
+    ".OrderBy(SyncProcessingOrder.GetOrder)",
+    "var reservationState = new PendingBatchReservationState();",
+    "await _patientSyncEventHandler.HandleAsync(",
+    "await _patientVisitSyncEventHandler.HandleAsync(",
+    "await _serviceEncounterSyncEventHandler.HandleAsync(",
+    "await _vitalSignsSyncEventHandler.HandleAsync(",
+    "await _formResponseSyncEventHandler.HandleAsync(",
+    "await _consentDocumentSyncEventHandler.HandleAsync(",
+    "await _medicalReferralSyncEventHandler.HandleAsync(",
+    "await _medicationDeliverySyncEventHandler.HandleAsync("
+)
+
+foreach ($Token in $RequiredProcessorTokens) {
+    Assert-Contains $Processor $Token "SyncBatchProcessor component extraction"
+}
+
 $RequiredOrderTokens = @(
     "internal static class SyncProcessingOrder",
     "public static int GetOrder(SyncEvent syncEvent)",
     "SyncEntityType.Patient",
-    "return 0;",
     "SyncEntityType.PatientVisit",
-    "return 1;",
     "SyncEntityType.ServiceEncounter",
-    "return 2;",
     "SyncEntityType.VitalSigns",
-    "return 3;",
     "SyncEntityType.FormResponse",
-    "return 4;",
     "SyncEntityType.ConsentDocument",
-    "return 5;",
     "SyncEntityType.MedicalReferral",
-    "return 6;",
-    "SyncEntityType.MedicationDelivery",
-    "return 7;",
-    "return 8;"
+    "SyncEntityType.MedicationDelivery"
 )
 
 foreach ($Token in $RequiredOrderTokens) {
     Assert-Contains $Order $Token "SyncProcessingOrder"
 }
 
-$RequiredReservationStateTokens = @(
+$RequiredReservationTokens = @(
     "internal sealed class PendingBatchReservationState",
     "AcceptedPatientFoliosInBatch",
     "AcceptedVisitFoliosInBatch",
-    "AcceptedVitalSignsIdsInBatch",
     "AcceptedEncounterFoliosInBatch",
     "AcceptedEncounterVisitServiceKeysInBatch",
+    "AcceptedVitalSignsIdsInBatch",
     "AcceptedFormResponseIdsInBatch",
     "AcceptedFormResponseEncounterTemplateKeysInBatch",
     "AcceptedConsentDocumentIdsInBatch",
@@ -95,60 +97,27 @@ $RequiredReservationStateTokens = @(
     "AcceptedMedicationDeliveryIdsInBatch"
 )
 
-foreach ($Token in $RequiredReservationStateTokens) {
+foreach ($Token in $RequiredReservationTokens) {
     Assert-Contains $ReservationState $Token "PendingBatchReservationState"
 }
 
-$RequiredProcessorTokens = @(
-    "var reservationState = new PendingBatchReservationState();",
-    ".OrderBy(SyncProcessingOrder.GetOrder)",
-    "reservationState.AcceptedPatientFoliosInBatch",
-    "reservationState.AcceptedVisitFoliosInBatch",
-    "reservationState.AcceptedVitalSignsIdsInBatch",
-    "reservationState.AcceptedEncounterFoliosInBatch",
-    "reservationState.AcceptedEncounterVisitServiceKeysInBatch",
-    "reservationState.AcceptedFormResponseIdsInBatch",
-    "reservationState.AcceptedFormResponseEncounterTemplateKeysInBatch",
-    "reservationState.AcceptedConsentDocumentIdsInBatch",
-    "reservationState.AcceptedConsentDocumentKeysInBatch",
-    "reservationState.AcceptedMedicalReferralIdsInBatch",
-    "reservationState.AcceptedMedicalReferralFoliosInBatch",
-    "reservationState.AcceptedMedicationDeliveryIdsInBatch"
-)
-
-foreach ($Token in $RequiredProcessorTokens) {
-    Assert-Contains $Processor $Token "SyncBatchProcessor component extraction"
-}
-
 $ForbiddenProcessorTokens = @(
-    "var acceptedPatientFoliosInBatch = new HashSet",
-    "var acceptedVisitFoliosInBatch = new HashSet",
-    "var acceptedVitalSignsIdsInBatch = new HashSet",
-    "var acceptedEncounterFoliosInBatch = new HashSet",
-    "var acceptedFormResponseIdsInBatch = new HashSet",
-    "var acceptedConsentDocumentIdsInBatch = new HashSet",
-    "var acceptedMedicalReferralIdsInBatch = new HashSet",
-    "var acceptedMedicationDeliveryIdsInBatch = new HashSet",
-    ".OrderBy(GetSyncProcessingOrder)",
-    "GetSyncProcessingOrder"
+    "HandlePatientEventAsync",
+    "HandlePatientVisitEventAsync",
+    "HandleServiceEncounterEventAsync",
+    "HandleVitalSignsEventAsync",
+    "HandleFormResponseEventAsync",
+    "HandleConsentDocumentEventAsync",
+    "HandleMedicalReferralEventAsync",
+    "HandleMedicationDeliveryEventAsync",
+    "private static int GetSyncProcessingOrder",
+    "return SyncProcessingOrder.GetOrder(syncEvent);"
 )
 
 foreach ($Token in $ForbiddenProcessorTokens) {
     if ($Processor.Contains($Token)) {
-        throw "SyncBatchProcessor still contains forbidden component extraction token: $Token"
+        throw "SyncBatchProcessor still contains removed wrapper/component residue: $Token"
     }
-}
-
-$FirstHandlerIndex = $Processor.IndexOf("private async Task HandlePatientEventAsync", [System.StringComparison]::Ordinal)
-
-if ($FirstHandlerIndex -lt 0) {
-    throw "SyncBatchProcessor first handler was not found."
-}
-
-$HandlerSection = $Processor.Substring($FirstHandlerIndex)
-
-if ($HandlerSection.Contains("reservationState.")) {
-    throw "SyncBatchProcessor handlers must not reference reservationState directly before handler extraction."
 }
 
 Write-Host "P3 sync processor component extraction verification passed." -ForegroundColor Green

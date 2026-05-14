@@ -63,7 +63,7 @@ foreach ($Token in $RequiredDocTokens) {
 }
 
 $RequiredProcessorTokens = @(
-    "private static int GetSyncProcessingOrder(SyncEvent syncEvent)",
+    ".OrderBy(SyncProcessingOrder.GetOrder)",
     "HandlePatientEventAsync",
     "HandlePatientVisitEventAsync",
     "HandleServiceEncounterEventAsync",

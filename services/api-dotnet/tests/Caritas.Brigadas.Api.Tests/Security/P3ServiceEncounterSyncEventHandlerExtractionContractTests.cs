@@ -52,7 +52,7 @@ public sealed class P3ServiceEncounterSyncEventHandlerExtractionContractTests
         {
             "private readonly ServiceEncounterSyncEventHandler _serviceEncounterSyncEventHandler;",
             "_serviceEncounterSyncEventHandler = new ServiceEncounterSyncEventHandler(dbContext, PayloadJsonOptions);",
-            "    private async Task await _serviceEncounterSyncEventHandler.HandleAsync(",
+            "    await _serviceEncounterSyncEventHandler.HandleAsync(",
             "await _serviceEncounterSyncEventHandler.HandleAsync("
         };
 
