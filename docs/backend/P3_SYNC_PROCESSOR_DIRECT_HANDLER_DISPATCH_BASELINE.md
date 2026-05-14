@@ -70,3 +70,8 @@ P3-22O is complete when:
 - all compatibility gates are aligned to direct handler dispatch;
 - all handler extraction gates remain green;
 - dotnet build and dotnet test remain green.
+---
+
+## 6. P3-22P clinical sync end-to-end test note
+
+P3-22P adds a processor-level integration test that validates the complete patient to medication_delivery offline clinical sync flow after direct handler dispatch.
