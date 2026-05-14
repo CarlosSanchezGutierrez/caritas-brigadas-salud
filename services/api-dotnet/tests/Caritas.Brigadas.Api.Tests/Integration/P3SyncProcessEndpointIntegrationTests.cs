@@ -1,8 +1,10 @@
 using System.Net;
 using System.Text.Json;
+using Caritas.Brigadas.Application.Sync;
 using Caritas.Brigadas.Contracts.Patients;
 using Caritas.Brigadas.Domain.Entities;
 using Caritas.Brigadas.Infrastructure.Persistence;
+using Caritas.Brigadas.Infrastructure.Sync;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -122,7 +124,7 @@ public sealed class P3SyncProcessEndpointIntegrationTests
                     configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         ["Authentication:Mode"] = "Development",
-                        ["ConnectionStrings:SqlServer"] = "Server=(localdb)\\MSSQLLocalDB;Database=CaritasP324A;Trusted_Connection=True;TrustServerCertificate=True;",
+                        ["ConnectionStrings:SqlServer"] = string.Empty,
                         ["Features:EnableSwaggerInDevelopment"] = "false",
                         ["Security:RateLimiting:Enabled"] = "false"
                     });
@@ -137,6 +139,8 @@ public sealed class P3SyncProcessEndpointIntegrationTests
                     {
                         options.UseInMemoryDatabase(databaseName);
                     });
+
+                    services.AddScoped<ISyncBatchProcessor, SyncBatchProcessor>();
                 });
             });
     }

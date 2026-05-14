@@ -62,7 +62,6 @@ $RequiredTestTokens = @(
     "ProcessEndpoint_WhenAuthenticatedWithSyncWritePermission_ProcessesPendingBatch",
     "/api/v1/organizations/{organizationId}/sync-batches/{syncBatchId}/process",
     "UseInMemoryDatabase",
-    "new SyncBatchProcessor",
     "SyncEntityType.Patient",
     "SyncOperation.Create",
     "Assert.Equal(HttpStatusCode.OK, response.StatusCode)",
