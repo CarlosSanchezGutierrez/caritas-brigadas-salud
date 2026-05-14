@@ -212,8 +212,7 @@ app.MapHealthChecks(
         ResponseWriter = HealthCheckResponseWriter.WriteAsync
     })
 .WithName("HealthLive")
-.WithTags("Health")
-.Produces(StatusCodes.Status200OK);
+.WithTags("Health");
 
 app.MapHealthChecks(
     "/health/ready",
@@ -223,9 +222,7 @@ app.MapHealthChecks(
         ResponseWriter = HealthCheckResponseWriter.WriteAsync
     })
 .WithName("HealthReady")
-.WithTags("Health")
-.Produces(StatusCodes.Status200OK)
-.Produces(StatusCodes.Status503ServiceUnavailable);
+.WithTags("Health");
 
 app.MapGet("/", (HttpContext httpContext) =>
 {
