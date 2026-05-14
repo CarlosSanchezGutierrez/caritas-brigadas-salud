@@ -164,3 +164,8 @@ P3-23B protects the sync processor against regression where controlled domain co
 ## 24. P3-23C invalid payload regression note
 
 P3-23C protects the sync processor against regression where malformed payload JSON becomes an unhandled exception or failed batch instead of a controlled rejected event.
+---
+
+## 25. P3-23D idempotency regression note
+
+P3-23D protects the sync processor against duplicate domain rows caused by repeated processing of already completed batches.
