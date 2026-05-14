@@ -96,7 +96,7 @@ public sealed class P3SyncProcessorComponentExtractionContractTests
             "var acceptedConsentDocumentIdsInBatch = new HashSet",
             "var acceptedMedicalReferralIdsInBatch = new HashSet",
             "var acceptedMedicationDeliveryIdsInBatch = new HashSet",
-            ".OrderBy(SyncProcessingOrder.GetOrder)"
+            ".OrderBy(GetSyncProcessingOrder)"
         };
 
         foreach (var token in forbiddenTokens)
