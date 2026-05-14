@@ -114,3 +114,8 @@ P3-19 is complete when:
 - SyncBatchProcessor rolls back medical referral id reservation when referral folio reservation fails;
 - contract tests protect the medical_referral-only scope;
 - repository governance and database deployment gates remain green.
+---
+
+## 7. P3-20 medication delivery handler note
+
+P3-20 adds medication_delivery create handling. Medication delivery records remain separate from medical referrals because they represent medication handoff/preparation, not external clinical referral/pass evidence.

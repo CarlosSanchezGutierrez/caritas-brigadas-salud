@@ -133,3 +133,8 @@ P3-18 supersedes the skeleton for consent_document create only. After P3-18, Syn
 ## 12. P3-19 medical referral handler note
 
 P3-19 supersedes the skeleton for medical_referral create only. After P3-19, SyncBatchProcessor may accept SyncEntityType.MedicalReferral with SyncOperation.Create and may create MedicalReferral records. Medication deliveries, standalone document signatures, referral lifecycle transitions, and external outcome updates remain conflict-staged until their handlers are implemented.
+---
+
+## 13. P3-20 medication delivery handler note
+
+P3-20 supersedes the skeleton for medication_delivery create only. After P3-20, SyncBatchProcessor may accept SyncEntityType.MedicationDelivery with SyncOperation.Create and may create MedicationDelivery records. Standalone document signatures, inventory decrement, medication cancellation, and medication update remain conflict-staged until their handlers are implemented.

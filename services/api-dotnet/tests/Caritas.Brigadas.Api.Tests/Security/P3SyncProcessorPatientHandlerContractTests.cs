@@ -31,10 +31,7 @@ public sealed class P3SyncProcessorPatientHandlerContractTests
 
         AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor patient handler");
 
-        var forbiddenTokens = new[]
-        {
-            "_dbContext.MedicationDeliveries.Add"
-        };
+        var forbiddenTokens = System.Array.Empty<string>();
 
         foreach (var token in forbiddenTokens)
         {

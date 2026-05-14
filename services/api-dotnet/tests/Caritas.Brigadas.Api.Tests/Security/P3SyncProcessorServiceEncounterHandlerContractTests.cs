@@ -41,10 +41,7 @@ public sealed class P3SyncProcessorServiceEncounterHandlerContractTests
 
         AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor service encounter handler");
 
-        var forbiddenTokens = new[]
-        {
-            "_dbContext.MedicationDeliveries.Add"
-        };
+        var forbiddenTokens = System.Array.Empty<string>();
 
         foreach (var token in forbiddenTokens)
         {

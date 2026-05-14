@@ -121,3 +121,8 @@ P3-17 adds form_response create handling. After P3-17, form_response create even
 ## 8. P3-19 medical referral handler note
 
 P3-19 adds medical_referral create handling. Medical referrals are valid after service_encounter create because they are linked to ServiceEncounter through EncounterId and derive PatientId from the encounter.
+---
+
+## 9. P3-20 medication delivery handler note
+
+P3-20 adds medication_delivery create handling. Medication deliveries are valid after service_encounter create because they are linked to ServiceEncounter through EncounterId and derive PatientId from the encounter.

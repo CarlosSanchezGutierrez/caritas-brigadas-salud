@@ -7,6 +7,7 @@ using Caritas.Brigadas.Contracts.ServiceEncounters;
 using Caritas.Brigadas.Contracts.FormResponses;
 using Caritas.Brigadas.Contracts.ConsentDocuments;
 using Caritas.Brigadas.Contracts.MedicalReferrals;
+using Caritas.Brigadas.Contracts.MedicationDeliveries;
 using Caritas.Brigadas.Contracts.Sync;
 using Caritas.Brigadas.Contracts.VitalSigns;
 using Caritas.Brigadas.Domain.Common;
@@ -109,6 +110,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         var acceptedConsentDocumentKeysInBatch = new HashSet<string>(StringComparer.Ordinal);
         var acceptedMedicalReferralIdsInBatch = new HashSet<Guid>();
         var acceptedMedicalReferralFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
+        var acceptedMedicationDeliveryIdsInBatch = new HashSet<Guid>();
 
         foreach (var syncEvent in pendingEvents)
         {
@@ -220,6 +222,19 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 processedCount++;
                 continue;
             }
+            if (syncEvent.EntityType == SyncEntityType.MedicationDelivery)
+            {
+                await HandleMedicationDeliveryEventAsync(
+                    organizationId,
+                    batch,
+                    syncEvent,
+                    processedAt,
+                    acceptedMedicationDeliveryIdsInBatch,
+                    cancellationToken);
+
+                processedCount++;
+                continue;
+            }
             syncEvent.MarkConflict(
                 processedAt,
                 SkeletonConflictReason);
@@ -256,7 +271,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             RejectedCount = rejectedCount,
             ConflictCount = conflictCount,
             Completed = batch.IsCompleted,
-            Message = "Sync batch processor completed patient, visit, service encounter, vital signs, form response, consent document, and medical referral handler processing."
+            Message = "Sync batch processor completed patient, visit, service encounter, vital signs, form response, consent document, medical referral, and medication delivery handler processing."
         };
     }
 
@@ -304,7 +319,13 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             return 6;
         }
 
-        return 7;
+        if (syncEvent.EntityType == SyncEntityType.MedicationDelivery &&
+            syncEvent.Operation == SyncOperation.Create)
+        {
+            return 7;
+        }
+
+        return 8;
     }
 private async Task HandlePatientEventAsync(
         Guid organizationId,
@@ -2200,6 +2221,244 @@ private async Task HandlePatientEventAsync(
             syncEvent.Accept(
                 processedAt,
                 medicalReferral.Id);
+        }
+        catch (DomainException exception)
+        {
+            syncEvent.Reject(
+                processedAt,
+                exception.Message);
+        }
+    }
+    private async Task HandleMedicationDeliveryEventAsync(
+        Guid organizationId,
+        SyncBatch batch,
+        SyncEvent syncEvent,
+        DateTimeOffset processedAt,
+        ISet<Guid> acceptedMedicationDeliveryIdsInBatch,
+        CancellationToken cancellationToken)
+    {
+        if (syncEvent.Operation != SyncOperation.Create)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "medication_delivery_operation_not_implemented");
+
+            return;
+        }
+
+        CreateMedicationDeliveryRequest? request;
+
+        try
+        {
+            using var payloadDocument = JsonDocument.Parse(syncEvent.PayloadJson);
+
+            if (payloadDocument.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                syncEvent.Reject(
+                    processedAt,
+                    "Medication delivery payload must be a JSON object.");
+
+                return;
+            }
+
+            request = JsonSerializer.Deserialize<CreateMedicationDeliveryRequest>(
+                syncEvent.PayloadJson,
+                PayloadJsonOptions);
+        }
+        catch (JsonException)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "Medication delivery payload JSON is invalid.");
+
+            return;
+        }
+
+        if (request is null)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "Medication delivery payload is required.");
+
+            return;
+        }
+
+        if (request.EncounterId == Guid.Empty)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "EncounterId is required for medication delivery sync.");
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(request.MedicationName))
+        {
+            syncEvent.Reject(
+                processedAt,
+                "MedicationName is required for medication delivery sync.");
+
+            return;
+        }
+
+        if (request.SignatureId.HasValue)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "medication_delivery_signature_not_supported_until_document_signature_handler");
+
+            return;
+        }
+
+        ServiceEncounter? trackedEncounter = _dbContext.ServiceEncounters.Local.FirstOrDefault(encounter =>
+            encounter.Id == request.EncounterId &&
+            encounter.OrganizationId == organizationId &&
+            !encounter.IsDeleted);
+
+        var encounter = trackedEncounter ?? await _dbContext.ServiceEncounters
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                item =>
+                    item.Id == request.EncounterId &&
+                    item.OrganizationId == organizationId &&
+                    !item.IsDeleted,
+                cancellationToken);
+
+        if (encounter is null)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "medication_delivery_encounter_not_found");
+
+            return;
+        }
+
+        if (encounter.BrigadeId != batch.BrigadeId)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "medication_delivery_brigade_mismatch");
+
+            return;
+        }
+
+        var patientExists =
+            _dbContext.Patients.Local.Any(patient =>
+                patient.Id == encounter.PatientId &&
+                patient.OrganizationId == organizationId &&
+                !patient.IsDeleted) ||
+            await _dbContext.Patients
+                .AsNoTracking()
+                .AnyAsync(
+                    patient =>
+                        patient.Id == encounter.PatientId &&
+                        patient.OrganizationId == organizationId &&
+                        !patient.IsDeleted,
+                    cancellationToken);
+
+        if (!patientExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "medication_delivery_patient_not_found");
+
+            return;
+        }
+
+        if (request.MarkAsDelivered && !request.DeliveredByUserId.HasValue)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "DeliveredByUserId is required when medication delivery is marked as delivered.");
+
+            return;
+        }
+
+        if (request.DeliveredByUserId.HasValue)
+        {
+            var deliveredByUserExists = await _dbContext.Users
+                .AsNoTracking()
+                .AnyAsync(
+                    user =>
+                        user.Id == request.DeliveredByUserId.Value &&
+                        user.OrganizationId == organizationId &&
+                        !user.IsDeleted,
+                    cancellationToken);
+
+            if (!deliveredByUserExists)
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "medication_delivery_delivered_by_user_not_found");
+
+                return;
+            }
+        }
+
+        var medicationDeliveryId = syncEvent.EntityId ?? Guid.NewGuid();
+
+        // Medication delivery id duplicate checks include globally duplicated ids because primary key uniqueness is not tenant-scoped.
+        var medicationDeliveryIdAlreadyExists =
+            acceptedMedicationDeliveryIdsInBatch.Contains(medicationDeliveryId) ||
+            _dbContext.Set<MedicationDelivery>().Local.Any(delivery =>
+                delivery.Id == medicationDeliveryId) ||
+            await _dbContext.Set<MedicationDelivery>()
+                .AsNoTracking()
+                .AnyAsync(
+                    delivery =>
+                        delivery.Id == medicationDeliveryId,
+                    cancellationToken);
+
+        if (medicationDeliveryIdAlreadyExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "medication_delivery_id_already_exists");
+
+            return;
+        }
+
+        try
+        {
+            // Non-delivered medication receipt metadata is preserved through constructor fields instead of silently dropped.
+            var medicationDelivery = new MedicationDelivery(
+                medicationDeliveryId,
+                organizationId,
+                request.EncounterId,
+                encounter.PatientId,
+                request.MedicationName,
+                request.Presentation,
+                request.Quantity,
+                request.LotNumber,
+                request.ExpirationDate,
+                request.Instructions,
+                request.MarkAsDelivered ? null : request.DeliveredByUserId,
+                request.MarkAsDelivered ? null : request.ReceivedByName,
+                signatureId: null);
+
+            if (request.MarkAsDelivered && request.DeliveredByUserId.HasValue)
+            {
+                medicationDelivery.MarkDelivered(
+                    request.DeliveredByUserId.Value,
+                    request.ReceivedByName,
+                    signatureId: null);
+            }
+
+            // Pending-batch medication delivery id is reserved only after successful MedicationDelivery construction and optional delivered transition.
+            if (!acceptedMedicationDeliveryIdsInBatch.Add(medicationDeliveryId))
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "medication_delivery_duplicate_in_pending_batch");
+
+                return;
+            }
+
+            _dbContext.Set<MedicationDelivery>().Add(medicationDelivery);
+
+            syncEvent.Accept(
+                processedAt,
+                medicationDelivery.Id);
         }
         catch (DomainException exception)
         {

@@ -103,7 +103,6 @@ foreach ($Token in $RequiredProcessorTokens) {
 }
 
 $ForbiddenProcessorTokens = @(
-    "_dbContext.MedicationDeliveries.Add"
 )
 
 foreach ($Token in $ForbiddenProcessorTokens) {
