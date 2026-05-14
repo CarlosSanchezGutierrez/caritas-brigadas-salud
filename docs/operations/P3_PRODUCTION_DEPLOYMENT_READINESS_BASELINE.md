@@ -182,3 +182,10 @@ P3-26A is complete when:
 - sync backend readiness checklist remains present;
 - production go-live remains explicitly blocked until P3-26B and P3-26C are complete;
 - dotnet build and dotnet test pass.
+---
+
+## 12. P3-26B production authentication hardening note
+
+P3-26B formalizes that Development and Disabled authentication modes are prohibited outside Development.
+
+Production authentication must use JWT Bearer configuration and must not rely on X-Dev-* headers.
