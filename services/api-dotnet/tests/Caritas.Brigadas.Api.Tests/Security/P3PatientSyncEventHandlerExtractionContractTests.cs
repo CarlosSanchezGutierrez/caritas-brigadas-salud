@@ -38,7 +38,7 @@ public sealed class P3PatientSyncEventHandlerExtractionContractTests
         {
             "private readonly PatientSyncEventHandler _patientSyncEventHandler;",
             "_patientSyncEventHandler = new PatientSyncEventHandler(dbContext, PayloadJsonOptions);",
-            "private async Task HandlePatientEventAsync",
+            "private async Task await _patientSyncEventHandler.HandleAsync(",
             "await _patientSyncEventHandler.HandleAsync("
         };
 

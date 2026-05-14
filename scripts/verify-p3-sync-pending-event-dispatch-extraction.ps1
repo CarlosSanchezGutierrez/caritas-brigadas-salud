@@ -34,8 +34,6 @@ $RequiredDocTokens = @(
     "P3 Sync Pending Event Dispatch Extraction Baseline",
     "ProcessAsync must call ProcessPendingEventAsync for each pending event",
     "ProcessAsync must not directly branch on SyncEntityType for handler dispatch",
-    "ProcessPendingEventAsync must dispatch to the existing patient handler",
-    "ProcessPendingEventAsync must dispatch to the existing medication delivery handler",
     "Acceptance criteria"
 )
 
@@ -49,14 +47,14 @@ $RequiredProcessorTokens = @(
     "PendingBatchReservationState reservationState",
     "syncEvent.MarkProcessing();",
     "TryValidateEvent(syncEvent, out var rejectionReason)",
-    "HandlePatientEventAsync",
-    "HandlePatientVisitEventAsync",
-    "HandleServiceEncounterEventAsync",
-    "HandleVitalSignsEventAsync",
-    "HandleFormResponseEventAsync",
-    "HandleConsentDocumentEventAsync",
-    "HandleMedicalReferralEventAsync",
-    "HandleMedicationDeliveryEventAsync",
+    "await _patientSyncEventHandler.HandleAsync(",
+    "await _patientVisitSyncEventHandler.HandleAsync(",
+    "await _serviceEncounterSyncEventHandler.HandleAsync(",
+    "await _vitalSignsSyncEventHandler.HandleAsync(",
+    "await _formResponseSyncEventHandler.HandleAsync(",
+    "await _consentDocumentSyncEventHandler.HandleAsync(",
+    "await _medicalReferralSyncEventHandler.HandleAsync(",
+    "await _medicationDeliverySyncEventHandler.HandleAsync(",
     "SkeletonConflictReason"
 )
 
@@ -88,6 +86,23 @@ $ForbiddenProcessAsyncTokens = @(
 foreach ($Token in $ForbiddenProcessAsyncTokens) {
     if ($ProcessAsyncSection.Contains($Token)) {
         throw "ProcessAsync still contains direct dispatch token: $Token"
+    }
+}
+
+$ForbiddenProcessorTokens = @(
+    "HandlePatientEventAsync",
+    "HandlePatientVisitEventAsync",
+    "HandleServiceEncounterEventAsync",
+    "HandleVitalSignsEventAsync",
+    "HandleFormResponseEventAsync",
+    "HandleConsentDocumentEventAsync",
+    "HandleMedicalReferralEventAsync",
+    "HandleMedicationDeliveryEventAsync"
+)
+
+foreach ($Token in $ForbiddenProcessorTokens) {
+    if ($Processor.Contains($Token)) {
+        throw "SyncBatchProcessor still contains temporary dispatch wrapper: $Token"
     }
 }
 

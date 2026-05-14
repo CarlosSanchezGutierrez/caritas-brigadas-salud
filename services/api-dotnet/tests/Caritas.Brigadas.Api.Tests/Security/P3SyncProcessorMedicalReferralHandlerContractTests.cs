@@ -14,7 +14,7 @@ public sealed class P3SyncProcessorMedicalReferralHandlerContractTests
 
         var requiredTokens = new[]
         {
-            "HandleMedicalReferralEventAsync",
+            "await _medicalReferralSyncEventHandler.HandleAsync(",
             "MedicalReferralSyncEventHandler",
             "syncEvent.EntityType == SyncEntityType.MedicalReferral",
             "syncEvent.Operation != SyncOperation.Create",
@@ -57,7 +57,7 @@ public sealed class P3SyncProcessorMedicalReferralHandlerContractTests
         {
             "private readonly MedicalReferralSyncEventHandler _medicalReferralSyncEventHandler;",
             "_medicalReferralSyncEventHandler = new MedicalReferralSyncEventHandler(dbContext, PayloadJsonOptions);",
-            "    private async Task HandleMedicalReferralEventAsync",
+            "await _medicalReferralSyncEventHandler.HandleAsync(",
             "await _medicalReferralSyncEventHandler.HandleAsync("
         };
 

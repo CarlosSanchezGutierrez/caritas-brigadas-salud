@@ -52,7 +52,7 @@ public sealed class P3FormResponseSyncEventHandlerExtractionContractTests
         {
             "private readonly FormResponseSyncEventHandler _formResponseSyncEventHandler;",
             "_formResponseSyncEventHandler = new FormResponseSyncEventHandler(dbContext, PayloadJsonOptions);",
-            "    private async Task HandleFormResponseEventAsync",
+            "await _formResponseSyncEventHandler.HandleAsync(",
             "await _formResponseSyncEventHandler.HandleAsync("
         };
 

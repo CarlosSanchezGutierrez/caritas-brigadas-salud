@@ -14,7 +14,7 @@ public sealed class P3SyncProcessorMedicationDeliveryHandlerContractTests
 
         var requiredTokens = new[]
         {
-            "HandleMedicationDeliveryEventAsync",
+            "await _medicationDeliverySyncEventHandler.HandleAsync(",
             "MedicationDeliverySyncEventHandler",
             "syncEvent.EntityType == SyncEntityType.MedicationDelivery",
             "syncEvent.Operation != SyncOperation.Create",
@@ -54,7 +54,7 @@ public sealed class P3SyncProcessorMedicationDeliveryHandlerContractTests
         {
             "private readonly MedicationDeliverySyncEventHandler _medicationDeliverySyncEventHandler;",
             "_medicationDeliverySyncEventHandler = new MedicationDeliverySyncEventHandler(dbContext, PayloadJsonOptions);",
-            "    private async Task HandleMedicationDeliveryEventAsync",
+            "await _medicationDeliverySyncEventHandler.HandleAsync(",
             "await _medicationDeliverySyncEventHandler.HandleAsync("
         };
 

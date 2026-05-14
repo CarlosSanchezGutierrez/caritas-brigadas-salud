@@ -65,3 +65,8 @@ P3-22N is complete when:
 - SyncBatchProcessor has no excessive blank-line blocks;
 - all primary handler extraction gates remain green;
 - dotnet build and dotnet test remain green.
+---
+
+## 6. P3-22O direct handler dispatch note
+
+P3-22O removes temporary SyncBatchProcessor Handle*EventAsync wrappers after post-extraction hygiene is complete.

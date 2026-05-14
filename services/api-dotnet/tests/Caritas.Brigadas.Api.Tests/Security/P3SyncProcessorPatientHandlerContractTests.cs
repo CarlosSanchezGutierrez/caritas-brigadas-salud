@@ -11,7 +11,7 @@ public sealed class P3SyncProcessorPatientHandlerContractTests
 
         var requiredTokens = new[]
         {
-            "HandlePatientEventAsync",
+            "await _patientSyncEventHandler.HandleAsync(",
             "syncEvent.EntityType == SyncEntityType.Patient",
             "syncEvent.Operation != SyncOperation.Create",
             "patient_operation_not_implemented",

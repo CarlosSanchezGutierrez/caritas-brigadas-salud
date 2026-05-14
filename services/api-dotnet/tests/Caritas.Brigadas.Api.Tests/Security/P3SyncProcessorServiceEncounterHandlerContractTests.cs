@@ -14,7 +14,7 @@ public sealed class P3SyncProcessorServiceEncounterHandlerContractTests
 
         var requiredTokens = new[]
         {
-            "HandleServiceEncounterEventAsync",
+            "await _serviceEncounterSyncEventHandler.HandleAsync(",
             "ServiceEncounterSyncEventHandler",
             "syncEvent.EntityType == SyncEntityType.ServiceEncounter",
             "syncEvent.Operation != SyncOperation.Create",
@@ -55,7 +55,7 @@ public sealed class P3SyncProcessorServiceEncounterHandlerContractTests
         {
             "private readonly ServiceEncounterSyncEventHandler _serviceEncounterSyncEventHandler;",
             "_serviceEncounterSyncEventHandler = new ServiceEncounterSyncEventHandler(dbContext, PayloadJsonOptions);",
-            "    private async Task HandleServiceEncounterEventAsync",
+            "    private async Task await _serviceEncounterSyncEventHandler.HandleAsync(",
             "await _serviceEncounterSyncEventHandler.HandleAsync("
         };
 

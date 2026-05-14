@@ -174,7 +174,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         if (syncEvent.EntityType == SyncEntityType.Patient)
         {
-            await HandlePatientEventAsync(
+            await _patientSyncEventHandler.HandleAsync(
                 organizationId,
                 syncEvent,
                 processedAt,
@@ -186,7 +186,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         if (syncEvent.EntityType == SyncEntityType.PatientVisit)
         {
-            await HandlePatientVisitEventAsync(
+            await _patientVisitSyncEventHandler.HandleAsync(
                 organizationId,
                 batch,
                 syncEvent,
@@ -199,7 +199,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         if (syncEvent.EntityType == SyncEntityType.ServiceEncounter)
         {
-            await HandleServiceEncounterEventAsync(
+            await _serviceEncounterSyncEventHandler.HandleAsync(
                 organizationId,
                 batch,
                 syncEvent,
@@ -213,7 +213,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         if (syncEvent.EntityType == SyncEntityType.VitalSigns)
         {
-            await HandleVitalSignsEventAsync(
+            await _vitalSignsSyncEventHandler.HandleAsync(
                 organizationId,
                 batch,
                 syncEvent,
@@ -226,7 +226,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         if (syncEvent.EntityType == SyncEntityType.FormResponse)
         {
-            await HandleFormResponseEventAsync(
+            await _formResponseSyncEventHandler.HandleAsync(
                 organizationId,
                 batch,
                 syncEvent,
@@ -240,7 +240,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         if (syncEvent.EntityType == SyncEntityType.ConsentDocument)
         {
-            await HandleConsentDocumentEventAsync(
+            await _consentDocumentSyncEventHandler.HandleAsync(
                 organizationId,
                 batch,
                 syncEvent,
@@ -254,7 +254,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         if (syncEvent.EntityType == SyncEntityType.MedicalReferral)
         {
-            await HandleMedicalReferralEventAsync(
+            await _medicalReferralSyncEventHandler.HandleAsync(
                 organizationId,
                 batch,
                 syncEvent,
@@ -268,7 +268,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         if (syncEvent.EntityType == SyncEntityType.MedicationDelivery)
         {
-            await HandleMedicationDeliveryEventAsync(
+            await _medicationDeliverySyncEventHandler.HandleAsync(
                 organizationId,
                 batch,
                 syncEvent,
@@ -282,153 +282,6 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         syncEvent.MarkConflict(
             processedAt,
             SkeletonConflictReason);
-    }
-
-    private static int GetSyncProcessingOrder(SyncEvent syncEvent)
-    {
-        return SyncProcessingOrder.GetOrder(syncEvent);
-    }
-
-    private async Task HandlePatientEventAsync(
-        Guid organizationId,
-        SyncEvent syncEvent,
-        DateTimeOffset processedAt,
-        ISet<string> acceptedPatientFoliosInBatch,
-        CancellationToken cancellationToken)
-    {
-        await _patientSyncEventHandler.HandleAsync(
-            organizationId,
-            syncEvent,
-            processedAt,
-            acceptedPatientFoliosInBatch,
-            cancellationToken);
-    }
-
-    private async Task HandlePatientVisitEventAsync(
-        Guid organizationId,
-        SyncBatch batch,
-        SyncEvent syncEvent,
-        DateTimeOffset processedAt,
-        ISet<string> acceptedVisitFoliosInBatch,
-        CancellationToken cancellationToken)
-    {
-        await _patientVisitSyncEventHandler.HandleAsync(
-            organizationId,
-            batch,
-            syncEvent,
-            processedAt,
-            acceptedVisitFoliosInBatch,
-            cancellationToken);
-    }
-
-    private async Task HandleServiceEncounterEventAsync(
-        Guid organizationId,
-        SyncBatch batch,
-        SyncEvent syncEvent,
-        DateTimeOffset processedAt,
-        ISet<string> acceptedEncounterFoliosInBatch,
-        ISet<string> acceptedEncounterVisitServiceKeysInBatch,
-        CancellationToken cancellationToken)
-    {
-        await _serviceEncounterSyncEventHandler.HandleAsync(
-            organizationId,
-            batch,
-            syncEvent,
-            processedAt,
-            acceptedEncounterFoliosInBatch,
-            acceptedEncounterVisitServiceKeysInBatch,
-            cancellationToken);
-    }
-
-    private async Task HandleVitalSignsEventAsync(
-        Guid organizationId,
-        SyncBatch batch,
-        SyncEvent syncEvent,
-        DateTimeOffset processedAt,
-        ISet<Guid> acceptedVitalSignsIdsInBatch,
-        CancellationToken cancellationToken)
-    {
-        await _vitalSignsSyncEventHandler.HandleAsync(
-            organizationId,
-            batch,
-            syncEvent,
-            processedAt,
-            acceptedVitalSignsIdsInBatch,
-            cancellationToken);
-    }
-
-    private async Task HandleFormResponseEventAsync(
-        Guid organizationId,
-        SyncBatch batch,
-        SyncEvent syncEvent,
-        DateTimeOffset processedAt,
-        ISet<Guid> acceptedFormResponseIdsInBatch,
-        ISet<string> acceptedFormResponseEncounterTemplateKeysInBatch,
-        CancellationToken cancellationToken)
-    {
-        await _formResponseSyncEventHandler.HandleAsync(
-            organizationId,
-            batch,
-            syncEvent,
-            processedAt,
-            acceptedFormResponseIdsInBatch,
-            acceptedFormResponseEncounterTemplateKeysInBatch,
-            cancellationToken);
-    }
-
-    private async Task HandleConsentDocumentEventAsync(
-        Guid organizationId,
-        SyncBatch batch,
-        SyncEvent syncEvent,
-        DateTimeOffset processedAt,
-        ISet<Guid> acceptedConsentDocumentIdsInBatch,
-        ISet<string> acceptedConsentDocumentKeysInBatch,
-        CancellationToken cancellationToken)
-    {
-        await _consentDocumentSyncEventHandler.HandleAsync(
-            organizationId,
-            batch,
-            syncEvent,
-            processedAt,
-            acceptedConsentDocumentIdsInBatch,
-            acceptedConsentDocumentKeysInBatch,
-            cancellationToken);
-    }
-
-    private async Task HandleMedicalReferralEventAsync(
-        Guid organizationId,
-        SyncBatch batch,
-        SyncEvent syncEvent,
-        DateTimeOffset processedAt,
-        ISet<Guid> acceptedMedicalReferralIdsInBatch,
-        ISet<string> acceptedMedicalReferralFoliosInBatch,
-        CancellationToken cancellationToken)
-    {
-        await _medicalReferralSyncEventHandler.HandleAsync(
-            organizationId,
-            batch,
-            syncEvent,
-            processedAt,
-            acceptedMedicalReferralIdsInBatch,
-            acceptedMedicalReferralFoliosInBatch,
-            cancellationToken);
-    }
-
-    private async Task HandleMedicationDeliveryEventAsync(
-        Guid organizationId,
-        SyncBatch batch,
-        SyncEvent syncEvent,
-        DateTimeOffset processedAt,
-        ISet<Guid> acceptedMedicationDeliveryIdsInBatch,
-        CancellationToken cancellationToken)
-    {
-        await _medicationDeliverySyncEventHandler.HandleAsync(
-            organizationId,
-            batch,
-            syncEvent,
-            processedAt,
-            acceptedMedicationDeliveryIdsInBatch,
-            cancellationToken);
     }
 
     private static bool TryValidateEvent(

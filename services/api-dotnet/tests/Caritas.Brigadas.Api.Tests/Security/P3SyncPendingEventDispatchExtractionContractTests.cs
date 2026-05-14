@@ -16,14 +16,14 @@ public sealed class P3SyncPendingEventDispatchExtractionContractTests
             "PendingBatchReservationState reservationState",
             "syncEvent.MarkProcessing();",
             "TryValidateEvent(syncEvent, out var rejectionReason)",
-            "HandlePatientEventAsync",
-            "HandlePatientVisitEventAsync",
-            "HandleServiceEncounterEventAsync",
-            "HandleVitalSignsEventAsync",
-            "HandleFormResponseEventAsync",
-            "HandleConsentDocumentEventAsync",
-            "HandleMedicalReferralEventAsync",
-            "HandleMedicationDeliveryEventAsync",
+            "await _patientSyncEventHandler.HandleAsync(",
+            "await _patientVisitSyncEventHandler.HandleAsync(",
+            "await _serviceEncounterSyncEventHandler.HandleAsync(",
+            "await _vitalSignsSyncEventHandler.HandleAsync(",
+            "await _formResponseSyncEventHandler.HandleAsync(",
+            "await _consentDocumentSyncEventHandler.HandleAsync(",
+            "await _medicalReferralSyncEventHandler.HandleAsync(",
+            "await _medicationDeliverySyncEventHandler.HandleAsync(",
             "SkeletonConflictReason"
         };
 

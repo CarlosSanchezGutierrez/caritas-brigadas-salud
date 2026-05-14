@@ -69,7 +69,7 @@ public sealed class P3SyncProcessorComponentExtractionContractTests
         {
             "var reservationState = new PendingBatchReservationState();",
             ".OrderBy(SyncProcessingOrder.GetOrder)",
-            "return SyncProcessingOrder.GetOrder(syncEvent);",
+            ".OrderBy(SyncProcessingOrder.GetOrder)",
             "reservationState.AcceptedPatientFoliosInBatch",
             "reservationState.AcceptedVisitFoliosInBatch",
             "reservationState.AcceptedVitalSignsIdsInBatch",

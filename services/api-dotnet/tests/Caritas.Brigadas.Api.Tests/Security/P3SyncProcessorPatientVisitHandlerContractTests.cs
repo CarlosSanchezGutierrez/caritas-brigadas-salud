@@ -17,7 +17,7 @@ public sealed class P3SyncProcessorPatientVisitHandlerContractTests
             ".OrderBy(SyncProcessingOrder.GetOrder)",
             "SyncEntityType.PatientVisit",
             "return 1;",
-            "HandlePatientVisitEventAsync",
+            "await _patientVisitSyncEventHandler.HandleAsync(",
             "PatientVisitSyncEventHandler",
             "out CreatePatientVisitRequest? request",
             "var visit = new PatientVisit(",
@@ -44,7 +44,7 @@ public sealed class P3SyncProcessorPatientVisitHandlerContractTests
         {
             "private readonly PatientVisitSyncEventHandler _patientVisitSyncEventHandler;",
             "_patientVisitSyncEventHandler = new PatientVisitSyncEventHandler(dbContext, PayloadJsonOptions);",
-            "    private async Task HandlePatientVisitEventAsync",
+            "await _patientVisitSyncEventHandler.HandleAsync(",
             "await _patientVisitSyncEventHandler.HandleAsync("
         };
 

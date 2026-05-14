@@ -14,7 +14,7 @@ public sealed class P3SyncProcessorConsentDocumentHandlerContractTests
 
         var requiredTokens = new[]
         {
-            "HandleConsentDocumentEventAsync",
+            "await _consentDocumentSyncEventHandler.HandleAsync(",
             "ConsentDocumentSyncEventHandler",
             "syncEvent.EntityType == SyncEntityType.ConsentDocument",
             "syncEvent.Operation != SyncOperation.Create",
@@ -54,7 +54,7 @@ public sealed class P3SyncProcessorConsentDocumentHandlerContractTests
         {
             "private readonly ConsentDocumentSyncEventHandler _consentDocumentSyncEventHandler;",
             "_consentDocumentSyncEventHandler = new ConsentDocumentSyncEventHandler(dbContext, PayloadJsonOptions);",
-            "    private async Task HandleConsentDocumentEventAsync",
+            "    private async Task await _consentDocumentSyncEventHandler.HandleAsync(",
             "await _consentDocumentSyncEventHandler.HandleAsync("
         };
 

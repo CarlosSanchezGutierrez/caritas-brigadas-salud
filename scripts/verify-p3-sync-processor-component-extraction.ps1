@@ -102,7 +102,6 @@ foreach ($Token in $RequiredReservationStateTokens) {
 $RequiredProcessorTokens = @(
     "var reservationState = new PendingBatchReservationState();",
     ".OrderBy(SyncProcessingOrder.GetOrder)",
-    "return SyncProcessingOrder.GetOrder(syncEvent);",
     "reservationState.AcceptedPatientFoliosInBatch",
     "reservationState.AcceptedVisitFoliosInBatch",
     "reservationState.AcceptedVitalSignsIdsInBatch",
@@ -130,7 +129,8 @@ $ForbiddenProcessorTokens = @(
     "var acceptedConsentDocumentIdsInBatch = new HashSet",
     "var acceptedMedicalReferralIdsInBatch = new HashSet",
     "var acceptedMedicationDeliveryIdsInBatch = new HashSet",
-    ".OrderBy(GetSyncProcessingOrder)"
+    ".OrderBy(GetSyncProcessingOrder)",
+    "GetSyncProcessingOrder"
 )
 
 foreach ($Token in $ForbiddenProcessorTokens) {
