@@ -42,7 +42,8 @@ $RequiredDocTokens = @(
     "Acceptance criteria",
     "P3-14 patient visit handler note",
     "P3-15 vital signs handler note",
-    "P3-16 service encounter handler note"
+    "P3-16 service encounter handler note",
+    "P3-17 form response handler note"
 )
 
 foreach ($Token in $RequiredDocTokens) {
@@ -73,7 +74,6 @@ foreach ($Token in $RequiredProcessorTokens) {
 }
 
 $ForbiddenProcessorTokens = @(
-    "_dbContext.FormResponses.Add",
     "_dbContext.ConsentDocuments.Add",
     "_dbContext.MedicalReferrals.Add",
     "_dbContext.MedicationDeliveries.Add"

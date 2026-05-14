@@ -118,3 +118,8 @@ P3-15 supersedes the skeleton for vital_signs create only. After P3-15, SyncBatc
 ## 9. P3-16 service encounter handler note
 
 P3-16 supersedes the skeleton for service_encounter create only. After P3-16, SyncBatchProcessor may accept SyncEntityType.ServiceEncounter with SyncOperation.Create and may create ServiceEncounter records. Forms, documents, referrals, and medication deliveries remain conflict-staged until their handlers are implemented.
+---
+
+## 10. P3-17 form response handler note
+
+P3-17 supersedes the skeleton for form_response create only. After P3-17, SyncBatchProcessor may accept SyncEntityType.FormResponse with SyncOperation.Create and may create FormResponse records. Consent documents, referrals, medication deliveries, and external pass records remain conflict-staged until their handlers are implemented.

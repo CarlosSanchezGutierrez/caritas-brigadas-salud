@@ -109,3 +109,8 @@ P3-15 adds vital_signs create handling. This is valid after P3-14 because vital 
 ## 8. P3-16 service encounter handler note
 
 P3-16 adds service_encounter create handling. This is valid after P3-14 because service encounters are linked to PatientVisit through VisitId. Forms, documents, referrals, and medication deliveries remain out of scope.
+---
+
+## 9. P3-17 form response handler note
+
+P3-17 adds form_response create handling. This is valid after service_encounter create because form responses are linked to ServiceEncounter through EncounterId. Consent documents, referrals, and medication deliveries remain out of scope.

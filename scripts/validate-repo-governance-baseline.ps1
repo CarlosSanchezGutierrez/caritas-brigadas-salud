@@ -111,3 +111,5 @@ Write-Host "============================================================" -Foreg
 & (Join-Path $RepoRoot "scripts\verify-p3-sync-processor-vital-signs-handler.ps1")
 
 & (Join-Path $RepoRoot "scripts\verify-p3-sync-processor-service-encounter-handler.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-sync-processor-form-response-handler.ps1")
