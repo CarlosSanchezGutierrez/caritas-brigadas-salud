@@ -39,7 +39,7 @@ Rules:
 
 - SyncBatchProcessor may keep a temporary compatibility wrapper named HandlePatientEventAsync;
 - the wrapper must delegate to PatientSyncEventHandler.HandleAsync;
-- the temporary compatibility wrapper may remain async to preserve formatting and legacy governance contracts;
+- the temporary compatibility wrapper may remain async to preserve formatting and compatibility governance contracts;
 - SyncBatchProcessor must not directly construct Patient;
 - SyncBatchProcessor must not directly parse CreatePatientRequest;
 - SyncBatchProcessor must not contain patient mutation details;

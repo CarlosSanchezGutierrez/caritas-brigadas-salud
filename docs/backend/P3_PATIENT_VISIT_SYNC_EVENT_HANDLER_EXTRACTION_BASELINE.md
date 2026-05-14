@@ -40,7 +40,7 @@ Rules:
 Rules:
 
 - SyncBatchProcessor may keep a temporary compatibility wrapper named HandlePatientVisitEventAsync;
-- the wrapper must remain async to preserve formatting and legacy governance contracts;
+- the wrapper must remain async to preserve formatting and compatibility governance contracts;
 - the wrapper must delegate to PatientVisitSyncEventHandler.HandleAsync;
 - SyncBatchProcessor must not directly construct PatientVisit;
 - SyncBatchProcessor must not directly parse CreatePatientVisitRequest;
