@@ -27,6 +27,7 @@ Rules:
 - SyncProcessingOrder must be an internal infrastructure sync component;
 - SyncProcessingOrder.GetOrder must own the topological create order;
 - SyncBatchProcessor must sort pending events using SyncProcessingOrder.GetOrder;
+- Legacy P3 processor tests must read SyncProcessingOrder for topological return tokens;
 - old behavior must remain unchanged;
 - unsupported events must keep fallback order after known create handlers.
 
@@ -40,6 +41,7 @@ Rules:
 - SyncBatchProcessor must instantiate PendingBatchReservationState once per ProcessAsync call;
 - SyncBatchProcessor must not directly instantiate per-handler HashSet reservation variables;
 - existing atomic reservation behavior must remain unchanged;
+- handler bodies must continue using their received ISet parameters until handlers are extracted;
 - reservation state must not be static;
 - reservation state must not be shared across batches.
 

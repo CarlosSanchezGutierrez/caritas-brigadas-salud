@@ -63,7 +63,7 @@ public sealed class P3SyncProcessorComponentExtractionContractTests
     [Fact]
     public void SyncBatchProcessor_UsesExtractedOrderAndReservationState()
     {
-        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs"));
 
         var requiredTokens = new[]
         {
@@ -96,7 +96,7 @@ public sealed class P3SyncProcessorComponentExtractionContractTests
             "var acceptedConsentDocumentIdsInBatch = new HashSet",
             "var acceptedMedicalReferralIdsInBatch = new HashSet",
             "var acceptedMedicationDeliveryIdsInBatch = new HashSet",
-            ".OrderBy(GetSyncProcessingOrder)"
+            ".OrderBy(SyncProcessingOrder.GetOrder)"
         };
 
         foreach (var token in forbiddenTokens)

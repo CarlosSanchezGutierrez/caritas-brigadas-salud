@@ -7,7 +7,7 @@ public sealed class P3SyncProcessorPatientVisitHandlerContractTests
     [Fact]
     public void SyncBatchProcessor_HandlesPatientVisitCreateOnly()
     {
-        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs"));
 
         var requiredTokens = new[]
         {
@@ -31,7 +31,7 @@ public sealed class P3SyncProcessorPatientVisitHandlerContractTests
             "!acceptedVisitFoliosInBatch.Add(normalizedVisitFolio)",
             "GenerateSyncVisitFolio",
             "GetSyncProcessingOrder",
-            ".OrderBy(GetSyncProcessingOrder)",
+            ".OrderBy(SyncProcessingOrder.GetOrder)",
             "pendingEvents = pendingEvents",
             "return 0;",
             "return 1;",

@@ -42,6 +42,8 @@ $RequiredDocTokens = @(
     "PendingBatchReservationState",
     "No domain handler is extracted in this package",
     "SyncBatchProcessor must sort pending events using SyncProcessingOrder.GetOrder",
+"Legacy P3 processor tests must read SyncProcessingOrder for topological return tokens",
+"handler bodies must continue using their received ISet parameters until handlers are extracted",
     "SyncBatchProcessor must instantiate PendingBatchReservationState once per ProcessAsync call",
     "SyncBatchProcessor must not directly instantiate per-handler HashSet reservation variables",
     "Acceptance criteria"
@@ -135,6 +137,18 @@ foreach ($Token in $ForbiddenProcessorTokens) {
     if ($Processor.Contains($Token)) {
         throw "SyncBatchProcessor still contains forbidden component extraction token: $Token"
     }
+}
+
+$FirstHandlerIndex = $Processor.IndexOf("private async Task HandlePatientEventAsync", [System.StringComparison]::Ordinal)
+
+if ($FirstHandlerIndex -lt 0) {
+    throw "SyncBatchProcessor first handler was not found."
+}
+
+$HandlerSection = $Processor.Substring($FirstHandlerIndex)
+
+if ($HandlerSection.Contains("reservationState.")) {
+    throw "SyncBatchProcessor handlers must not reference reservationState directly before handler extraction."
 }
 
 Write-Host "P3 sync processor component extraction verification passed." -ForegroundColor Green

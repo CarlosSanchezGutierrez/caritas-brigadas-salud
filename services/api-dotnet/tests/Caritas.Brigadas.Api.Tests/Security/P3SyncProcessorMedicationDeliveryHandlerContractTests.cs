@@ -7,7 +7,7 @@ public sealed class P3SyncProcessorMedicationDeliveryHandlerContractTests
     [Fact]
     public void SyncBatchProcessor_HandlesMedicationDeliveryCreateOnly()
     {
-        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs"));
 
         var requiredTokens = new[]
         {
@@ -68,7 +68,7 @@ public sealed class P3SyncProcessorMedicationDeliveryHandlerContractTests
     [Fact]
     public void MedicationDelivery_IdDuplicateCheck_IsGlobal()
     {
-        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs"));
 
         Assert.DoesNotMatch(
             "delivery\\.Id == medicationDeliveryId[\\s\\S]{0,120}delivery\\.OrganizationId == organizationId",
@@ -83,7 +83,7 @@ public sealed class P3SyncProcessorMedicationDeliveryHandlerContractTests
     [Fact]
     public void MedicationDelivery_ReceiptMetadata_IsPreservedWhenNotDelivered()
     {
-        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs"));
 
         Assert.Contains(
             "Non-delivered medication receipt metadata is preserved through constructor fields instead of silently dropped",

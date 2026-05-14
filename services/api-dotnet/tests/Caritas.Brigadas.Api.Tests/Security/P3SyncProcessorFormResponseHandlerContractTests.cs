@@ -7,7 +7,7 @@ public sealed class P3SyncProcessorFormResponseHandlerContractTests
     [Fact]
     public void SyncBatchProcessor_HandlesFormResponseCreateOnly()
     {
-        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs"));
 
         var requiredTokens = new[]
         {

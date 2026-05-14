@@ -348,7 +348,7 @@ private async Task HandlePatientEventAsync(
 
         var normalizedFolio = patientFolio.ToUpperInvariant();
 
-        if (reservationState.AcceptedPatientFoliosInBatch.Contains(normalizedFolio))
+        if (acceptedPatientFoliosInBatch.Contains(normalizedFolio))
         {
             syncEvent.MarkConflict(
                 processedAt,
@@ -419,7 +419,7 @@ private async Task HandlePatientEventAsync(
 
             patient.UpdateAdminNotes(request.NotesAdmin);
 
-            if (!reservationState.AcceptedPatientFoliosInBatch.Add(normalizedFolio))
+            if (!acceptedPatientFoliosInBatch.Add(normalizedFolio))
             {
                 syncEvent.MarkConflict(
                     processedAt,
@@ -616,7 +616,7 @@ private async Task HandlePatientEventAsync(
 
         var normalizedVisitFolio = visitFolio.ToUpperInvariant();
 
-        if (reservationState.AcceptedVisitFoliosInBatch.Contains(normalizedVisitFolio))
+        if (acceptedVisitFoliosInBatch.Contains(normalizedVisitFolio))
         {
             syncEvent.MarkConflict(
                 processedAt,
@@ -656,7 +656,7 @@ private async Task HandlePatientEventAsync(
                 createdOffline: true,
                 deviceId: request.DeviceId ?? batch.DeviceId);
 
-            if (!reservationState.AcceptedVisitFoliosInBatch.Add(normalizedVisitFolio))
+            if (!acceptedVisitFoliosInBatch.Add(normalizedVisitFolio))
             {
                 syncEvent.MarkConflict(
                     processedAt,
@@ -893,7 +893,7 @@ private async Task HandlePatientEventAsync(
 
         var normalizedEncounterFolio = encounterFolio.ToUpperInvariant();
 
-        if (reservationState.AcceptedEncounterFoliosInBatch.Contains(normalizedEncounterFolio))
+        if (acceptedEncounterFoliosInBatch.Contains(normalizedEncounterFolio))
         {
             syncEvent.MarkConflict(
                 processedAt,
@@ -922,7 +922,7 @@ private async Task HandlePatientEventAsync(
 
         var visitServiceKey = $"{request.VisitId:N}:{service.Id:N}";
 
-        if (reservationState.AcceptedEncounterVisitServiceKeysInBatch.Contains(visitServiceKey))
+        if (acceptedEncounterVisitServiceKeysInBatch.Contains(visitServiceKey))
         {
             syncEvent.MarkConflict(
                 processedAt,
@@ -965,7 +965,7 @@ private async Task HandlePatientEventAsync(
                 deviceId: request.DeviceId ?? batch.DeviceId);
 
             // Pending-batch encounter folio and visit-service keys are reserved only after successful ServiceEncounter construction and reserved atomically.
-            var encounterFolioReserved = reservationState.AcceptedEncounterFoliosInBatch.Add(normalizedEncounterFolio);
+            var encounterFolioReserved = acceptedEncounterFoliosInBatch.Add(normalizedEncounterFolio);
 
             if (!encounterFolioReserved)
             {
@@ -976,11 +976,11 @@ private async Task HandlePatientEventAsync(
                 return;
             }
 
-            var encounterVisitServiceKeyReserved = reservationState.AcceptedEncounterVisitServiceKeysInBatch.Add(visitServiceKey);
+            var encounterVisitServiceKeyReserved = acceptedEncounterVisitServiceKeysInBatch.Add(visitServiceKey);
 
             if (!encounterVisitServiceKeyReserved)
             {
-                reservationState.AcceptedEncounterFoliosInBatch.Remove(normalizedEncounterFolio);
+                acceptedEncounterFoliosInBatch.Remove(normalizedEncounterFolio);
 
                 syncEvent.MarkConflict(
                     processedAt,
@@ -1179,7 +1179,7 @@ private async Task HandlePatientEventAsync(
         var vitalSignsRecordId = syncEvent.EntityId ?? Guid.NewGuid();
 
         var vitalSignsIdAlreadyExists =
-            reservationState.AcceptedVitalSignsIdsInBatch.Contains(vitalSignsRecordId) ||
+            acceptedVitalSignsIdsInBatch.Contains(vitalSignsRecordId) ||
             _dbContext.VitalSignsRecords.Local.Any(record =>
                 record.Id == vitalSignsRecordId &&
                 record.OrganizationId == organizationId &&
@@ -1204,7 +1204,7 @@ private async Task HandlePatientEventAsync(
 
         try
         {
-            if (!reservationState.AcceptedVitalSignsIdsInBatch.Add(vitalSignsRecordId))
+            if (!acceptedVitalSignsIdsInBatch.Add(vitalSignsRecordId))
             {
                 syncEvent.MarkConflict(
                     processedAt,
@@ -1465,7 +1465,7 @@ private async Task HandlePatientEventAsync(
         var formResponseId = syncEvent.EntityId ?? Guid.NewGuid();
 
         var formResponseIdAlreadyExists =
-            reservationState.AcceptedFormResponseIdsInBatch.Contains(formResponseId) ||
+            acceptedFormResponseIdsInBatch.Contains(formResponseId) ||
             _dbContext.FormResponses.Local.Any(response =>
                 response.Id == formResponseId &&
                 response.OrganizationId == organizationId &&
@@ -1490,7 +1490,7 @@ private async Task HandlePatientEventAsync(
 
         var encounterTemplateKey = $"{request.EncounterId:N}:{request.FormTemplateId:N}";
 
-        if (reservationState.AcceptedFormResponseEncounterTemplateKeysInBatch.Contains(encounterTemplateKey))
+        if (acceptedFormResponseEncounterTemplateKeysInBatch.Contains(encounterTemplateKey))
         {
             syncEvent.MarkConflict(
                 processedAt,
@@ -1536,7 +1536,7 @@ private async Task HandlePatientEventAsync(
             }
 
             // Pending-batch form response id and encounter-template keys are reserved only after successful FormResponse construction and reserved atomically.
-            var formResponseIdReserved = reservationState.AcceptedFormResponseIdsInBatch.Add(formResponseId);
+            var formResponseIdReserved = acceptedFormResponseIdsInBatch.Add(formResponseId);
 
             if (!formResponseIdReserved)
             {
@@ -1547,11 +1547,11 @@ private async Task HandlePatientEventAsync(
                 return;
             }
 
-            var formResponseEncounterTemplateKeyReserved = reservationState.AcceptedFormResponseEncounterTemplateKeysInBatch.Add(encounterTemplateKey);
+            var formResponseEncounterTemplateKeyReserved = acceptedFormResponseEncounterTemplateKeysInBatch.Add(encounterTemplateKey);
 
             if (!formResponseEncounterTemplateKeyReserved)
             {
-                reservationState.AcceptedFormResponseIdsInBatch.Remove(formResponseId);
+                acceptedFormResponseIdsInBatch.Remove(formResponseId);
 
                 syncEvent.MarkConflict(
                     processedAt,
@@ -1741,7 +1741,7 @@ private async Task HandlePatientEventAsync(
         var consentDocumentId = syncEvent.EntityId ?? Guid.NewGuid();
 
         var consentDocumentIdAlreadyExists =
-            reservationState.AcceptedConsentDocumentIdsInBatch.Contains(consentDocumentId) ||
+            acceptedConsentDocumentIdsInBatch.Contains(consentDocumentId) ||
             _dbContext.Set<ConsentDocument>().Local.Any(document =>
                 document.Id == consentDocumentId &&
                 document.OrganizationId == organizationId &&
@@ -1770,7 +1770,7 @@ private async Task HandlePatientEventAsync(
         var consentDocumentKey =
             $"{request.PatientId:N}:{(request.VisitId.HasValue ? request.VisitId.Value.ToString("N") : "no_visit")}:{normalizedConsentType}:{normalizedDocumentVersion}";
 
-        if (reservationState.AcceptedConsentDocumentKeysInBatch.Contains(consentDocumentKey))
+        if (acceptedConsentDocumentKeysInBatch.Contains(consentDocumentKey))
         {
             syncEvent.MarkConflict(
                 processedAt,
@@ -1822,7 +1822,7 @@ private async Task HandlePatientEventAsync(
                 request.DeviceId ?? batch.DeviceId);
 
             // Pending-batch consent document id and patient-visit-type-version keys are reserved only after successful ConsentDocument construction and reserved atomically.
-            var consentDocumentIdReserved = reservationState.AcceptedConsentDocumentIdsInBatch.Add(consentDocumentId);
+            var consentDocumentIdReserved = acceptedConsentDocumentIdsInBatch.Add(consentDocumentId);
 
             if (!consentDocumentIdReserved)
             {
@@ -1833,11 +1833,11 @@ private async Task HandlePatientEventAsync(
                 return;
             }
 
-            var consentDocumentKeyReserved = reservationState.AcceptedConsentDocumentKeysInBatch.Add(consentDocumentKey);
+            var consentDocumentKeyReserved = acceptedConsentDocumentKeysInBatch.Add(consentDocumentKey);
 
             if (!consentDocumentKeyReserved)
             {
-                reservationState.AcceptedConsentDocumentIdsInBatch.Remove(consentDocumentId);
+                acceptedConsentDocumentIdsInBatch.Remove(consentDocumentId);
 
                 syncEvent.MarkConflict(
                     processedAt,
@@ -2074,7 +2074,7 @@ private async Task HandlePatientEventAsync(
 
         // Medical referral id duplicate checks include soft-deleted rows because primary key uniqueness is not filtered by IsDeleted.
         var medicalReferralIdAlreadyExists =
-            reservationState.AcceptedMedicalReferralIdsInBatch.Contains(medicalReferralId) ||
+            acceptedMedicalReferralIdsInBatch.Contains(medicalReferralId) ||
             _dbContext.Set<MedicalReferral>().Local.Any(referral =>
                 referral.Id == medicalReferralId &&
                 referral.OrganizationId == organizationId) ||
@@ -2101,7 +2101,7 @@ private async Task HandlePatientEventAsync(
 
         var normalizedReferralFolio = referralFolio.ToUpperInvariant();
 
-        if (reservationState.AcceptedMedicalReferralFoliosInBatch.Contains(normalizedReferralFolio))
+        if (acceptedMedicalReferralFoliosInBatch.Contains(normalizedReferralFolio))
         {
             syncEvent.MarkConflict(
                 processedAt,
@@ -2146,7 +2146,7 @@ private async Task HandlePatientEventAsync(
                 request.ReferredByUserId);
 
             // Pending-batch medical referral id and referral folio are reserved only after successful MedicalReferral construction and reserved atomically.
-            var medicalReferralIdReserved = reservationState.AcceptedMedicalReferralIdsInBatch.Add(medicalReferralId);
+            var medicalReferralIdReserved = acceptedMedicalReferralIdsInBatch.Add(medicalReferralId);
 
             if (!medicalReferralIdReserved)
             {
@@ -2157,11 +2157,11 @@ private async Task HandlePatientEventAsync(
                 return;
             }
 
-            var medicalReferralFolioReserved = reservationState.AcceptedMedicalReferralFoliosInBatch.Add(normalizedReferralFolio);
+            var medicalReferralFolioReserved = acceptedMedicalReferralFoliosInBatch.Add(normalizedReferralFolio);
 
             if (!medicalReferralFolioReserved)
             {
-                reservationState.AcceptedMedicalReferralIdsInBatch.Remove(medicalReferralId);
+                acceptedMedicalReferralIdsInBatch.Remove(medicalReferralId);
 
                 syncEvent.MarkConflict(
                     processedAt,
@@ -2353,7 +2353,7 @@ private async Task HandlePatientEventAsync(
 
         // Medication delivery id duplicate checks include globally duplicated ids because primary key uniqueness is not tenant-scoped.
         var medicationDeliveryIdAlreadyExists =
-            reservationState.AcceptedMedicationDeliveryIdsInBatch.Contains(medicationDeliveryId) ||
+            acceptedMedicationDeliveryIdsInBatch.Contains(medicationDeliveryId) ||
             _dbContext.Set<MedicationDelivery>().Local.Any(delivery =>
                 delivery.Id == medicationDeliveryId) ||
             await _dbContext.Set<MedicationDelivery>()
@@ -2399,7 +2399,7 @@ private async Task HandlePatientEventAsync(
             }
 
             // Pending-batch medication delivery id is reserved only after successful MedicationDelivery construction and optional delivered transition.
-            if (!reservationState.AcceptedMedicationDeliveryIdsInBatch.Add(medicationDeliveryId))
+            if (!acceptedMedicationDeliveryIdsInBatch.Add(medicationDeliveryId))
             {
                 syncEvent.MarkConflict(
                     processedAt,
