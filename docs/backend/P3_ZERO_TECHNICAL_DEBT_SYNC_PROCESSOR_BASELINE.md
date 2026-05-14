@@ -159,3 +159,8 @@ P3-23A protects the direct-dispatch sync architecture by validating that same-ba
 ## 23. P3-23B conflict regression note
 
 P3-23B protects the sync processor against regression where controlled domain conflicts become database failures, unhandled exceptions, or failed batches.
+---
+
+## 24. P3-23C invalid payload regression note
+
+P3-23C protects the sync processor against regression where malformed payload JSON becomes an unhandled exception or failed batch instead of a controlled rejected event.
