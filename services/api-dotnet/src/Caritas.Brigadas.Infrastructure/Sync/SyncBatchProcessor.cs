@@ -90,7 +90,8 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             .ThenBy(syncEvent => syncEvent.ReceivedAtServer)
             .ThenBy(syncEvent => syncEvent.Id)
             .ToArray();
-var processedAt = DateTimeOffset.UtcNow;
+
+        var processedAt = DateTimeOffset.UtcNow;
         var processedCount = 0;
         var acceptedPatientFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
         var acceptedVisitFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
@@ -204,9 +205,14 @@ var processedAt = DateTimeOffset.UtcNow;
             return 1;
         }
 
-        return 2;
-    }
+        if (syncEvent.EntityType == SyncEntityType.VitalSigns &&
+            syncEvent.Operation == SyncOperation.Create)
+        {
+            return 2;
+        }
 
+        return 3;
+    }
     private async Task HandlePatientEventAsync(
         Guid organizationId,
         SyncEvent syncEvent,
