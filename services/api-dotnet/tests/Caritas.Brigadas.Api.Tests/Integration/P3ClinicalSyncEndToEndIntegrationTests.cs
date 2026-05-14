@@ -76,6 +76,12 @@ public sealed class P3ClinicalSyncEndToEndIntegrationTests
             requiresFollowUpOption: true,
             requiresReferralOption: true));
 
+        dbContext.BrigadeServices.Add(new BrigadeService(
+            Guid.NewGuid(),
+            brigadeId,
+            serviceId,
+            capacityEstimate: 100,
+            assignedLeadUserId: userId));
         dbContext.FormTemplates.Add(new FormTemplate(
             formTemplateId,
             organizationId,

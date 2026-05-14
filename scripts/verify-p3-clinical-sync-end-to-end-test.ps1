@@ -47,6 +47,7 @@ $RequiredDocTokens = @(
     "AcceptedCount equals 8",
     "RejectedCount equals 0",
     "ConflictCount equals 0",
+    "BrigadeService",
     "Acceptance criteria"
 )
 
