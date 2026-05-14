@@ -88,3 +88,8 @@ P3-22H is complete when:
 - ServiceEncounterSyncEventHandler contains the previous service_encounter/create behavior;
 - all previous P3 sync processor verifiers remain green;
 - dotnet build and dotnet test remain green.
+---
+
+## 6. P3-22I vital signs sync event handler extraction note
+
+P3-22I extracts vital_signs/create behavior into VitalSignsSyncEventHandler while preserving ProcessPendingEventAsync dispatch behavior.
