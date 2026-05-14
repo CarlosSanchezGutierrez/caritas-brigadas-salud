@@ -161,3 +161,5 @@ Write-Host "============================================================" -Foreg
 & (Join-Path $RepoRoot "scripts\verify-p3-clinical-sync-conflict-regression.ps1")
 
 & (Join-Path $RepoRoot "scripts\verify-dependency-review-rest-retry-policy.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-clinical-sync-invalid-payload-regression.ps1")

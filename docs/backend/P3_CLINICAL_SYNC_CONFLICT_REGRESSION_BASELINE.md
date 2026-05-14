@@ -72,3 +72,8 @@ P3-23B is complete when:
 - the test produces one accepted SyncEvent and one conflict SyncEvent;
 - the batch completes_with_errors with 1 accepted, 0 rejected, and 1 conflict;
 - dotnet build and dotnet test pass.
+---
+
+## 8. P3-23C invalid payload regression note
+
+P3-23C adds a controlled rejected payload regression proving that malformed JSON rejects one event without aborting the batch.

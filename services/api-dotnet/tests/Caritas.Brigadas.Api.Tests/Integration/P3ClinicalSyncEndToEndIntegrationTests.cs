@@ -494,6 +494,126 @@ public sealed class P3ClinicalSyncEndToEndIntegrationTests
         Assert.Equal(0, completedBatch.RejectedCount);
         Assert.Equal(1, completedBatch.ConflictCount);
     }
+    [Fact]
+    public async Task SyncBatchProcessor_CompletesBatchWhenInvalidPayloadIsRejected()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var dbContext = CreateDbContext();
+
+        var organizationId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var brigadeId = Guid.NewGuid();
+        var syncBatchId = Guid.NewGuid();
+        var deviceId = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+
+        dbContext.Organizations.Add(new Organization(
+            organizationId,
+            "Caritas Monterrey P3 Rejected Payload Regression"));
+
+        dbContext.Users.Add(new User(
+            userId,
+            organizationId,
+            "Medico Rejected Payload Regression",
+            "medico.rejected.payload.regression@caritas.local"));
+
+        dbContext.Brigades.Add(new Brigade(
+            brigadeId,
+            organizationId,
+            "Brigada P3 Rejected Payload Regression",
+            "medical",
+            DateOnly.FromDateTime(now.UtcDateTime),
+            municipality: "Monterrey",
+            colony: "Centro",
+            locationText: "Caritas Monterrey"));
+
+        var syncBatch = new SyncBatch(
+            syncBatchId,
+            organizationId,
+            deviceId,
+            userId,
+            now,
+            brigadeId,
+            eventsCount: 2);
+
+        dbContext.SyncBatches.Add(syncBatch);
+
+        dbContext.SyncEvents.AddRange(
+            CreateEvent(
+                syncBatchId,
+                organizationId,
+                "001-patient-valid",
+                SyncEntityType.Patient,
+                Guid.NewGuid(),
+                new CreatePatientRequest
+                {
+                    PatientFolio = "PAT-REJECTED-001",
+                    FirstName = "Maria",
+                    PaternalLastName = "Lopez",
+                    MaternalLastName = "Garcia",
+                    ApproximateAge = 42,
+                    Sex = "female",
+                    Phone = "8180000000",
+                    Municipality = "Monterrey",
+                    Colony = "Centro",
+                    IsPartialRecord = false
+                },
+                now.AddSeconds(1)),
+            new SyncEvent(
+                Guid.NewGuid(),
+                syncBatchId,
+                organizationId,
+                "002-patient-invalid-json",
+                SyncEntityType.Patient,
+                SyncOperation.Create,
+                """{"patientFolio":"PAT-REJECTED-002","firstName":""",
+                Guid.NewGuid(),
+                createdAtDevice: now.AddSeconds(-20),
+                receivedAtServer: now.AddSeconds(2),
+                idempotencyKey: "p3-rejected-invalid-json"));
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var processor = new SyncBatchProcessor(dbContext);
+
+        var result = await processor.ProcessAsync(
+            organizationId,
+            syncBatchId,
+            cancellationToken);
+
+        Assert.True(result.Completed);
+        Assert.Equal(2, result.PendingEventsProcessed);
+        Assert.Equal(1, result.AcceptedCount);
+        Assert.Equal(1, result.RejectedCount);
+        Assert.Equal(0, result.ConflictCount);
+
+        Assert.Equal(1, await dbContext.Patients.CountAsync(cancellationToken));
+
+        var acceptedEvent = await dbContext.SyncEvents
+            .SingleAsync(
+                syncEvent => syncEvent.Status == SyncEventStatus.Accepted,
+                cancellationToken);
+
+        var rejectedEvent = await dbContext.SyncEvents
+            .SingleAsync(
+                syncEvent => syncEvent.Status == SyncEventStatus.Rejected,
+                cancellationToken);
+
+        Assert.Equal("001-patient-valid", acceptedEvent.LocalEventId);
+        Assert.Equal("002-patient-invalid-json", rejectedEvent.LocalEventId);
+        Assert.Contains(
+            "Sync event payload JSON is invalid.",
+            rejectedEvent.RejectionReason,
+            StringComparison.Ordinal);
+
+        var completedBatch = await dbContext.SyncBatches.SingleAsync(cancellationToken);
+
+        Assert.Equal(SyncBatchStatus.CompletedWithErrors, completedBatch.Status);
+        Assert.Equal(1, completedBatch.AcceptedCount);
+        Assert.Equal(1, completedBatch.RejectedCount);
+        Assert.Equal(0, completedBatch.ConflictCount);
+    }
     private static CaritasDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<CaritasDbContext>()
