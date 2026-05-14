@@ -126,7 +126,7 @@ $EvidenceChecks = @(
         Path = "services/api-dotnet/tests/Caritas.Brigadas.Api.Tests/Integration/P3ClinicalSyncEndToEndIntegrationTests.cs"
         Tokens = @(
             "SyncBatchProcessor_ProcessesCompleteClinicalOfflineBatchEndToEnd",
-            "SyncBatchProcessor_ProcessesOutOfOrderClinicalOfflineBatchEndToEnd",
+            "SyncBatchProcessor_ProcessesOutOfOrderClinicalOfflineBatchUsingSyncProcessingOrder",
             "SyncBatchProcessor_CompletesBatchWhenDuplicatePatientFolioCreatesConflict",
             "SyncBatchProcessor_CompletesBatchWhenInvalidPayloadIsRejected",
             "SyncBatchProcessor_ReturnsAlreadyCompletedWithoutDuplicatingClinicalRows",
