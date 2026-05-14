@@ -70,3 +70,8 @@ P3-23C is complete when:
 - the test produces one accepted SyncEvent and one rejected SyncEvent;
 - the batch completes_with_errors with 1 accepted, 1 rejected, and 0 conflicts;
 - dotnet build and dotnet test pass.
+---
+
+## 7. P3-23D idempotency regression note
+
+P3-23D adds an already completed batch regression proving that repeated processing is a safe no-op and does not duplicate clinical rows.

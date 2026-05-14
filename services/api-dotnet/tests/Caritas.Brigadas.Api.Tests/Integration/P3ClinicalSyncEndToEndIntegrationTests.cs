@@ -494,6 +494,7 @@ public sealed class P3ClinicalSyncEndToEndIntegrationTests
         Assert.Equal(0, completedBatch.RejectedCount);
         Assert.Equal(1, completedBatch.ConflictCount);
     }
+
     [Fact]
     public async Task SyncBatchProcessor_CompletesBatchWhenInvalidPayloadIsRejected()
     {
@@ -612,6 +613,68 @@ public sealed class P3ClinicalSyncEndToEndIntegrationTests
         Assert.Equal(SyncBatchStatus.CompletedWithErrors, completedBatch.Status);
         Assert.Equal(1, completedBatch.AcceptedCount);
         Assert.Equal(1, completedBatch.RejectedCount);
+        Assert.Equal(0, completedBatch.ConflictCount);
+    }
+
+    [Fact]
+    public async Task SyncBatchProcessor_ReturnsAlreadyCompletedWithoutDuplicatingClinicalRows()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var dbContext = CreateDbContext();
+
+        var seed = await SeedCompleteClinicalBatchAsync(
+            dbContext,
+            reverseEventInsertionOrder: false,
+            cancellationToken);
+
+        var processor = new SyncBatchProcessor(dbContext);
+
+        var firstResult = await processor.ProcessAsync(
+            seed.OrganizationId,
+            seed.SyncBatchId,
+            cancellationToken);
+
+        await AssertCompletedClinicalBatchAsync(
+            dbContext,
+            firstResult,
+            cancellationToken);
+
+        var secondResult = await processor.ProcessAsync(
+            seed.OrganizationId,
+            seed.SyncBatchId,
+            cancellationToken);
+
+        Assert.True(secondResult.Completed);
+        Assert.Equal(0, secondResult.PendingEventsProcessed);
+        Assert.Equal(8, secondResult.AcceptedCount);
+        Assert.Equal(0, secondResult.RejectedCount);
+        Assert.Equal(0, secondResult.ConflictCount);
+        Assert.Equal("Sync batch was already completed.", secondResult.Message);
+
+        Assert.Equal(1, await dbContext.Patients.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.PatientVisits.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.ServiceEncounters.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.VitalSignsRecords.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.FormResponses.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.ConsentDocuments.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.MedicalReferrals.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.MedicationDeliveries.CountAsync(cancellationToken));
+
+        var syncEvents = await dbContext.SyncEvents
+            .ToArrayAsync(cancellationToken);
+
+        Assert.Equal(8, syncEvents.Length);
+
+        Assert.All(
+            syncEvents,
+            syncEvent => Assert.Equal(SyncEventStatus.Accepted, syncEvent.Status));
+
+        var completedBatch = await dbContext.SyncBatches.SingleAsync(cancellationToken);
+
+        Assert.Equal(SyncBatchStatus.Completed, completedBatch.Status);
+        Assert.Equal(8, completedBatch.AcceptedCount);
+        Assert.Equal(0, completedBatch.RejectedCount);
         Assert.Equal(0, completedBatch.ConflictCount);
     }
     private static CaritasDbContext CreateDbContext()
