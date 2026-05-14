@@ -76,7 +76,7 @@ $RequiredProcessorTokens = @(
     "syncEvent.EntityType == SyncEntityType.MedicalReferral",
     "syncEvent.Operation != SyncOperation.Create",
     "medical_referral_operation_not_implemented",
-    "JsonSerializer.Deserialize<CreateMedicalReferralRequest>",
+    "out CreateMedicalReferralRequest? request",
     "new MedicalReferral(",
     "_dbContext.Set<MedicalReferral>().Add(medicalReferral)",
     "syncEvent.Accept(",

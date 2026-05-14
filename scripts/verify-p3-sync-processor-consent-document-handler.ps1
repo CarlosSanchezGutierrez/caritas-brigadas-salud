@@ -79,7 +79,7 @@ $RequiredProcessorTokens = @(
     "syncEvent.EntityType == SyncEntityType.ConsentDocument",
     "syncEvent.Operation != SyncOperation.Create",
     "consent_document_operation_not_implemented",
-    "JsonSerializer.Deserialize<CreateConsentDocumentRequest>",
+    "out CreateConsentDocumentRequest? request",
     "CreateConsentDocumentForSync",
     "SetConsentPropertyIfExists",
     "_dbContext.Set<ConsentDocument>().Add(consentDocument)",

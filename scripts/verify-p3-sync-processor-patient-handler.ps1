@@ -56,7 +56,7 @@ $RequiredProcessorTokens = @(
     "syncEvent.EntityType == SyncEntityType.Patient",
     "syncEvent.Operation != SyncOperation.Create",
     "patient_operation_not_implemented",
-    "JsonSerializer.Deserialize<CreatePatientRequest>",
+    "out CreatePatientRequest? request",
     "new Patient(",
     "_dbContext.Patients.Add(patient)",
     "syncEvent.Accept(",
