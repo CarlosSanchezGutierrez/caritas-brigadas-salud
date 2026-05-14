@@ -7,7 +7,7 @@ public sealed class P3SyncProcessorPatientVisitHandlerContractTests
     [Fact]
     public void SyncBatchProcessor_HandlesPatientVisitCreateOnly()
     {
-        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "PatientVisitSyncEventHandler.cs"));
 
         var requiredTokens = new[]
         {

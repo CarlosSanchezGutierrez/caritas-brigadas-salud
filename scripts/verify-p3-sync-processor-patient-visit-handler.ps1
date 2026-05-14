@@ -3,6 +3,7 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $DocPath = Join-Path $RepoRoot "docs/backend/P3_SYNC_PROCESSOR_PATIENT_VISIT_HANDLER_BASELINE.md"
 $ProcessorPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncBatchProcessor.cs"
+$VisitHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/PatientVisitSyncEventHandler.cs"
 $OrderPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncProcessingOrder.cs"
 
 function Assert-FileExists {
@@ -27,10 +28,13 @@ function Assert-Contains {
 
 Assert-FileExists $DocPath
 Assert-FileExists $ProcessorPath
+Assert-FileExists $VisitHandlerPath
 Assert-FileExists $OrderPath
 
 $Doc = Get-Content $DocPath -Raw -Encoding UTF8
 $Processor = Get-Content $ProcessorPath -Raw -Encoding UTF8
+$VisitHandler = Get-Content $VisitHandlerPath -Raw -Encoding UTF8
+$ProcessorAndVisitHandler = $Processor + $VisitHandler
 $Order = Get-Content $OrderPath -Raw -Encoding UTF8
 $ProcessorAndOrder = $Processor + $Order
 
