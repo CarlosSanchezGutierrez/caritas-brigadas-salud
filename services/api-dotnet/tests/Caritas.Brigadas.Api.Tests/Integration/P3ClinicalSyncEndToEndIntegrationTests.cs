@@ -366,6 +366,134 @@ public sealed class P3ClinicalSyncEndToEndIntegrationTests
         Assert.Equal(0, completedBatch.ConflictCount);
     }
 
+    [Fact]
+    public async Task SyncBatchProcessor_CompletesBatchWhenDuplicatePatientFolioCreatesConflict()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var dbContext = CreateDbContext();
+
+        var organizationId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var brigadeId = Guid.NewGuid();
+        var syncBatchId = Guid.NewGuid();
+        var deviceId = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+
+        dbContext.Organizations.Add(new Organization(
+            organizationId,
+            "Caritas Monterrey P3 Conflict Regression"));
+
+        dbContext.Users.Add(new User(
+            userId,
+            organizationId,
+            "Medico Conflict Regression",
+            "medico.conflict.regression@caritas.local"));
+
+        dbContext.Brigades.Add(new Brigade(
+            brigadeId,
+            organizationId,
+            "Brigada P3 Conflict Regression",
+            "medical",
+            DateOnly.FromDateTime(now.UtcDateTime),
+            municipality: "Monterrey",
+            colony: "Centro",
+            locationText: "Caritas Monterrey"));
+
+        var syncBatch = new SyncBatch(
+            syncBatchId,
+            organizationId,
+            deviceId,
+            userId,
+            now,
+            brigadeId,
+            eventsCount: 2);
+
+        dbContext.SyncBatches.Add(syncBatch);
+
+        dbContext.SyncEvents.AddRange(
+            CreateEvent(
+                syncBatchId,
+                organizationId,
+                "001-patient-original",
+                SyncEntityType.Patient,
+                Guid.NewGuid(),
+                new CreatePatientRequest
+                {
+                    PatientFolio = "PAT-CONFLICT-001",
+                    FirstName = "Maria",
+                    PaternalLastName = "Lopez",
+                    MaternalLastName = "Garcia",
+                    ApproximateAge = 42,
+                    Sex = "female",
+                    Phone = "8180000000",
+                    Municipality = "Monterrey",
+                    Colony = "Centro",
+                    IsPartialRecord = false
+                },
+                now.AddSeconds(1)),
+            CreateEvent(
+                syncBatchId,
+                organizationId,
+                "002-patient-duplicate",
+                SyncEntityType.Patient,
+                Guid.NewGuid(),
+                new CreatePatientRequest
+                {
+                    PatientFolio = "PAT-CONFLICT-001",
+                    FirstName = "Duplicada",
+                    PaternalLastName = "Lopez",
+                    MaternalLastName = "Garcia",
+                    ApproximateAge = 43,
+                    Sex = "female",
+                    Phone = "8180000001",
+                    Municipality = "Monterrey",
+                    Colony = "Centro",
+                    IsPartialRecord = false
+                },
+                now.AddSeconds(2)));
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var processor = new SyncBatchProcessor(dbContext);
+
+        var result = await processor.ProcessAsync(
+            organizationId,
+            syncBatchId,
+            cancellationToken);
+
+        Assert.True(result.Completed);
+        Assert.Equal(2, result.PendingEventsProcessed);
+        Assert.Equal(1, result.AcceptedCount);
+        Assert.Equal(0, result.RejectedCount);
+        Assert.Equal(1, result.ConflictCount);
+
+        Assert.Equal(1, await dbContext.Patients.CountAsync(cancellationToken));
+
+        var acceptedEvent = await dbContext.SyncEvents
+            .SingleAsync(
+                syncEvent => syncEvent.Status == SyncEventStatus.Accepted,
+                cancellationToken);
+
+        var conflictEvent = await dbContext.SyncEvents
+            .SingleAsync(
+                syncEvent => syncEvent.Status == SyncEventStatus.Conflict,
+                cancellationToken);
+
+        Assert.Equal("001-patient-original", acceptedEvent.LocalEventId);
+        Assert.Equal("002-patient-duplicate", conflictEvent.LocalEventId);
+        Assert.Contains(
+            "patient_folio_duplicate_in_pending_batch",
+            conflictEvent.ConflictReason,
+            StringComparison.Ordinal);
+
+        var completedBatch = await dbContext.SyncBatches.SingleAsync(cancellationToken);
+
+        Assert.Equal(SyncBatchStatus.CompletedWithErrors, completedBatch.Status);
+        Assert.Equal(1, completedBatch.AcceptedCount);
+        Assert.Equal(0, completedBatch.RejectedCount);
+        Assert.Equal(1, completedBatch.ConflictCount);
+    }
     private static CaritasDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<CaritasDbContext>()

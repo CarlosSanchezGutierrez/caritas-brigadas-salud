@@ -154,3 +154,8 @@ P3-22P closes the primary sync processor refactor by validating the extracted ha
 ## 22. P3-23A ordering regression note
 
 P3-23A protects the direct-dispatch sync architecture by validating that same-batch clinical dependencies still succeed when offline clients upload events out of order.
+---
+
+## 23. P3-23B conflict regression note
+
+P3-23B protects the sync processor against regression where controlled domain conflicts become database failures, unhandled exceptions, or failed batches.
