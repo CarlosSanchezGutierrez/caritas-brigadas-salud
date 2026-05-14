@@ -167,3 +167,5 @@ Write-Host "============================================================" -Foreg
 & (Join-Path $RepoRoot "scripts\verify-p3-clinical-sync-idempotency-regression.ps1")
 
 & (Join-Path $RepoRoot "scripts\verify-p3-clinical-sync-failed-batch-regression.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-sync-process-endpoint-api-regression.ps1")

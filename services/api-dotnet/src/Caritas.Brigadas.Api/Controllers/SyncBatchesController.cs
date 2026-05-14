@@ -216,7 +216,7 @@ public sealed class SyncBatchesController : ControllerBase
 
 
     /// <summary>
-    /// Procesa de forma segura un lote de sincronización sin aplicar todavía escrituras clínicas reales.
+    /// Procesa de forma segura un lote de sincronización offline.
     /// </summary>
     [HttpPost("api/v1/organizations/{organizationId:guid}/sync-batches/{syncBatchId:guid}/process")]
     [ProducesResponseType(typeof(ApiResponse<ProcessSyncBatchResultDto>), StatusCodes.Status200OK)]
@@ -247,7 +247,7 @@ public sealed class SyncBatchesController : ControllerBase
             return Ok(ApiResponse<ProcessSyncBatchResultDto>.Ok(
                 result,
                 HttpContext.GetCorrelationId(),
-                "Sync batch processed by skeleton processor."));
+                "Sync batch processed successfully."));
         }
         catch (KeyNotFoundException exception)
         {

@@ -77,3 +77,8 @@ P3-23E is complete when:
 - the test asserts InvalidOperationException;
 - the test asserts no clinical rows or sync events are created;
 - dotnet build and dotnet test pass.
+---
+
+## 7. P3-24A API-level endpoint regression note
+
+P3-24A moves from processor-only validation to HTTP endpoint validation for the sync batch process route.
