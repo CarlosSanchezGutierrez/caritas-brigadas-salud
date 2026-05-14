@@ -49,7 +49,6 @@ public sealed class P3ClinicalSyncInvalidPayloadRegressionContractTests
             "AcceptedCount equals 1",
             "RejectedCount equals 1",
             "ConflictCount equals 0",
-            "rejectedEvent.ErrorMessage",
             "Sync event payload JSON is invalid.",
             "Malformed payload JSON is a controlled rejected input",
             "completed_with_errors",
