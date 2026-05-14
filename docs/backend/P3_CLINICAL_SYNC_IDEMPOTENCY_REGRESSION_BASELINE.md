@@ -79,3 +79,8 @@ P3-23D is complete when:
 - the second call has PendingEventsProcessed equals 0;
 - no clinical table receives duplicate rows;
 - dotnet build and dotnet test pass.
+---
+
+## 7. P3-23E failed batch regression note
+
+P3-23E adds a terminal failed batch regression proving that SyncBatchProcessor does not retry failed batches.
