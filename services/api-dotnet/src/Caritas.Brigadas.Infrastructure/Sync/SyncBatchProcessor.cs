@@ -919,6 +919,19 @@ private async Task HandlePatientEventAsync(
 
         try
         {
+            var encounter = new ServiceEncounter(
+                encounterId,
+                organizationId,
+                normalizedEncounterFolio,
+                request.VisitId,
+                visit.PatientId,
+                visit.BrigadeId,
+                service.Id,
+                request.ProviderUserId,
+                request.StartedAt ?? DateTimeOffset.UtcNow,
+                createdOffline: true,
+                deviceId: request.DeviceId ?? batch.DeviceId);
+
             if (!acceptedEncounterFoliosInBatch.Add(normalizedEncounterFolio))
             {
                 syncEvent.MarkConflict(
@@ -936,19 +949,6 @@ private async Task HandlePatientEventAsync(
 
                 return;
             }
-
-            var encounter = new ServiceEncounter(
-                encounterId,
-                organizationId,
-                normalizedEncounterFolio,
-                request.VisitId,
-                visit.PatientId,
-                visit.BrigadeId,
-                service.Id,
-                request.ProviderUserId,
-                request.StartedAt ?? DateTimeOffset.UtcNow,
-                createdOffline: true,
-                deviceId: request.DeviceId ?? batch.DeviceId);
 
             _dbContext.ServiceEncounters.Add(encounter);
 
@@ -1208,6 +1208,7 @@ private async Task HandlePatientEventAsync(
                 exception.Message);
         }
     }
+
     private static bool TryValidateEvent(
         SyncEvent syncEvent,
         out string? rejectionReason)
@@ -1248,6 +1249,11 @@ private async Task HandlePatientEventAsync(
     private static string GenerateSyncPatientFolio(SyncEvent syncEvent)
     {
         return $"PAT-SYNC-{syncEvent.Id:N}"[..41];
+    }
+
+    private static string GenerateSyncEncounterFolio(SyncEvent syncEvent)
+    {
+        return $"ENC-SYNC-{syncEvent.Id:N}"[..41];
     }
 
     private static string GenerateSyncVisitFolio(SyncEvent syncEvent)

@@ -44,6 +44,7 @@ The service encounter create handler must:
 - conflict duplicate EncounterFolio values inside the same pending batch before SaveChangesAsync;
 - conflict duplicate VisitId plus ServiceId inside the organization;
 - conflict duplicate VisitId plus ServiceId values inside the same pending batch before SaveChangesAsync;
+- pending-batch encounter folio and visit-service keys must be reserved only after successful ServiceEncounter construction;
 - accept the SyncEvent only after the ServiceEncounter entity is staged;
 - set SyncEvent.EntityId to the created ServiceEncounter.Id through Accept;
 - complete batch counters from stored SyncEvent statuses.
@@ -106,6 +107,7 @@ P3-16 is complete when:
 - SyncBatchProcessor validates brigade service availability;
 - SyncBatchProcessor marks duplicate encounter folio as conflict;
 - SyncBatchProcessor marks duplicate visit-service pair as conflict;
+- SyncBatchProcessor does not reserve pending-batch duplicate keys before ServiceEncounter construction succeeds;
 - SyncBatchProcessor processes service_encounter before vital_signs;
 - contract tests protect the service_encounter-only scope;
 - repository governance and database deployment gates remain green.

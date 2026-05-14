@@ -68,6 +68,8 @@ $RequiredProcessorTokens = @(
     "acceptedEncounterFoliosInBatch",
     "acceptedEncounterVisitServiceKeysInBatch",
     "GenerateSyncEncounterFolio",
+    "private static string GenerateSyncEncounterFolio",
+    "reserved only after successful ServiceEncounter construction",
     "return 2;",
     "return 3;",
     "return 4;"

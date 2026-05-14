@@ -33,6 +33,7 @@ public sealed class P3SyncProcessorServiceEncounterHandlerContractTests
             "acceptedEncounterFoliosInBatch",
             "acceptedEncounterVisitServiceKeysInBatch",
             "GenerateSyncEncounterFolio",
+            "private static string GenerateSyncEncounterFolio",
             "return 2;",
             "return 3;",
             "return 4;"
@@ -67,6 +68,7 @@ public sealed class P3SyncProcessorServiceEncounterHandlerContractTests
             "parse PayloadJson as CreateServiceEncounterRequest",
             "validate service is available for the visit brigade through BrigadeServices",
             "conflict duplicate VisitId plus ServiceId values inside the same pending batch",
+            "reserved only after successful ServiceEncounter construction",
             "processor must process service_encounter create events before vital_signs create events",
             "service_encounter update is not implemented in P3-16",
             "service_encounter complete/close is not implemented in P3-16",
