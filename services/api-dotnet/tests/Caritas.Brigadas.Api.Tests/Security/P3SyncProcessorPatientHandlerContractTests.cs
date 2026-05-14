@@ -33,7 +33,6 @@ public sealed class P3SyncProcessorPatientHandlerContractTests
 
         var forbiddenTokens = new[]
         {
-            "_dbContext.ServiceEncounters.Add",
             "_dbContext.FormResponses.Add",
             "_dbContext.ConsentDocuments.Add",
             "_dbContext.MedicalReferrals.Add",
@@ -66,7 +65,8 @@ public sealed class P3SyncProcessorPatientHandlerContractTests
             "processor must not create visits, encounters, vital signs, forms, documents, referrals, or medication deliveries in P3-13",
             "Acceptance criteria",
             "P3-14 patient visit handler note",
-            "P3-15 vital signs handler note"
+            "P3-15 vital signs handler note",
+            "P3-16 service encounter handler note"
         };
 
         AssertRequiredTokens(source, requiredTokens, "P3 sync processor patient handler baseline");
