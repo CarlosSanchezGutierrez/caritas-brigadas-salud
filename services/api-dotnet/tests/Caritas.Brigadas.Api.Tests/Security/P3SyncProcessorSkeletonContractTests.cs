@@ -33,7 +33,6 @@ public sealed class P3SyncProcessorSkeletonContractTests
 
         var forbiddenTokens = new[]
         {
-            "_dbContext.MedicationDeliveries.Add",
 
         };
 
@@ -105,6 +104,7 @@ public sealed class P3SyncProcessorSkeletonContractTests
             "P3-17 supersedes the skeleton for form_response create",
             "P3-18 supersedes the skeleton for consent_document create",
             "P3-19 supersedes the skeleton for medical_referral create",
+            "P3-20 supersedes the skeleton for medication_delivery create",
             "processor must not complete against client-supplied event totals"
         };
 

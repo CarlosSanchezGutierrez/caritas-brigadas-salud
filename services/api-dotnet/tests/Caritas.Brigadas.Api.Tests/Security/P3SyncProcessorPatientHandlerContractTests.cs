@@ -33,7 +33,6 @@ public sealed class P3SyncProcessorPatientHandlerContractTests
 
         var forbiddenTokens = new[]
         {
-            "_dbContext.MedicationDeliveries.Add"
         };
 
         foreach (var token in forbiddenTokens)
