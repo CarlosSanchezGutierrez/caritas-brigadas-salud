@@ -47,10 +47,41 @@ public sealed class P3SyncProcessorFormattingHygieneContractTests
             "    private async Task HandleFormResponseEventAsync",
             "    private async Task HandleConsentDocumentEventAsync",
             "    private async Task HandleMedicalReferralEventAsync",
-            "    private async Task HandleMedicationDeliveryEventAsync"
+            "    private async Task HandleMedicationDeliveryEventAsync",
+            ".OrderBy(SyncProcessingOrder.GetOrder)",
+            "var reservationState = new PendingBatchReservationState();"
         };
 
         AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor formatting hygiene");
+    }
+
+    [Fact]
+    public void ExtractedSyncHandlers_ContainPayloadReaderUsage()
+    {
+        var source =
+            File.ReadAllText(GetInfrastructurePath("Sync", "PatientSyncEventHandler.cs")) +
+            File.ReadAllText(GetInfrastructurePath("Sync", "PatientVisitSyncEventHandler.cs")) +
+            File.ReadAllText(GetInfrastructurePath("Sync", "ServiceEncounterSyncEventHandler.cs")) +
+            File.ReadAllText(GetInfrastructurePath("Sync", "VitalSignsSyncEventHandler.cs")) +
+            File.ReadAllText(GetInfrastructurePath("Sync", "FormResponseSyncEventHandler.cs")) +
+            File.ReadAllText(GetInfrastructurePath("Sync", "ConsentDocumentSyncEventHandler.cs")) +
+            File.ReadAllText(GetInfrastructurePath("Sync", "MedicalReferralSyncEventHandler.cs")) +
+            File.ReadAllText(GetInfrastructurePath("Sync", "MedicationDeliverySyncEventHandler.cs"));
+
+        var requiredTokens = new[]
+        {
+            "SyncPayloadReader.TryReadObject",
+            "PatientSyncEventHandler",
+            "PatientVisitSyncEventHandler",
+            "ServiceEncounterSyncEventHandler",
+            "VitalSignsSyncEventHandler",
+            "FormResponseSyncEventHandler",
+            "ConsentDocumentSyncEventHandler",
+            "MedicalReferralSyncEventHandler",
+            "MedicationDeliverySyncEventHandler"
+        };
+
+        AssertRequiredTokens(source, requiredTokens, "P3 extracted sync handler formatting hygiene");
     }
 
     [Fact]
