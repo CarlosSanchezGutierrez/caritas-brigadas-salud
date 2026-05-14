@@ -2,6 +2,7 @@ using System.Text.Json;
 using Caritas.Brigadas.Application.Sync;
 using Caritas.Brigadas.Contracts.Patients;
 using Caritas.Brigadas.Contracts.PatientVisits;
+using Caritas.Brigadas.Contracts.ServiceEncounters;
 using Caritas.Brigadas.Contracts.Sync;
 using Caritas.Brigadas.Contracts.VitalSigns;
 using Caritas.Brigadas.Domain.Common;
@@ -96,6 +97,8 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         var acceptedPatientFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
         var acceptedVisitFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
         var acceptedVitalSignsIdsInBatch = new HashSet<Guid>();
+        var acceptedEncounterFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
+        var acceptedEncounterVisitServiceKeysInBatch = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var syncEvent in pendingEvents)
         {
@@ -138,6 +141,20 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 continue;
             }
 
+            if (syncEvent.EntityType == SyncEntityType.ServiceEncounter)
+            {
+                await HandleServiceEncounterEventAsync(
+                    organizationId,
+                    batch,
+                    syncEvent,
+                    processedAt,
+                    acceptedEncounterFoliosInBatch,
+                    acceptedEncounterVisitServiceKeysInBatch,
+                    cancellationToken);
+
+                processedCount++;
+                continue;
+            }
             if (syncEvent.EntityType == SyncEntityType.VitalSigns)
             {
                 await HandleVitalSignsEventAsync(
@@ -187,7 +204,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             RejectedCount = rejectedCount,
             ConflictCount = conflictCount,
             Completed = batch.IsCompleted,
-            Message = "Sync batch processor completed patient, visit, and vital signs handler processing."
+            Message = "Sync batch processor completed patient, visit, service encounter, and vital signs handler processing."
         };
     }
 
@@ -205,15 +222,21 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             return 1;
         }
 
-        if (syncEvent.EntityType == SyncEntityType.VitalSigns &&
+        if (syncEvent.EntityType == SyncEntityType.ServiceEncounter &&
             syncEvent.Operation == SyncOperation.Create)
         {
             return 2;
         }
 
-        return 3;
+        if (syncEvent.EntityType == SyncEntityType.VitalSigns &&
+            syncEvent.Operation == SyncOperation.Create)
+        {
+            return 3;
+        }
+
+        return 4;
     }
-    private async Task HandlePatientEventAsync(
+private async Task HandlePatientEventAsync(
         Guid organizationId,
         SyncEvent syncEvent,
         DateTimeOffset processedAt,
@@ -624,6 +647,322 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         }
     }
 
+    private async Task HandleServiceEncounterEventAsync(
+        Guid organizationId,
+        SyncBatch batch,
+        SyncEvent syncEvent,
+        DateTimeOffset processedAt,
+        ISet<string> acceptedEncounterFoliosInBatch,
+        ISet<string> acceptedEncounterVisitServiceKeysInBatch,
+        CancellationToken cancellationToken)
+    {
+        if (syncEvent.Operation != SyncOperation.Create)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "service_encounter_operation_not_implemented");
+
+            return;
+        }
+
+        CreateServiceEncounterRequest? request;
+
+        try
+        {
+            using var document = JsonDocument.Parse(syncEvent.PayloadJson);
+
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                syncEvent.Reject(
+                    processedAt,
+                    "Service encounter payload must be a JSON object.");
+
+                return;
+            }
+
+            request = JsonSerializer.Deserialize<CreateServiceEncounterRequest>(
+                syncEvent.PayloadJson,
+                PayloadJsonOptions);
+        }
+        catch (JsonException)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "Service encounter payload JSON is invalid.");
+
+            return;
+        }
+
+        if (request is null)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "Service encounter payload is required.");
+
+            return;
+        }
+
+        if (request.VisitId == Guid.Empty)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "VisitId is required for service encounter sync.");
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(request.ServiceCode))
+        {
+            syncEvent.Reject(
+                processedAt,
+                "ServiceCode is required for service encounter sync.");
+
+            return;
+        }
+
+        PatientVisit? trackedVisit = _dbContext.PatientVisits.Local.FirstOrDefault(visit =>
+            visit.Id == request.VisitId &&
+            visit.OrganizationId == organizationId &&
+            !visit.IsDeleted);
+
+        var visit = trackedVisit ?? await _dbContext.PatientVisits
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                item =>
+                    item.Id == request.VisitId &&
+                    item.OrganizationId == organizationId &&
+                    !item.IsDeleted,
+                cancellationToken);
+
+        if (visit is null)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "service_encounter_visit_not_found");
+
+            return;
+        }
+
+        if (visit.BrigadeId != batch.BrigadeId)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "service_encounter_brigade_mismatch");
+
+            return;
+        }
+
+        if (visit.IsClosed)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "service_encounter_visit_closed");
+
+            return;
+        }
+
+        var serviceCode = request.ServiceCode.Trim().ToUpperInvariant();
+
+        var service = await _dbContext.Services
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                item =>
+                    item.OrganizationId == organizationId &&
+                    item.Code == serviceCode &&
+                    !item.IsDeleted,
+                cancellationToken);
+
+        if (service is null)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "service_encounter_service_not_found");
+
+            return;
+        }
+
+        if (!service.IsActive)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "service_encounter_service_inactive");
+
+            return;
+        }
+
+        var serviceAssignedToBrigade = await _dbContext.BrigadeServices
+            .AsNoTracking()
+            .AnyAsync(
+                assignment =>
+                    assignment.BrigadeId == visit.BrigadeId &&
+                    assignment.ServiceId == service.Id &&
+                    assignment.IsAvailable &&
+                    !assignment.IsDeleted,
+                cancellationToken);
+
+        if (!serviceAssignedToBrigade)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "service_encounter_service_not_available_for_brigade");
+
+            return;
+        }
+
+        if (request.ProviderUserId.HasValue)
+        {
+            var providerExists = await _dbContext.Users
+                .AsNoTracking()
+                .AnyAsync(
+                    user =>
+                        user.Id == request.ProviderUserId.Value &&
+                        user.OrganizationId == organizationId &&
+                        !user.IsDeleted,
+                    cancellationToken);
+
+            if (!providerExists)
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "service_encounter_provider_user_not_found");
+
+                return;
+            }
+        }
+
+        var encounterId = syncEvent.EntityId ?? Guid.NewGuid();
+
+        var encounterIdAlreadyExists =
+            _dbContext.ServiceEncounters.Local.Any(encounter =>
+                encounter.Id == encounterId &&
+                encounter.OrganizationId == organizationId &&
+                !encounter.IsDeleted) ||
+            await _dbContext.ServiceEncounters
+                .AsNoTracking()
+                .AnyAsync(
+                    encounter =>
+                        encounter.Id == encounterId &&
+                        encounter.OrganizationId == organizationId &&
+                        !encounter.IsDeleted,
+                    cancellationToken);
+
+        if (encounterIdAlreadyExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "service_encounter_id_already_exists");
+
+            return;
+        }
+
+        var encounterFolio = string.IsNullOrWhiteSpace(request.EncounterFolio)
+            ? GenerateSyncEncounterFolio(syncEvent)
+            : request.EncounterFolio.Trim();
+
+        var normalizedEncounterFolio = encounterFolio.ToUpperInvariant();
+
+        if (acceptedEncounterFoliosInBatch.Contains(normalizedEncounterFolio))
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "service_encounter_folio_duplicate_in_pending_batch");
+
+            return;
+        }
+
+        var encounterFolioExists = await _dbContext.ServiceEncounters
+            .AsNoTracking()
+            .AnyAsync(
+                encounter =>
+                    encounter.OrganizationId == organizationId &&
+                    encounter.EncounterFolio == normalizedEncounterFolio &&
+                    !encounter.IsDeleted,
+                cancellationToken);
+
+        if (encounterFolioExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "service_encounter_folio_already_exists");
+
+            return;
+        }
+
+        var visitServiceKey = $"{request.VisitId:N}:{service.Id:N}";
+
+        if (acceptedEncounterVisitServiceKeysInBatch.Contains(visitServiceKey))
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "service_encounter_duplicate_visit_service_in_pending_batch");
+
+            return;
+        }
+
+        var duplicateEncounter = await _dbContext.ServiceEncounters
+            .AsNoTracking()
+            .AnyAsync(
+                encounter =>
+                    encounter.VisitId == request.VisitId &&
+                    encounter.ServiceId == service.Id &&
+                    !encounter.IsDeleted,
+                cancellationToken);
+
+        if (duplicateEncounter)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "service_encounter_duplicate_visit_service");
+
+            return;
+        }
+
+        try
+        {
+            if (!acceptedEncounterFoliosInBatch.Add(normalizedEncounterFolio))
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "service_encounter_folio_duplicate_in_pending_batch");
+
+                return;
+            }
+
+            if (!acceptedEncounterVisitServiceKeysInBatch.Add(visitServiceKey))
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "service_encounter_duplicate_visit_service_in_pending_batch");
+
+                return;
+            }
+
+            var encounter = new ServiceEncounter(
+                encounterId,
+                organizationId,
+                normalizedEncounterFolio,
+                request.VisitId,
+                visit.PatientId,
+                visit.BrigadeId,
+                service.Id,
+                request.ProviderUserId,
+                request.StartedAt ?? DateTimeOffset.UtcNow,
+                createdOffline: true,
+                deviceId: request.DeviceId ?? batch.DeviceId);
+
+            _dbContext.ServiceEncounters.Add(encounter);
+
+            syncEvent.Accept(
+                processedAt,
+                encounter.Id);
+        }
+        catch (DomainException exception)
+        {
+            syncEvent.Reject(
+                processedAt,
+                exception.Message);
+        }
+    }
     private async Task HandleVitalSignsEventAsync(
         Guid organizationId,
         SyncBatch batch,

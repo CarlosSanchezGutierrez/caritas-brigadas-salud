@@ -89,3 +89,8 @@ P3-14 adds patient_visit create handling. After P3-14, PatientVisit creation is 
 ## 7. P3-15 vital signs handler note
 
 P3-15 adds vital_signs create handling. After P3-15, VitalSignsRecord creation is no longer forbidden in the sync processor. Service encounters, forms, documents, referrals, and medication deliveries remain out of scope.
+---
+
+## 8. P3-16 service encounter handler note
+
+P3-16 adds service_encounter create handling. After P3-16, ServiceEncounter creation is no longer forbidden in the sync processor. Forms, documents, referrals, and medication deliveries remain out of scope.

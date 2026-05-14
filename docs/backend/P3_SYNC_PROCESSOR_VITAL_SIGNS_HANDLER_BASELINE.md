@@ -103,3 +103,8 @@ P3-15 is complete when:
 - SyncBatchProcessor still marks unsupported entity types as conflict;
 - contract tests protect the vital_signs-only scope;
 - repository governance and database deployment gates remain green.
+---
+
+## 7. P3-16 service encounter handler note
+
+P3-16 adds service_encounter create handling. After P3-16, vital_signs create events that reference EncounterId can resolve encounters staged earlier in the same DbContext because service_encounter create is processed before vital_signs create.
