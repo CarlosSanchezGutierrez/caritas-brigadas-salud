@@ -90,7 +90,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             .ThenBy(syncEvent => syncEvent.Id)
             .ToArrayAsync(cancellationToken);
 
-        
+
         pendingEvents = pendingEvents
             .OrderBy(GetSyncProcessingOrder)
             .ThenBy(syncEvent => syncEvent.ReceivedAtServer)
