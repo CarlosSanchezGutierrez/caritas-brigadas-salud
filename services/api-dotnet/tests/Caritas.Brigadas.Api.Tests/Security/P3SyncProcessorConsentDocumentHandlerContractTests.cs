@@ -7,7 +7,7 @@ public sealed class P3SyncProcessorConsentDocumentHandlerContractTests
     [Fact]
     public void SyncBatchProcessor_HandlesConsentDocumentCreateOnly()
     {
-        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs"));
 
         var requiredTokens = new[]
         {

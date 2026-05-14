@@ -3,6 +3,7 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $DocPath = Join-Path $RepoRoot "docs/backend/P3_SYNC_PROCESSOR_PATIENT_VISIT_HANDLER_BASELINE.md"
 $ProcessorPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncBatchProcessor.cs"
+$OrderPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncProcessingOrder.cs"
 
 function Assert-FileExists {
     param([string]$Path)
@@ -26,9 +27,12 @@ function Assert-Contains {
 
 Assert-FileExists $DocPath
 Assert-FileExists $ProcessorPath
+Assert-FileExists $OrderPath
 
 $Doc = Get-Content $DocPath -Raw -Encoding UTF8
 $Processor = Get-Content $ProcessorPath -Raw -Encoding UTF8
+$Order = Get-Content $OrderPath -Raw -Encoding UTF8
+$ProcessorAndOrder = $Processor + $Order
 
 $RequiredDocTokens = @(
     "P3 Sync Processor Patient Visit Handler Baseline",
@@ -68,7 +72,7 @@ $RequiredProcessorTokens = @(
     "!acceptedVisitFoliosInBatch.Add(normalizedVisitFolio)",
     "GenerateSyncVisitFolio",
     "GetSyncProcessingOrder",
-    ".OrderBy(GetSyncProcessingOrder)",
+    ".OrderBy(SyncProcessingOrder.GetOrder)",
     "pendingEvents = pendingEvents",
     "return 0;",
     "return 1;",
@@ -76,7 +80,7 @@ $RequiredProcessorTokens = @(
 )
 
 foreach ($Token in $RequiredProcessorTokens) {
-    Assert-Contains $Processor $Token "SyncBatchProcessor patient visit handler"
+    Assert-Contains $ProcessorAndOrder $Token "SyncBatchProcessor patient visit handler"
 }
 
 $ForbiddenProcessorTokens = @(

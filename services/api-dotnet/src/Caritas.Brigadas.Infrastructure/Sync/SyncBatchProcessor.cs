@@ -92,25 +92,14 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
 
         pendingEvents = pendingEvents
-            .OrderBy(GetSyncProcessingOrder)
+            .OrderBy(SyncProcessingOrder.GetOrder)
             .ThenBy(syncEvent => syncEvent.ReceivedAtServer)
             .ThenBy(syncEvent => syncEvent.Id)
             .ToArray();
 
         var processedAt = DateTimeOffset.UtcNow;
         var processedCount = 0;
-        var acceptedPatientFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
-        var acceptedVisitFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
-        var acceptedVitalSignsIdsInBatch = new HashSet<Guid>();
-        var acceptedEncounterFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
-        var acceptedEncounterVisitServiceKeysInBatch = new HashSet<string>(StringComparer.Ordinal);
-        var acceptedFormResponseIdsInBatch = new HashSet<Guid>();
-        var acceptedFormResponseEncounterTemplateKeysInBatch = new HashSet<string>(StringComparer.Ordinal);
-        var acceptedConsentDocumentIdsInBatch = new HashSet<Guid>();
-        var acceptedConsentDocumentKeysInBatch = new HashSet<string>(StringComparer.Ordinal);
-        var acceptedMedicalReferralIdsInBatch = new HashSet<Guid>();
-        var acceptedMedicalReferralFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
-        var acceptedMedicationDeliveryIdsInBatch = new HashSet<Guid>();
+        var reservationState = new PendingBatchReservationState();
 
         foreach (var syncEvent in pendingEvents)
         {
@@ -132,7 +121,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     organizationId,
                     syncEvent,
                     processedAt,
-                    acceptedPatientFoliosInBatch,
+                    reservationState.AcceptedPatientFoliosInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -146,7 +135,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     batch,
                     syncEvent,
                     processedAt,
-                    acceptedVisitFoliosInBatch,
+                    reservationState.AcceptedVisitFoliosInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -160,8 +149,8 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     batch,
                     syncEvent,
                     processedAt,
-                    acceptedEncounterFoliosInBatch,
-                    acceptedEncounterVisitServiceKeysInBatch,
+                    reservationState.AcceptedEncounterFoliosInBatch,
+                    reservationState.AcceptedEncounterVisitServiceKeysInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -174,7 +163,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     batch,
                     syncEvent,
                     processedAt,
-                    acceptedVitalSignsIdsInBatch,
+                    reservationState.AcceptedVitalSignsIdsInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -187,8 +176,8 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     batch,
                     syncEvent,
                     processedAt,
-                    acceptedFormResponseIdsInBatch,
-                    acceptedFormResponseEncounterTemplateKeysInBatch,
+                    reservationState.AcceptedFormResponseIdsInBatch,
+                    reservationState.AcceptedFormResponseEncounterTemplateKeysInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -201,8 +190,8 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     batch,
                     syncEvent,
                     processedAt,
-                    acceptedConsentDocumentIdsInBatch,
-                    acceptedConsentDocumentKeysInBatch,
+                    reservationState.AcceptedConsentDocumentIdsInBatch,
+                    reservationState.AcceptedConsentDocumentKeysInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -215,8 +204,8 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     batch,
                     syncEvent,
                     processedAt,
-                    acceptedMedicalReferralIdsInBatch,
-                    acceptedMedicalReferralFoliosInBatch,
+                    reservationState.AcceptedMedicalReferralIdsInBatch,
+                    reservationState.AcceptedMedicalReferralFoliosInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -229,7 +218,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     batch,
                     syncEvent,
                     processedAt,
-                    acceptedMedicationDeliveryIdsInBatch,
+                    reservationState.AcceptedMedicationDeliveryIdsInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -277,58 +266,9 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
     private static int GetSyncProcessingOrder(SyncEvent syncEvent)
     {
-        if (syncEvent.EntityType == SyncEntityType.Patient &&
-            syncEvent.Operation == SyncOperation.Create)
-        {
-            return 0;
-        }
-
-        if (syncEvent.EntityType == SyncEntityType.PatientVisit &&
-            syncEvent.Operation == SyncOperation.Create)
-        {
-            return 1;
-        }
-
-        if (syncEvent.EntityType == SyncEntityType.ServiceEncounter &&
-            syncEvent.Operation == SyncOperation.Create)
-        {
-            return 2;
-        }
-
-        if (syncEvent.EntityType == SyncEntityType.VitalSigns &&
-            syncEvent.Operation == SyncOperation.Create)
-        {
-            return 3;
-        }
-
-        if (syncEvent.EntityType == SyncEntityType.FormResponse &&
-            syncEvent.Operation == SyncOperation.Create)
-        {
-            return 4;
-        }
-
-        if (syncEvent.EntityType == SyncEntityType.ConsentDocument &&
-            syncEvent.Operation == SyncOperation.Create)
-        {
-            return 5;
-        }
-
-        if (syncEvent.EntityType == SyncEntityType.MedicalReferral &&
-            syncEvent.Operation == SyncOperation.Create)
-        {
-            return 6;
-        }
-
-        if (syncEvent.EntityType == SyncEntityType.MedicationDelivery &&
-            syncEvent.Operation == SyncOperation.Create)
-        {
-            return 7;
-        }
-
-        return 8;
+        return SyncProcessingOrder.GetOrder(syncEvent);
     }
-
-    private async Task HandlePatientEventAsync(
+private async Task HandlePatientEventAsync(
         Guid organizationId,
         SyncEvent syncEvent,
         DateTimeOffset processedAt,

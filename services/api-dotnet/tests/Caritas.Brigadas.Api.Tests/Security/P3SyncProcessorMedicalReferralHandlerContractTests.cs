@@ -7,7 +7,7 @@ public sealed class P3SyncProcessorMedicalReferralHandlerContractTests
     [Fact]
     public void SyncBatchProcessor_HandlesMedicalReferralCreateOnly()
     {
-        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs"));
 
         var requiredTokens = new[]
         {
@@ -78,7 +78,7 @@ public sealed class P3SyncProcessorMedicalReferralHandlerContractTests
     [Fact]
     public void MedicalReferral_FolioDuplicateCheck_IncludesSoftDeletedRows()
     {
-        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs"));
 
         Assert.DoesNotMatch(
             "referral\\.Id == medicalReferralId[\\s\\S]{0,180}!referral\\.IsDeleted",

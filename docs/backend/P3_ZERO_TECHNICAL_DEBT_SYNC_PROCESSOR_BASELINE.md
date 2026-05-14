@@ -69,3 +69,8 @@ P3-22A is complete when:
 - repository governance baseline runs the zero technical debt verifier;
 - all previous P3 sync processor verifiers remain green;
 - dotnet build and dotnet test remain green.
+---
+
+## 6. P3-22B component extraction note
+
+P3-22B extracts SyncProcessingOrder and PendingBatchReservationState as internal components. New direct handlers remain forbidden until domain handlers are extracted into dedicated internal handler classes.

@@ -35,7 +35,7 @@ public sealed class P3SyncProcessorVitalSignsHandlerContractTests
     [Fact]
     public void SyncBatchProcessor_HandlesVitalSignsCreateOnly()
     {
-        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs"));
 
         var requiredTokens = new[]
         {

@@ -123,3 +123,5 @@ Write-Host "============================================================" -Foreg
 & (Join-Path $RepoRoot "scripts\verify-p3-sync-processor-integration-hardening.ps1")
 
 & (Join-Path $RepoRoot "scripts\verify-p3-zero-technical-debt-sync-processor.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-sync-processor-component-extraction.ps1")

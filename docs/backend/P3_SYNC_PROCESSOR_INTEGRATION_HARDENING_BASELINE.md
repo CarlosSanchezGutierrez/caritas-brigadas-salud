@@ -96,3 +96,8 @@ P3-21 is complete when:
 - MedicationDelivery global id duplicate behavior remains protected;
 - P3 sync processor contract tests do not contain implicitly typed empty arrays;
 - repository governance and database deployment gates remain green.
+---
+
+## 7. P3-22B component extraction note
+
+P3-22B moves topological ordering into SyncProcessingOrder and pending-batch reservation sets into PendingBatchReservationState without changing behavior.
