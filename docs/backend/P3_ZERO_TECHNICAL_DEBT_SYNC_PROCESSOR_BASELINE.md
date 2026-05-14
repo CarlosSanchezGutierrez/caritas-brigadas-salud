@@ -149,3 +149,8 @@ P3-22O removes temporary wrappers from SyncBatchProcessor and leaves direct hand
 ## 21. P3-22P clinical sync end-to-end test note
 
 P3-22P closes the primary sync processor refactor by validating the extracted handlers together in one processor-level clinical end-to-end test.
+---
+
+## 22. P3-23A ordering regression note
+
+P3-23A protects the direct-dispatch sync architecture by validating that same-batch clinical dependencies still succeed when offline clients upload events out of order.

@@ -13,9 +13,16 @@ public sealed class P3ClinicalSyncEndToEndTestContractTests
         {
             "P3ClinicalSyncEndToEndIntegrationTests",
             "SyncBatchProcessor_ProcessesCompleteClinicalOfflineBatchEndToEnd",
+            "SyncBatchProcessor_ProcessesOutOfOrderClinicalOfflineBatchUsingSyncProcessingOrder",
             "UseInMemoryDatabase",
             "CaritasDbContext",
             "new SyncBatchProcessor(dbContext)",
+            "SeedCompleteClinicalBatchAsync",
+            "AssertCompletedClinicalBatchAsync",
+            "reverseEventInsertionOrder: false",
+            "reverseEventInsertionOrder: true",
+            "events.Reverse();",
+            "dbContext.BrigadeServices.Add(new BrigadeService",
             "SyncEntityType.Patient",
             "SyncEntityType.PatientVisit",
             "SyncEntityType.ServiceEncounter",
@@ -28,7 +35,6 @@ public sealed class P3ClinicalSyncEndToEndTestContractTests
             "Assert.Equal(8, result.AcceptedCount)",
             "Assert.Equal(0, result.RejectedCount)",
             "Assert.Equal(0, result.ConflictCount)",
-            "dbContext.BrigadeServices.Add(new BrigadeService",
             "dbContext.Patients.CountAsync",
             "dbContext.PatientVisits.CountAsync",
             "dbContext.ServiceEncounters.CountAsync",
@@ -69,6 +75,31 @@ public sealed class P3ClinicalSyncEndToEndTestContractTests
         };
 
         AssertRequiredTokens(source, requiredTokens, "P3 clinical sync end-to-end test baseline");
+    }
+
+    [Fact]
+    public void ClinicalSyncOrderingRegressionBaseline_DefinesOutOfOrderCoverage()
+    {
+        var source = File.ReadAllText(GetDocPath("P3_CLINICAL_SYNC_ORDERING_REGRESSION_BASELINE.md"));
+
+        var requiredTokens = new[]
+        {
+            "P3 Clinical Sync Ordering Regression Baseline",
+            "SyncProcessingOrder.GetOrder",
+            "medication_delivery;",
+            "medical_referral;",
+            "consent_document;",
+            "form_response;",
+            "vital_signs;",
+            "service_encounter;",
+            "patient_visit;",
+            "patient.",
+            "reverseEventInsertionOrder: true",
+            "events.Reverse()",
+            "Acceptance criteria"
+        };
+
+        AssertRequiredTokens(source, requiredTokens, "P3 clinical sync ordering regression baseline");
     }
 
     private static void AssertRequiredTokens(
