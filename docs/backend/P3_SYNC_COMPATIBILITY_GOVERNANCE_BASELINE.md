@@ -49,11 +49,11 @@ Extracted handlers:
 - ServiceEncounterSyncEventHandler;
 - VitalSignsSyncEventHandler;
 - FormResponseSyncEventHandler;
-- ConsentDocumentSyncEventHandler.
+- ConsentDocumentSyncEventHandler;
+- MedicalReferralSyncEventHandler.
 
 Still pending extraction:
 
-- MedicalReferralSyncEventHandler;
 - MedicationDeliverySyncEventHandler.
 
 ---

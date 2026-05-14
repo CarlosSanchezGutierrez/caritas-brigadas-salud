@@ -6,6 +6,7 @@ $ProcessorPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.I
 $ServiceHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/ServiceEncounterSyncEventHandler.cs"
 $FormHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/FormResponseSyncEventHandler.cs"
 $ConsentHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/ConsentDocumentSyncEventHandler.cs"
+$ReferralHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/MedicalReferralSyncEventHandler.cs"
 
 function Assert-FileExists {
     param([string]$Path)
@@ -32,13 +33,15 @@ Assert-FileExists $ProcessorPath
 Assert-FileExists $ServiceHandlerPath
 Assert-FileExists $FormHandlerPath
 Assert-FileExists $ConsentHandlerPath
+Assert-FileExists $ReferralHandlerPath
 
 $Doc = Get-Content $DocPath -Raw -Encoding UTF8
 $Processor = Get-Content $ProcessorPath -Raw -Encoding UTF8
 $ServiceHandler = Get-Content $ServiceHandlerPath -Raw -Encoding UTF8
 $FormHandler = Get-Content $FormHandlerPath -Raw -Encoding UTF8
 $ConsentHandler = Get-Content $ConsentHandlerPath -Raw -Encoding UTF8
-$ProcessorAndServiceHandler = $Processor + $ServiceHandler + $FormHandler + $ConsentHandler
+$ReferralHandler = Get-Content $ReferralHandlerPath -Raw -Encoding UTF8
+$ProcessorAndServiceHandler = $Processor + $ServiceHandler + $FormHandler + $ConsentHandler + $ReferralHandler
 
 $RequiredDocTokens = @(
     "P3 Zero Technical Debt Sync Processor Baseline",

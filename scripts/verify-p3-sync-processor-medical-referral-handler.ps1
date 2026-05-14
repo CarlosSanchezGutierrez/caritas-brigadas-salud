@@ -5,6 +5,7 @@ $DocPath = Join-Path $RepoRoot "docs/backend/P3_SYNC_PROCESSOR_MEDICAL_REFERRAL_
 $RequestPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Contracts/MedicalReferrals/CreateMedicalReferralRequest.cs"
 $ProcessorPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncBatchProcessor.cs"
 $OrderPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncProcessingOrder.cs"
+$ReferralHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/MedicalReferralSyncEventHandler.cs"
 
 function Assert-FileExists {
     param([string]$Path)
@@ -30,12 +31,14 @@ Assert-FileExists $DocPath
 Assert-FileExists $RequestPath
 Assert-FileExists $ProcessorPath
 Assert-FileExists $OrderPath
+Assert-FileExists $ReferralHandlerPath
 
 $Doc = Get-Content $DocPath -Raw -Encoding UTF8
 $Request = Get-Content $RequestPath -Raw -Encoding UTF8
 $Processor = Get-Content $ProcessorPath -Raw -Encoding UTF8
 $Order = Get-Content $OrderPath -Raw -Encoding UTF8
-$ProcessorAndOrder = $Processor + $Order
+$ReferralHandler = Get-Content $ReferralHandlerPath -Raw -Encoding UTF8
+$ProcessorAndOrder = $Processor + $Order + $ReferralHandler
 
 $RequiredDocTokens = @(
     "P3 Sync Processor Medical Referral Handler Baseline",
@@ -107,6 +110,22 @@ foreach ($Token in $RequiredProcessorTokens) {
 }
 
 $ForbiddenProcessorTokens = @(
+    "out CreateMedicalReferralRequest? request",
+    "new MedicalReferral(",
+    "_dbContext.Set<MedicalReferral>().Add(medicalReferral)",
+    "medical_referral_operation_not_implemented",
+    "medical_referral_encounter_not_found",
+    "medical_referral_brigade_mismatch",
+    "medical_referral_patient_not_found",
+    "medical_referral_referred_by_user_not_found",
+    "medical_referral_provider_signature_not_supported_until_document_signature_handler",
+    "medical_referral_id_already_exists",
+    "medical_referral_folio_already_exists",
+    "medical_referral_folio_duplicate_in_pending_batch",
+    "GenerateSyncMedicalReferralFolio",
+    "medicalReferralIdReserved",
+    "medicalReferralFolioReserved",
+    "acceptedMedicalReferralIdsInBatch.Remove(medicalReferralId)"
 )
 
 foreach ($Token in $ForbiddenProcessorTokens) {
@@ -115,11 +134,11 @@ foreach ($Token in $ForbiddenProcessorTokens) {
     }
 }
 
-if ($Processor -match "referral\.Id == medicalReferralId[\s\S]{0,180}!referral\.IsDeleted") {
+if ($ReferralHandler -match "referral\.Id == medicalReferralId[\s\S]{0,180}!referral\.IsDeleted") {
     throw "MedicalReferral id duplicate check must include soft-deleted rows."
 }
 
-if ($Processor -match "referral\.ReferralFolio == normalizedReferralFolio[\s\S]{0,180}!referral\.IsDeleted") {
+if ($ReferralHandler -match "referral\.ReferralFolio == normalizedReferralFolio[\s\S]{0,180}!referral\.IsDeleted") {
     throw "MedicalReferral folio duplicate check must include soft-deleted rows because the unique index is not soft-delete filtered."
 }
 

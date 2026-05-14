@@ -2,28 +2,24 @@ using Xunit;
 
 namespace Caritas.Brigadas.Api.Tests.Security;
 
-public sealed class P3SyncProcessorMedicalReferralHandlerContractTests
+public sealed class P3MedicalReferralSyncEventHandlerExtractionContractTests
 {
     [Fact]
-    public void SyncBatchProcessor_HandlesMedicalReferralCreateOnly()
+    public void MedicalReferralSyncEventHandler_OwnsMedicalReferralCreateBehavior()
     {
-        var source =
-            File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) +
-            File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs")) +
-            File.ReadAllText(GetInfrastructurePath("Sync", "MedicalReferralSyncEventHandler.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "MedicalReferralSyncEventHandler.cs"));
 
         var requiredTokens = new[]
         {
-            "HandleMedicalReferralEventAsync",
-            "MedicalReferralSyncEventHandler",
-            "syncEvent.EntityType == SyncEntityType.MedicalReferral",
-            "syncEvent.Operation != SyncOperation.Create",
-            "medical_referral_operation_not_implemented",
+            "internal sealed class MedicalReferralSyncEventHandler",
+            "public async Task HandleAsync",
+            "SyncPayloadReader.TryReadObject",
             "out CreateMedicalReferralRequest? request",
             "new MedicalReferral(",
             "_dbContext.Set<MedicalReferral>().Add(medicalReferral)",
             "syncEvent.Accept(",
             "medicalReferral.Id",
+            "medical_referral_operation_not_implemented",
             "medical_referral_encounter_not_found",
             "medical_referral_brigade_mismatch",
             "medical_referral_patient_not_found",
@@ -35,21 +31,20 @@ public sealed class P3SyncProcessorMedicalReferralHandlerContractTests
             "acceptedMedicalReferralIdsInBatch",
             "acceptedMedicalReferralFoliosInBatch",
             "GenerateSyncMedicalReferralFolio",
+            "private static string GenerateSyncMedicalReferralFolio",
             "medicalReferralIdReserved",
             "medicalReferralFolioReserved",
             "acceptedMedicalReferralIdsInBatch.Remove(medicalReferralId)",
             "reserved only after successful MedicalReferral construction and reserved atomically",
             "Medical referral id duplicate checks include soft-deleted rows because primary key uniqueness is not filtered by IsDeleted",
-            "Medical referral folio duplicate checks include soft-deleted rows because database unique index is not filtered by IsDeleted",
-            "return 6;",
-            "return 7;"
+            "Medical referral folio duplicate checks include soft-deleted rows because database unique index is not filtered by IsDeleted"
         };
 
-        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor medical referral handler");
+        AssertRequiredTokens(source, requiredTokens, "MedicalReferralSyncEventHandler");
     }
 
     [Fact]
-    public void SyncBatchProcessor_DoesNotContainDirectMedicalReferralLogicAfterExtraction()
+    public void SyncBatchProcessor_DelegatesMedicalReferralCreateToMedicalReferralSyncEventHandler()
     {
         var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
 
@@ -61,7 +56,7 @@ public sealed class P3SyncProcessorMedicalReferralHandlerContractTests
             "await _medicalReferralSyncEventHandler.HandleAsync("
         };
 
-        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor medical referral wrapper");
+        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor medical referral handler extraction");
 
         var forbiddenTokens = new[]
         {
@@ -90,25 +85,22 @@ public sealed class P3SyncProcessorMedicalReferralHandlerContractTests
     }
 
     [Fact]
-    public void MedicalReferralHandlerBaseline_DefinesMedicalReferralOnlyScope()
+    public void MedicalReferralHandlerExtractionBaseline_DefinesSeventhHandlerExtraction()
     {
-        var source = File.ReadAllText(GetDocPath("P3_SYNC_PROCESSOR_MEDICAL_REFERRAL_HANDLER_BASELINE.md"));
+        var source = File.ReadAllText(GetDocPath("P3_MEDICAL_REFERRAL_SYNC_EVENT_HANDLER_EXTRACTION_BASELINE.md"));
 
         var requiredTokens = new[]
         {
-            "P3 Sync Processor Medical Referral Handler Baseline",
-            "EntityType: medical_referral",
-            "Operation: create",
-            "parse PayloadJson as CreateMedicalReferralRequest",
-            "derive PatientId from ServiceEncounter.PatientId, not from payload trust",
-            "reject ProviderSignatureId until the document_signature handler exists",
-            "ReferralFolio is the stable traceability key for printed/PDF passes",
-            "reserve pending-batch medical referral id and referral folio atomically",
-            "rollback the medical referral id reservation when referral folio reservation fails",
+            "P3 Medical Referral Sync Event Handler Extraction Baseline",
+            "MedicalReferralSyncEventHandler must own medical_referral/create payload parsing",
+            "SyncBatchProcessor must not directly construct MedicalReferral",
+            "SyncBatchProcessor must not directly parse CreateMedicalReferralRequest",
+            "SyncBatchProcessor must not contain GenerateSyncMedicalReferralFolio",
+            "Traceability requirement",
             "Acceptance criteria"
         };
 
-        AssertRequiredTokens(source, requiredTokens, "P3 sync processor medical referral handler baseline");
+        AssertRequiredTokens(source, requiredTokens, "P3 medical referral sync event handler extraction baseline");
     }
 
     private static void AssertRequiredTokens(
