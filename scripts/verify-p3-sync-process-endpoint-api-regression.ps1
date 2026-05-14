@@ -62,6 +62,10 @@ $RequiredTestTokens = @(
     "ProcessEndpoint_WhenAuthenticatedWithSyncWritePermission_ProcessesPendingBatch",
     "/api/v1/organizations/{organizationId}/sync-batches/{syncBatchId}/process",
     "UseInMemoryDatabase",
+    "services.RemoveAll<DbContextOptions<CaritasDbContext>>();",
+    "services.RemoveAll<DbContextOptions>();",
+    "services.RemoveAll<IDbContextOptionsConfiguration<CaritasDbContext>>();",
+    "services.AddScoped<ISyncBatchProcessor, SyncBatchProcessor>();",
     "SyncEntityType.Patient",
     "SyncOperation.Create",
     "Assert.Equal(HttpStatusCode.OK, response.StatusCode)",
@@ -70,6 +74,7 @@ $RequiredTestTokens = @(
     "acceptedCount",
     "rejectedCount",
     "conflictCount",
+    'batch.GetProperty("isCompleted")',
     "Assert.Equal(1, await dbContext.Patients.CountAsync(cancellationToken))",
     "Assert.Equal(SyncEventStatus.Accepted, syncEvent.Status)",
     "Assert.Equal(SyncBatchStatus.Completed, completedBatch.Status)"
@@ -77,6 +82,12 @@ $RequiredTestTokens = @(
 
 foreach ($Token in $RequiredTestTokens) {
     Assert-Contains $Test $Token "P3 sync process endpoint API regression test"
+}
+
+if ($Test.Contains('batch.GetProperty("acceptedCount")') -or
+    $Test.Contains('batch.GetProperty("rejectedCount")') -or
+    $Test.Contains('batch.GetProperty("conflictCount")')) {
+    throw "P3 sync process endpoint API regression test reads counters from data.batch instead of data."
 }
 
 $RequiredControllerTokens = @(

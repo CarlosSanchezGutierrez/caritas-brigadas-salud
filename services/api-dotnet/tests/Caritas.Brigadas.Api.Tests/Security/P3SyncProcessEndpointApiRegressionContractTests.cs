@@ -33,17 +33,21 @@ public sealed class P3SyncProcessEndpointApiRegressionContractTests
             "SyncOperation.Create",
             "Assert.Equal(HttpStatusCode.OK, response.StatusCode)",
             "Sync batch processed successfully.",
-            "batch.GetProperty(""isCompleted"")",
             "pendingEventsProcessed",
             "acceptedCount",
             "rejectedCount",
             "conflictCount",
+            "batch.GetProperty(\"isCompleted\")",
             "Assert.Equal(1, await dbContext.Patients.CountAsync(cancellationToken))",
             "Assert.Equal(SyncEventStatus.Accepted, syncEvent.Status)",
             "Assert.Equal(SyncBatchStatus.Completed, completedBatch.Status)"
         };
 
         AssertRequiredTokens(source, requiredTokens, "P3 sync process endpoint API regression test");
+
+        Assert.DoesNotContain("batch.GetProperty(\"acceptedCount\")", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("batch.GetProperty(\"rejectedCount\")", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("batch.GetProperty(\"conflictCount\")", source, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -78,7 +82,6 @@ public sealed class P3SyncProcessEndpointApiRegressionContractTests
             "PermissionCodes.SyncBatchesWrite",
             "401 Unauthorized",
             "Sync batch processed successfully.",
-            "batch.GetProperty(""isCompleted"")",
             "stale skeleton wording is removed",
             "Acceptance criteria"
         };

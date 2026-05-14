@@ -93,10 +93,7 @@ public sealed class P3SyncProcessEndpointIntegrationTests
         var batch = data.GetProperty("batch");
 
         Assert.Equal("completed", batch.GetProperty("status").GetString());
-        Assert.Equal(1, batch.GetProperty("acceptedCount").GetInt32());
-        Assert.Equal(0, batch.GetProperty("rejectedCount").GetInt32());
-        Assert.Equal(0, batch.GetProperty("conflictCount").GetInt32());
-
+        Assert.True(batch.GetProperty("isCompleted").GetBoolean());
         using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<CaritasDbContext>();
 
