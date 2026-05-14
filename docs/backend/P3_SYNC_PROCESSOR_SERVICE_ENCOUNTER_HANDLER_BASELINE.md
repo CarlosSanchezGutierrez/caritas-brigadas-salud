@@ -126,3 +126,8 @@ P3-19 adds medical_referral create handling. Medical referrals are valid after s
 ## 9. P3-20 medication delivery handler note
 
 P3-20 adds medication_delivery create handling. Medication deliveries are valid after service_encounter create because they are linked to ServiceEncounter through EncounterId and derive PatientId from the encounter.
+---
+
+## 10. P3-21 integration hardening note
+
+P3-21 requires ServiceEncounter pending-batch encounter folio and visit-service key reservations to be atomic with rollback when the second reservation fails.
