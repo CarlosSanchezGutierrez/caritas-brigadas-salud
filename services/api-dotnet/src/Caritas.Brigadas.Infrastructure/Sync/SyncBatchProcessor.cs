@@ -268,7 +268,8 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
     {
         return SyncProcessingOrder.GetOrder(syncEvent);
     }
-private async Task HandlePatientEventAsync(
+
+    private async Task HandlePatientEventAsync(
         Guid organizationId,
         SyncEvent syncEvent,
         DateTimeOffset processedAt,
@@ -298,7 +299,7 @@ private async Task HandlePatientEventAsync(
             return;
         }
 
-var patientId = syncEvent.EntityId ?? Guid.NewGuid();
+        var patientId = syncEvent.EntityId ?? Guid.NewGuid();
 
         var patientIdAlreadyExists = await _dbContext.Patients
             .AsNoTracking()
@@ -450,7 +451,7 @@ var patientId = syncEvent.EntityId ?? Guid.NewGuid();
             return;
         }
 
-if (request.PatientId == Guid.Empty)
+        if (request.PatientId == Guid.Empty)
         {
             syncEvent.Reject(
                 processedAt,
@@ -665,7 +666,7 @@ if (request.PatientId == Guid.Empty)
             return;
         }
 
-if (request.VisitId == Guid.Empty)
+        if (request.VisitId == Guid.Empty)
         {
             syncEvent.Reject(
                 processedAt,
@@ -965,7 +966,7 @@ if (request.VisitId == Guid.Empty)
             return;
         }
 
-if (request.PatientId == Guid.Empty)
+        if (request.PatientId == Guid.Empty)
         {
             syncEvent.Reject(
                 processedAt,
@@ -1189,7 +1190,7 @@ if (request.PatientId == Guid.Empty)
             return;
         }
 
-if (request.EncounterId == Guid.Empty)
+        if (request.EncounterId == Guid.Empty)
         {
             syncEvent.Reject(
                 processedAt,
@@ -1490,7 +1491,7 @@ if (request.EncounterId == Guid.Empty)
             return;
         }
 
-if (request.PatientId == Guid.Empty)
+        if (request.PatientId == Guid.Empty)
         {
             syncEvent.Reject(
                 processedAt,
@@ -1806,7 +1807,7 @@ if (request.PatientId == Guid.Empty)
             return;
         }
 
-if (request.EncounterId == Guid.Empty)
+        if (request.EncounterId == Guid.Empty)
         {
             syncEvent.Reject(
                 processedAt,
@@ -2053,7 +2054,7 @@ if (request.EncounterId == Guid.Empty)
             return;
         }
 
-if (request.EncounterId == Guid.Empty)
+        if (request.EncounterId == Guid.Empty)
         {
             syncEvent.Reject(
                 processedAt,
