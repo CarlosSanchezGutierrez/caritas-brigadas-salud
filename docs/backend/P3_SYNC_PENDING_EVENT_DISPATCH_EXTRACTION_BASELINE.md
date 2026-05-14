@@ -117,3 +117,8 @@ P3-22L extracts medical_referral/create behavior into MedicalReferralSyncEventHa
 ## 13. P3-22M medication delivery sync event handler extraction note
 
 P3-22M extracts medication_delivery/create behavior into MedicationDeliverySyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
+---
+
+## 14. P3-22O direct handler dispatch note
+
+P3-22O keeps ProcessPendingEventAsync but dispatches directly to extracted sync event handlers instead of temporary wrapper methods.

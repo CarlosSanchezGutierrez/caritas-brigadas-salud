@@ -14,7 +14,7 @@ public sealed class P3SyncProcessorFormResponseHandlerContractTests
 
         var requiredTokens = new[]
         {
-            "HandleFormResponseEventAsync",
+            "await _formResponseSyncEventHandler.HandleAsync(",
             "FormResponseSyncEventHandler",
             "SyncEntityType.FormResponse",
             "out CreateFormResponseRequest? request",
@@ -55,7 +55,7 @@ public sealed class P3SyncProcessorFormResponseHandlerContractTests
         {
             "private readonly FormResponseSyncEventHandler _formResponseSyncEventHandler;",
             "_formResponseSyncEventHandler = new FormResponseSyncEventHandler(dbContext, PayloadJsonOptions);",
-            "    private async Task HandleFormResponseEventAsync",
+            "await _formResponseSyncEventHandler.HandleAsync(",
             "await _formResponseSyncEventHandler.HandleAsync("
         };
 

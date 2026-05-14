@@ -53,7 +53,7 @@ foreach ($Token in $RequiredDocTokens) {
 }
 
 $RequiredTokens = @(
-    "HandleServiceEncounterEventAsync",
+    "await _serviceEncounterSyncEventHandler.HandleAsync(",
     "ServiceEncounterSyncEventHandler",
     "syncEvent.EntityType == SyncEntityType.ServiceEncounter",
     "syncEvent.Operation != SyncOperation.Create",
@@ -90,7 +90,7 @@ foreach ($Token in $RequiredTokens) {
 $RequiredProcessorTokens = @(
     "private readonly ServiceEncounterSyncEventHandler _serviceEncounterSyncEventHandler;",
     "_serviceEncounterSyncEventHandler = new ServiceEncounterSyncEventHandler(dbContext, PayloadJsonOptions);",
-    "    private async Task HandleServiceEncounterEventAsync",
+    "await _serviceEncounterSyncEventHandler.HandleAsync(",
     "await _serviceEncounterSyncEventHandler.HandleAsync("
 )
 

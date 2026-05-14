@@ -46,7 +46,7 @@ public sealed class P3VitalSignsSyncEventHandlerExtractionContractTests
         {
             "private readonly VitalSignsSyncEventHandler _vitalSignsSyncEventHandler;",
             "_vitalSignsSyncEventHandler = new VitalSignsSyncEventHandler(dbContext, PayloadJsonOptions);",
-            "    private async Task HandleVitalSignsEventAsync",
+            "    await _vitalSignsSyncEventHandler.HandleAsync(",
             "await _vitalSignsSyncEventHandler.HandleAsync("
         };
 

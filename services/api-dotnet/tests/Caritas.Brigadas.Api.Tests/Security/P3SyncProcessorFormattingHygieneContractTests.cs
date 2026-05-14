@@ -40,14 +40,14 @@ public sealed class P3SyncProcessorFormattingHygieneContractTests
 
         var requiredTokens = new[]
         {
-            "    private async Task HandlePatientEventAsync",
-            "    private async Task HandlePatientVisitEventAsync",
-            "    private async Task HandleServiceEncounterEventAsync",
-            "    private async Task HandleVitalSignsEventAsync",
-            "    private async Task HandleFormResponseEventAsync",
-            "    private async Task HandleConsentDocumentEventAsync",
-            "    private async Task HandleMedicalReferralEventAsync",
-            "    private async Task HandleMedicationDeliveryEventAsync",
+            "    await _patientSyncEventHandler.HandleAsync(",
+            "await _patientVisitSyncEventHandler.HandleAsync(",
+            "    await _serviceEncounterSyncEventHandler.HandleAsync(",
+            "    await _vitalSignsSyncEventHandler.HandleAsync(",
+            "await _formResponseSyncEventHandler.HandleAsync(",
+            "    await _consentDocumentSyncEventHandler.HandleAsync(",
+            "await _medicalReferralSyncEventHandler.HandleAsync(",
+            "await _medicationDeliverySyncEventHandler.HandleAsync(",
             ".OrderBy(SyncProcessingOrder.GetOrder)",
             "var reservationState = new PendingBatchReservationState();"
         };

@@ -52,7 +52,7 @@ public sealed class P3MedicalReferralSyncEventHandlerExtractionContractTests
         {
             "private readonly MedicalReferralSyncEventHandler _medicalReferralSyncEventHandler;",
             "_medicalReferralSyncEventHandler = new MedicalReferralSyncEventHandler(dbContext, PayloadJsonOptions);",
-            "    private async Task HandleMedicalReferralEventAsync",
+            "await _medicalReferralSyncEventHandler.HandleAsync(",
             "await _medicalReferralSyncEventHandler.HandleAsync("
         };
 

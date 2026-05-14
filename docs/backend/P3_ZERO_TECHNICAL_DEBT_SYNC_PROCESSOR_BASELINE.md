@@ -139,3 +139,8 @@ P3-22M completes primary domain handler extraction by moving medication_delivery
 ## 19. P3-22N post-extraction hygiene note
 
 P3-22N removes stale SyncBatchProcessor helpers and unused request-contract imports left behind after handler extraction.
+---
+
+## 20. P3-22O direct handler dispatch note
+
+P3-22O removes temporary wrappers from SyncBatchProcessor and leaves direct handler dispatch as the required zero-debt state.

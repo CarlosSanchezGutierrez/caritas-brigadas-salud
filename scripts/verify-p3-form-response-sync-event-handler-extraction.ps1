@@ -48,7 +48,7 @@ foreach ($Token in $RequiredDocTokens) {
 $RequiredProcessorTokens = @(
     "private readonly FormResponseSyncEventHandler _formResponseSyncEventHandler;",
     "_formResponseSyncEventHandler = new FormResponseSyncEventHandler(dbContext, PayloadJsonOptions);",
-    "    private async Task HandleFormResponseEventAsync",
+    "await _formResponseSyncEventHandler.HandleAsync(",
     "await _formResponseSyncEventHandler.HandleAsync("
 )
 

@@ -35,7 +35,7 @@ $FormHandler = Get-Content $FormHandlerPath -Raw -Encoding UTF8
 $ProcessorAndOrderAndFormHandler = $Processor + $Order + $FormHandler
 
 $RequiredTokens = @(
-    "HandleFormResponseEventAsync",
+    "await _formResponseSyncEventHandler.HandleAsync(",
     "FormResponseSyncEventHandler",
     "SyncEntityType.FormResponse",
     "out CreateFormResponseRequest? request",
@@ -71,7 +71,7 @@ foreach ($Token in $RequiredTokens) {
 $RequiredProcessorTokens = @(
     "private readonly FormResponseSyncEventHandler _formResponseSyncEventHandler;",
     "_formResponseSyncEventHandler = new FormResponseSyncEventHandler(dbContext, PayloadJsonOptions);",
-    "    private async Task HandleFormResponseEventAsync",
+    "await _formResponseSyncEventHandler.HandleAsync(",
     "await _formResponseSyncEventHandler.HandleAsync("
 )
 
