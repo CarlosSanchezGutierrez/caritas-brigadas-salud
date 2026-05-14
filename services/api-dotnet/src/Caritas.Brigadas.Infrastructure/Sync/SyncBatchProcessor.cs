@@ -92,25 +92,14 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
 
         pendingEvents = pendingEvents
-            .OrderBy(GetSyncProcessingOrder)
+            .OrderBy(SyncProcessingOrder.GetOrder)
             .ThenBy(syncEvent => syncEvent.ReceivedAtServer)
             .ThenBy(syncEvent => syncEvent.Id)
             .ToArray();
 
         var processedAt = DateTimeOffset.UtcNow;
         var processedCount = 0;
-        var acceptedPatientFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
-        var acceptedVisitFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
-        var acceptedVitalSignsIdsInBatch = new HashSet<Guid>();
-        var acceptedEncounterFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
-        var acceptedEncounterVisitServiceKeysInBatch = new HashSet<string>(StringComparer.Ordinal);
-        var acceptedFormResponseIdsInBatch = new HashSet<Guid>();
-        var acceptedFormResponseEncounterTemplateKeysInBatch = new HashSet<string>(StringComparer.Ordinal);
-        var acceptedConsentDocumentIdsInBatch = new HashSet<Guid>();
-        var acceptedConsentDocumentKeysInBatch = new HashSet<string>(StringComparer.Ordinal);
-        var acceptedMedicalReferralIdsInBatch = new HashSet<Guid>();
-        var acceptedMedicalReferralFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
-        var acceptedMedicationDeliveryIdsInBatch = new HashSet<Guid>();
+        var reservationState = new PendingBatchReservationState();
 
         foreach (var syncEvent in pendingEvents)
         {
@@ -132,7 +121,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     organizationId,
                     syncEvent,
                     processedAt,
-                    acceptedPatientFoliosInBatch,
+                    reservationState.AcceptedPatientFoliosInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -146,7 +135,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     batch,
                     syncEvent,
                     processedAt,
-                    acceptedVisitFoliosInBatch,
+                    reservationState.AcceptedVisitFoliosInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -160,8 +149,8 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     batch,
                     syncEvent,
                     processedAt,
-                    acceptedEncounterFoliosInBatch,
-                    acceptedEncounterVisitServiceKeysInBatch,
+                    reservationState.AcceptedEncounterFoliosInBatch,
+                    reservationState.AcceptedEncounterVisitServiceKeysInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -174,7 +163,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     batch,
                     syncEvent,
                     processedAt,
-                    acceptedVitalSignsIdsInBatch,
+                    reservationState.AcceptedVitalSignsIdsInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -187,8 +176,8 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     batch,
                     syncEvent,
                     processedAt,
-                    acceptedFormResponseIdsInBatch,
-                    acceptedFormResponseEncounterTemplateKeysInBatch,
+                    reservationState.AcceptedFormResponseIdsInBatch,
+                    reservationState.AcceptedFormResponseEncounterTemplateKeysInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -201,8 +190,8 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     batch,
                     syncEvent,
                     processedAt,
-                    acceptedConsentDocumentIdsInBatch,
-                    acceptedConsentDocumentKeysInBatch,
+                    reservationState.AcceptedConsentDocumentIdsInBatch,
+                    reservationState.AcceptedConsentDocumentKeysInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -215,8 +204,8 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     batch,
                     syncEvent,
                     processedAt,
-                    acceptedMedicalReferralIdsInBatch,
-                    acceptedMedicalReferralFoliosInBatch,
+                    reservationState.AcceptedMedicalReferralIdsInBatch,
+                    reservationState.AcceptedMedicalReferralFoliosInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -229,7 +218,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     batch,
                     syncEvent,
                     processedAt,
-                    acceptedMedicationDeliveryIdsInBatch,
+                    reservationState.AcceptedMedicationDeliveryIdsInBatch,
                     cancellationToken);
 
                 processedCount++;
@@ -277,58 +266,9 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
     private static int GetSyncProcessingOrder(SyncEvent syncEvent)
     {
-        if (syncEvent.EntityType == SyncEntityType.Patient &&
-            syncEvent.Operation == SyncOperation.Create)
-        {
-            return 0;
-        }
-
-        if (syncEvent.EntityType == SyncEntityType.PatientVisit &&
-            syncEvent.Operation == SyncOperation.Create)
-        {
-            return 1;
-        }
-
-        if (syncEvent.EntityType == SyncEntityType.ServiceEncounter &&
-            syncEvent.Operation == SyncOperation.Create)
-        {
-            return 2;
-        }
-
-        if (syncEvent.EntityType == SyncEntityType.VitalSigns &&
-            syncEvent.Operation == SyncOperation.Create)
-        {
-            return 3;
-        }
-
-        if (syncEvent.EntityType == SyncEntityType.FormResponse &&
-            syncEvent.Operation == SyncOperation.Create)
-        {
-            return 4;
-        }
-
-        if (syncEvent.EntityType == SyncEntityType.ConsentDocument &&
-            syncEvent.Operation == SyncOperation.Create)
-        {
-            return 5;
-        }
-
-        if (syncEvent.EntityType == SyncEntityType.MedicalReferral &&
-            syncEvent.Operation == SyncOperation.Create)
-        {
-            return 6;
-        }
-
-        if (syncEvent.EntityType == SyncEntityType.MedicationDelivery &&
-            syncEvent.Operation == SyncOperation.Create)
-        {
-            return 7;
-        }
-
-        return 8;
+        return SyncProcessingOrder.GetOrder(syncEvent);
     }
-
-    private async Task HandlePatientEventAsync(
+private async Task HandlePatientEventAsync(
         Guid organizationId,
         SyncEvent syncEvent,
         DateTimeOffset processedAt,
@@ -408,7 +348,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         var normalizedFolio = patientFolio.ToUpperInvariant();
 
-        if (acceptedPatientFoliosInBatch.Contains(normalizedFolio))
+        if (reservationState.AcceptedPatientFoliosInBatch.Contains(normalizedFolio))
         {
             syncEvent.MarkConflict(
                 processedAt,
@@ -479,7 +419,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
             patient.UpdateAdminNotes(request.NotesAdmin);
 
-            if (!acceptedPatientFoliosInBatch.Add(normalizedFolio))
+            if (!reservationState.AcceptedPatientFoliosInBatch.Add(normalizedFolio))
             {
                 syncEvent.MarkConflict(
                     processedAt,
@@ -676,7 +616,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         var normalizedVisitFolio = visitFolio.ToUpperInvariant();
 
-        if (acceptedVisitFoliosInBatch.Contains(normalizedVisitFolio))
+        if (reservationState.AcceptedVisitFoliosInBatch.Contains(normalizedVisitFolio))
         {
             syncEvent.MarkConflict(
                 processedAt,
@@ -716,7 +656,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 createdOffline: true,
                 deviceId: request.DeviceId ?? batch.DeviceId);
 
-            if (!acceptedVisitFoliosInBatch.Add(normalizedVisitFolio))
+            if (!reservationState.AcceptedVisitFoliosInBatch.Add(normalizedVisitFolio))
             {
                 syncEvent.MarkConflict(
                     processedAt,
@@ -953,7 +893,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         var normalizedEncounterFolio = encounterFolio.ToUpperInvariant();
 
-        if (acceptedEncounterFoliosInBatch.Contains(normalizedEncounterFolio))
+        if (reservationState.AcceptedEncounterFoliosInBatch.Contains(normalizedEncounterFolio))
         {
             syncEvent.MarkConflict(
                 processedAt,
@@ -982,7 +922,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         var visitServiceKey = $"{request.VisitId:N}:{service.Id:N}";
 
-        if (acceptedEncounterVisitServiceKeysInBatch.Contains(visitServiceKey))
+        if (reservationState.AcceptedEncounterVisitServiceKeysInBatch.Contains(visitServiceKey))
         {
             syncEvent.MarkConflict(
                 processedAt,
@@ -1025,7 +965,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 deviceId: request.DeviceId ?? batch.DeviceId);
 
             // Pending-batch encounter folio and visit-service keys are reserved only after successful ServiceEncounter construction and reserved atomically.
-            var encounterFolioReserved = acceptedEncounterFoliosInBatch.Add(normalizedEncounterFolio);
+            var encounterFolioReserved = reservationState.AcceptedEncounterFoliosInBatch.Add(normalizedEncounterFolio);
 
             if (!encounterFolioReserved)
             {
@@ -1036,11 +976,11 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 return;
             }
 
-            var encounterVisitServiceKeyReserved = acceptedEncounterVisitServiceKeysInBatch.Add(visitServiceKey);
+            var encounterVisitServiceKeyReserved = reservationState.AcceptedEncounterVisitServiceKeysInBatch.Add(visitServiceKey);
 
             if (!encounterVisitServiceKeyReserved)
             {
-                acceptedEncounterFoliosInBatch.Remove(normalizedEncounterFolio);
+                reservationState.AcceptedEncounterFoliosInBatch.Remove(normalizedEncounterFolio);
 
                 syncEvent.MarkConflict(
                     processedAt,
@@ -1239,7 +1179,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         var vitalSignsRecordId = syncEvent.EntityId ?? Guid.NewGuid();
 
         var vitalSignsIdAlreadyExists =
-            acceptedVitalSignsIdsInBatch.Contains(vitalSignsRecordId) ||
+            reservationState.AcceptedVitalSignsIdsInBatch.Contains(vitalSignsRecordId) ||
             _dbContext.VitalSignsRecords.Local.Any(record =>
                 record.Id == vitalSignsRecordId &&
                 record.OrganizationId == organizationId &&
@@ -1264,7 +1204,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         try
         {
-            if (!acceptedVitalSignsIdsInBatch.Add(vitalSignsRecordId))
+            if (!reservationState.AcceptedVitalSignsIdsInBatch.Add(vitalSignsRecordId))
             {
                 syncEvent.MarkConflict(
                     processedAt,
@@ -1525,7 +1465,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         var formResponseId = syncEvent.EntityId ?? Guid.NewGuid();
 
         var formResponseIdAlreadyExists =
-            acceptedFormResponseIdsInBatch.Contains(formResponseId) ||
+            reservationState.AcceptedFormResponseIdsInBatch.Contains(formResponseId) ||
             _dbContext.FormResponses.Local.Any(response =>
                 response.Id == formResponseId &&
                 response.OrganizationId == organizationId &&
@@ -1550,7 +1490,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         var encounterTemplateKey = $"{request.EncounterId:N}:{request.FormTemplateId:N}";
 
-        if (acceptedFormResponseEncounterTemplateKeysInBatch.Contains(encounterTemplateKey))
+        if (reservationState.AcceptedFormResponseEncounterTemplateKeysInBatch.Contains(encounterTemplateKey))
         {
             syncEvent.MarkConflict(
                 processedAt,
@@ -1596,7 +1536,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             }
 
             // Pending-batch form response id and encounter-template keys are reserved only after successful FormResponse construction and reserved atomically.
-            var formResponseIdReserved = acceptedFormResponseIdsInBatch.Add(formResponseId);
+            var formResponseIdReserved = reservationState.AcceptedFormResponseIdsInBatch.Add(formResponseId);
 
             if (!formResponseIdReserved)
             {
@@ -1607,11 +1547,11 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 return;
             }
 
-            var formResponseEncounterTemplateKeyReserved = acceptedFormResponseEncounterTemplateKeysInBatch.Add(encounterTemplateKey);
+            var formResponseEncounterTemplateKeyReserved = reservationState.AcceptedFormResponseEncounterTemplateKeysInBatch.Add(encounterTemplateKey);
 
             if (!formResponseEncounterTemplateKeyReserved)
             {
-                acceptedFormResponseIdsInBatch.Remove(formResponseId);
+                reservationState.AcceptedFormResponseIdsInBatch.Remove(formResponseId);
 
                 syncEvent.MarkConflict(
                     processedAt,
@@ -1801,7 +1741,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         var consentDocumentId = syncEvent.EntityId ?? Guid.NewGuid();
 
         var consentDocumentIdAlreadyExists =
-            acceptedConsentDocumentIdsInBatch.Contains(consentDocumentId) ||
+            reservationState.AcceptedConsentDocumentIdsInBatch.Contains(consentDocumentId) ||
             _dbContext.Set<ConsentDocument>().Local.Any(document =>
                 document.Id == consentDocumentId &&
                 document.OrganizationId == organizationId &&
@@ -1830,7 +1770,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         var consentDocumentKey =
             $"{request.PatientId:N}:{(request.VisitId.HasValue ? request.VisitId.Value.ToString("N") : "no_visit")}:{normalizedConsentType}:{normalizedDocumentVersion}";
 
-        if (acceptedConsentDocumentKeysInBatch.Contains(consentDocumentKey))
+        if (reservationState.AcceptedConsentDocumentKeysInBatch.Contains(consentDocumentKey))
         {
             syncEvent.MarkConflict(
                 processedAt,
@@ -1882,7 +1822,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 request.DeviceId ?? batch.DeviceId);
 
             // Pending-batch consent document id and patient-visit-type-version keys are reserved only after successful ConsentDocument construction and reserved atomically.
-            var consentDocumentIdReserved = acceptedConsentDocumentIdsInBatch.Add(consentDocumentId);
+            var consentDocumentIdReserved = reservationState.AcceptedConsentDocumentIdsInBatch.Add(consentDocumentId);
 
             if (!consentDocumentIdReserved)
             {
@@ -1893,11 +1833,11 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 return;
             }
 
-            var consentDocumentKeyReserved = acceptedConsentDocumentKeysInBatch.Add(consentDocumentKey);
+            var consentDocumentKeyReserved = reservationState.AcceptedConsentDocumentKeysInBatch.Add(consentDocumentKey);
 
             if (!consentDocumentKeyReserved)
             {
-                acceptedConsentDocumentIdsInBatch.Remove(consentDocumentId);
+                reservationState.AcceptedConsentDocumentIdsInBatch.Remove(consentDocumentId);
 
                 syncEvent.MarkConflict(
                     processedAt,
@@ -2134,7 +2074,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         // Medical referral id duplicate checks include soft-deleted rows because primary key uniqueness is not filtered by IsDeleted.
         var medicalReferralIdAlreadyExists =
-            acceptedMedicalReferralIdsInBatch.Contains(medicalReferralId) ||
+            reservationState.AcceptedMedicalReferralIdsInBatch.Contains(medicalReferralId) ||
             _dbContext.Set<MedicalReferral>().Local.Any(referral =>
                 referral.Id == medicalReferralId &&
                 referral.OrganizationId == organizationId) ||
@@ -2161,7 +2101,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         var normalizedReferralFolio = referralFolio.ToUpperInvariant();
 
-        if (acceptedMedicalReferralFoliosInBatch.Contains(normalizedReferralFolio))
+        if (reservationState.AcceptedMedicalReferralFoliosInBatch.Contains(normalizedReferralFolio))
         {
             syncEvent.MarkConflict(
                 processedAt,
@@ -2206,7 +2146,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 request.ReferredByUserId);
 
             // Pending-batch medical referral id and referral folio are reserved only after successful MedicalReferral construction and reserved atomically.
-            var medicalReferralIdReserved = acceptedMedicalReferralIdsInBatch.Add(medicalReferralId);
+            var medicalReferralIdReserved = reservationState.AcceptedMedicalReferralIdsInBatch.Add(medicalReferralId);
 
             if (!medicalReferralIdReserved)
             {
@@ -2217,11 +2157,11 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 return;
             }
 
-            var medicalReferralFolioReserved = acceptedMedicalReferralFoliosInBatch.Add(normalizedReferralFolio);
+            var medicalReferralFolioReserved = reservationState.AcceptedMedicalReferralFoliosInBatch.Add(normalizedReferralFolio);
 
             if (!medicalReferralFolioReserved)
             {
-                acceptedMedicalReferralIdsInBatch.Remove(medicalReferralId);
+                reservationState.AcceptedMedicalReferralIdsInBatch.Remove(medicalReferralId);
 
                 syncEvent.MarkConflict(
                     processedAt,
@@ -2413,7 +2353,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         // Medication delivery id duplicate checks include globally duplicated ids because primary key uniqueness is not tenant-scoped.
         var medicationDeliveryIdAlreadyExists =
-            acceptedMedicationDeliveryIdsInBatch.Contains(medicationDeliveryId) ||
+            reservationState.AcceptedMedicationDeliveryIdsInBatch.Contains(medicationDeliveryId) ||
             _dbContext.Set<MedicationDelivery>().Local.Any(delivery =>
                 delivery.Id == medicationDeliveryId) ||
             await _dbContext.Set<MedicationDelivery>()
@@ -2459,7 +2399,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             }
 
             // Pending-batch medication delivery id is reserved only after successful MedicationDelivery construction and optional delivered transition.
-            if (!acceptedMedicationDeliveryIdsInBatch.Add(medicationDeliveryId))
+            if (!reservationState.AcceptedMedicationDeliveryIdsInBatch.Add(medicationDeliveryId))
             {
                 syncEvent.MarkConflict(
                     processedAt,
