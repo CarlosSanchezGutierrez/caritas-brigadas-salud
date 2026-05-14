@@ -155,3 +155,10 @@ P3-25A is complete when:
 - all required sync API regression files exist;
 - governance validation includes the readiness verifier;
 - dotnet build and dotnet test pass.
+---
+
+## 12. P3-26A production deployment readiness note
+
+P3-26A moves the project from backend sync readiness into production deployment readiness governance.
+
+Production go-live remains blocked until P3-26B authentication hardening and P3-26C SQL Server integration smoke testing are complete.
