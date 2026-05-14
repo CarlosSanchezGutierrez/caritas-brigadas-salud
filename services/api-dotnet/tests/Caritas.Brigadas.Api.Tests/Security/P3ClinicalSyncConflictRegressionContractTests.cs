@@ -24,7 +24,7 @@ public sealed class P3ClinicalSyncConflictRegressionContractTests
             "SyncEventStatus.Accepted",
             "SyncEventStatus.Conflict",
             "patient_folio_duplicate_in_pending_batch",
-            "Assert.Equal(SyncBatchStatus.Completed, completedBatch.Status)",
+            "Assert.Equal(SyncBatchStatus.CompletedWithErrors, completedBatch.Status)",
             "Assert.Equal(1, completedBatch.AcceptedCount)",
             "Assert.Equal(0, completedBatch.RejectedCount)",
             "Assert.Equal(1, completedBatch.ConflictCount)"
@@ -47,6 +47,7 @@ public sealed class P3ClinicalSyncConflictRegressionContractTests
             "RejectedCount equals 0",
             "ConflictCount equals 1",
             "patient_folio_duplicate_in_pending_batch",
+            "completed_with_errors",
             "Controlled conflicts are expected domain outcomes",
             "Acceptance criteria"
         };

@@ -489,7 +489,7 @@ public sealed class P3ClinicalSyncEndToEndIntegrationTests
 
         var completedBatch = await dbContext.SyncBatches.SingleAsync(cancellationToken);
 
-        Assert.Equal(SyncBatchStatus.Completed, completedBatch.Status);
+        Assert.Equal(SyncBatchStatus.CompletedWithErrors, completedBatch.Status);
         Assert.Equal(1, completedBatch.AcceptedCount);
         Assert.Equal(0, completedBatch.RejectedCount);
         Assert.Equal(1, completedBatch.ConflictCount);

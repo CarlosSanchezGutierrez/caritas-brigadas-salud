@@ -39,7 +39,7 @@ The test must assert:
 - one SyncEvent is accepted;
 - one SyncEvent is conflict;
 - the conflict reason contains patient_folio_duplicate_in_pending_batch;
-- SyncBatch status is completed.
+- SyncBatch status is completed_with_errors because controlled conflicts are completed with errors.
 
 ---
 
@@ -70,5 +70,5 @@ P3-23B is complete when:
 - the test uses CaritasDbContext;
 - the test persists one Patient;
 - the test produces one accepted SyncEvent and one conflict SyncEvent;
-- the batch completes with 1 accepted, 0 rejected, and 1 conflict;
+- the batch completes_with_errors with 1 accepted, 0 rejected, and 1 conflict;
 - dotnet build and dotnet test pass.
