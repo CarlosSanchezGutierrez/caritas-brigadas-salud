@@ -604,7 +604,7 @@ public sealed class P3ClinicalSyncEndToEndIntegrationTests
         Assert.Equal("002-patient-invalid-json", rejectedEvent.LocalEventId);
         Assert.Contains(
             "Sync event payload JSON is invalid.",
-            rejectedEvent.RejectionReason,
+            rejectedEvent.ErrorMessage,
             StringComparison.Ordinal);
 
         var completedBatch = await dbContext.SyncBatches.SingleAsync(cancellationToken);
