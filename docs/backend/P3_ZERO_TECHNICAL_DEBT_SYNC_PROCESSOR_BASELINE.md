@@ -144,3 +144,8 @@ P3-22N removes stale SyncBatchProcessor helpers and unused request-contract impo
 ## 20. P3-22O direct handler dispatch note
 
 P3-22O removes temporary wrappers from SyncBatchProcessor and leaves direct handler dispatch as the required zero-debt state.
+---
+
+## 21. P3-22P clinical sync end-to-end test note
+
+P3-22P closes the primary sync processor refactor by validating the extracted handlers together in one processor-level clinical end-to-end test.
