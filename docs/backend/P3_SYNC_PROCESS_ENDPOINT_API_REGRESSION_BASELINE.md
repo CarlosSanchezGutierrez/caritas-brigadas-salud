@@ -90,3 +90,8 @@ P3-24A is complete when:
 - the endpoint response is validated as ApiResponse JSON;
 - stale skeleton wording is removed;
 - dotnet build and dotnet test pass.
+---
+
+## 8. P3-24B create batch endpoint API regression note
+
+P3-24B validates the HTTP sync batch intake route separately from the sync batch process route.
