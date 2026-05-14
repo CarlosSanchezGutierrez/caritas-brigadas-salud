@@ -30,6 +30,10 @@ public sealed class P3SyncProcessorConsentDocumentHandlerContractTests
             "acceptedConsentDocumentIdsInBatch",
             "acceptedConsentDocumentKeysInBatch",
             "reserved only after successful ConsentDocument construction",
+            "reserved atomically",
+            "consentDocumentIdReserved",
+            "consentDocumentKeyReserved",
+            "acceptedConsentDocumentIdsInBatch.Remove(consentDocumentId)",
             "return 5;",
             "return 6;"
         };
@@ -63,6 +67,7 @@ public sealed class P3SyncProcessorConsentDocumentHandlerContractTests
             "preserve DocumentTextSnapshot as the legal text snapshot",
             "preserve SignatureDataUrl as the captured signature evidence",
             "processor response must not expose SignatureDataUrl",
+            "rollback the consent document id reservation when patient-visit-type-version key reservation fails",
             "consent_document update is not implemented in P3-18",
             "document_signature standalone sync is not implemented in P3-18",
             "Acceptance criteria"

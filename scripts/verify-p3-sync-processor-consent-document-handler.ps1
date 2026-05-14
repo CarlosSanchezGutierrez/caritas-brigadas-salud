@@ -90,6 +90,10 @@ $RequiredProcessorTokens = @(
     "acceptedConsentDocumentIdsInBatch",
     "acceptedConsentDocumentKeysInBatch",
     "reserved only after successful ConsentDocument construction",
+    "reserved atomically",
+    "consentDocumentIdReserved",
+    "consentDocumentKeyReserved",
+    "acceptedConsentDocumentIdsInBatch.Remove(consentDocumentId)",
     "return 5;",
     "return 6;"
 )
