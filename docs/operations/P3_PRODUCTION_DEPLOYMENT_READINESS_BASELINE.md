@@ -189,3 +189,10 @@ P3-26A is complete when:
 P3-26B formalizes that Development and Disabled authentication modes are prohibited outside Development.
 
 Production authentication must use JWT Bearer configuration and must not rely on X-Dev-* headers.
+---
+
+## 13. P3-26C SQL Server integration smoke test note
+
+P3-26C adds an opt-in SQL Server smoke test script.
+
+Production go-live remains blocked until the SQL Server smoke script is executed successfully against a controlled smoke or staging database and the execution evidence is attached to the deployment record.
