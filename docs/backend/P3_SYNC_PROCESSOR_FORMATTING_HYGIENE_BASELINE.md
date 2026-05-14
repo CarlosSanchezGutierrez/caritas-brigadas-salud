@@ -54,3 +54,8 @@ P3-22D is complete when:
 - repository governance baseline runs the formatting hygiene verifier;
 - all previous P3 sync processor verifiers remain green;
 - dotnet build and dotnet test remain green.
+---
+
+## 5. P3-22E pending event dispatch extraction note
+
+P3-22E extracts per-event dispatch from ProcessAsync into ProcessPendingEventAsync while preserving existing handler behavior.

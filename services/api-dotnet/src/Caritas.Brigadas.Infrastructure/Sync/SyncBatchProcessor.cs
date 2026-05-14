@@ -103,130 +103,13 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         foreach (var syncEvent in pendingEvents)
         {
-            syncEvent.MarkProcessing();
-
-            if (!TryValidateEvent(syncEvent, out var rejectionReason))
-            {
-                syncEvent.Reject(
-                    processedAt,
-                    rejectionReason ?? "Sync event payload is invalid.");
-
-                processedCount++;
-                continue;
-            }
-
-            if (syncEvent.EntityType == SyncEntityType.Patient)
-            {
-                await HandlePatientEventAsync(
-                    organizationId,
-                    syncEvent,
-                    processedAt,
-                    reservationState.AcceptedPatientFoliosInBatch,
-                    cancellationToken);
-
-                processedCount++;
-                continue;
-            }
-
-            if (syncEvent.EntityType == SyncEntityType.PatientVisit)
-            {
-                await HandlePatientVisitEventAsync(
-                    organizationId,
-                    batch,
-                    syncEvent,
-                    processedAt,
-                    reservationState.AcceptedVisitFoliosInBatch,
-                    cancellationToken);
-
-                processedCount++;
-                continue;
-            }
-
-            if (syncEvent.EntityType == SyncEntityType.ServiceEncounter)
-            {
-                await HandleServiceEncounterEventAsync(
-                    organizationId,
-                    batch,
-                    syncEvent,
-                    processedAt,
-                    reservationState.AcceptedEncounterFoliosInBatch,
-                    reservationState.AcceptedEncounterVisitServiceKeysInBatch,
-                    cancellationToken);
-
-                processedCount++;
-                continue;
-            }
-            if (syncEvent.EntityType == SyncEntityType.VitalSigns)
-            {
-                await HandleVitalSignsEventAsync(
-                    organizationId,
-                    batch,
-                    syncEvent,
-                    processedAt,
-                    reservationState.AcceptedVitalSignsIdsInBatch,
-                    cancellationToken);
-
-                processedCount++;
-                continue;
-            }
-            if (syncEvent.EntityType == SyncEntityType.FormResponse)
-            {
-                await HandleFormResponseEventAsync(
-                    organizationId,
-                    batch,
-                    syncEvent,
-                    processedAt,
-                    reservationState.AcceptedFormResponseIdsInBatch,
-                    reservationState.AcceptedFormResponseEncounterTemplateKeysInBatch,
-                    cancellationToken);
-
-                processedCount++;
-                continue;
-            }
-            if (syncEvent.EntityType == SyncEntityType.ConsentDocument)
-            {
-                await HandleConsentDocumentEventAsync(
-                    organizationId,
-                    batch,
-                    syncEvent,
-                    processedAt,
-                    reservationState.AcceptedConsentDocumentIdsInBatch,
-                    reservationState.AcceptedConsentDocumentKeysInBatch,
-                    cancellationToken);
-
-                processedCount++;
-                continue;
-            }
-            if (syncEvent.EntityType == SyncEntityType.MedicalReferral)
-            {
-                await HandleMedicalReferralEventAsync(
-                    organizationId,
-                    batch,
-                    syncEvent,
-                    processedAt,
-                    reservationState.AcceptedMedicalReferralIdsInBatch,
-                    reservationState.AcceptedMedicalReferralFoliosInBatch,
-                    cancellationToken);
-
-                processedCount++;
-                continue;
-            }
-            if (syncEvent.EntityType == SyncEntityType.MedicationDelivery)
-            {
-                await HandleMedicationDeliveryEventAsync(
-                    organizationId,
-                    batch,
-                    syncEvent,
-                    processedAt,
-                    reservationState.AcceptedMedicationDeliveryIdsInBatch,
-                    cancellationToken);
-
-                processedCount++;
-                continue;
-            }
-            syncEvent.MarkConflict(
+            await ProcessPendingEventAsync(
+                organizationId,
+                batch,
+                syncEvent,
                 processedAt,
-                SkeletonConflictReason);
+                reservationState,
+                cancellationToken);
 
             processedCount++;
         }
@@ -264,6 +147,136 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         };
     }
 
+    private async Task ProcessPendingEventAsync(
+        Guid organizationId,
+        SyncBatch batch,
+        SyncEvent syncEvent,
+        DateTimeOffset processedAt,
+        PendingBatchReservationState reservationState,
+        CancellationToken cancellationToken)
+    {
+        syncEvent.MarkProcessing();
+
+        if (!TryValidateEvent(syncEvent, out var rejectionReason))
+        {
+            syncEvent.Reject(
+                processedAt,
+                rejectionReason ?? "Sync event payload is invalid.");
+
+            return;
+        }
+
+        if (syncEvent.EntityType == SyncEntityType.Patient)
+        {
+            await HandlePatientEventAsync(
+                organizationId,
+                syncEvent,
+                processedAt,
+                reservationState.AcceptedPatientFoliosInBatch,
+                cancellationToken);
+
+            return;
+        }
+
+        if (syncEvent.EntityType == SyncEntityType.PatientVisit)
+        {
+            await HandlePatientVisitEventAsync(
+                organizationId,
+                batch,
+                syncEvent,
+                processedAt,
+                reservationState.AcceptedVisitFoliosInBatch,
+                cancellationToken);
+
+            return;
+        }
+
+        if (syncEvent.EntityType == SyncEntityType.ServiceEncounter)
+        {
+            await HandleServiceEncounterEventAsync(
+                organizationId,
+                batch,
+                syncEvent,
+                processedAt,
+                reservationState.AcceptedEncounterFoliosInBatch,
+                reservationState.AcceptedEncounterVisitServiceKeysInBatch,
+                cancellationToken);
+
+            return;
+        }
+
+        if (syncEvent.EntityType == SyncEntityType.VitalSigns)
+        {
+            await HandleVitalSignsEventAsync(
+                organizationId,
+                batch,
+                syncEvent,
+                processedAt,
+                reservationState.AcceptedVitalSignsIdsInBatch,
+                cancellationToken);
+
+            return;
+        }
+
+        if (syncEvent.EntityType == SyncEntityType.FormResponse)
+        {
+            await HandleFormResponseEventAsync(
+                organizationId,
+                batch,
+                syncEvent,
+                processedAt,
+                reservationState.AcceptedFormResponseIdsInBatch,
+                reservationState.AcceptedFormResponseEncounterTemplateKeysInBatch,
+                cancellationToken);
+
+            return;
+        }
+
+        if (syncEvent.EntityType == SyncEntityType.ConsentDocument)
+        {
+            await HandleConsentDocumentEventAsync(
+                organizationId,
+                batch,
+                syncEvent,
+                processedAt,
+                reservationState.AcceptedConsentDocumentIdsInBatch,
+                reservationState.AcceptedConsentDocumentKeysInBatch,
+                cancellationToken);
+
+            return;
+        }
+
+        if (syncEvent.EntityType == SyncEntityType.MedicalReferral)
+        {
+            await HandleMedicalReferralEventAsync(
+                organizationId,
+                batch,
+                syncEvent,
+                processedAt,
+                reservationState.AcceptedMedicalReferralIdsInBatch,
+                reservationState.AcceptedMedicalReferralFoliosInBatch,
+                cancellationToken);
+
+            return;
+        }
+
+        if (syncEvent.EntityType == SyncEntityType.MedicationDelivery)
+        {
+            await HandleMedicationDeliveryEventAsync(
+                organizationId,
+                batch,
+                syncEvent,
+                processedAt,
+                reservationState.AcceptedMedicationDeliveryIdsInBatch,
+                cancellationToken);
+
+            return;
+        }
+
+        syncEvent.MarkConflict(
+            processedAt,
+            SkeletonConflictReason);
+    }
     private static int GetSyncProcessingOrder(SyncEvent syncEvent)
     {
         return SyncProcessingOrder.GetOrder(syncEvent);
