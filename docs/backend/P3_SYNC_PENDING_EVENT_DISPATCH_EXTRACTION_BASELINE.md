@@ -107,3 +107,8 @@ P3-22J extracts form_response/create behavior into FormResponseSyncEventHandler 
 ## 11. P3-22K consent document sync event handler extraction note
 
 P3-22K extracts consent_document/create behavior into ConsentDocumentSyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
+---
+
+## 12. P3-22L medical referral sync event handler extraction note
+
+P3-22L extracts medical_referral/create behavior into MedicalReferralSyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.

@@ -95,3 +95,8 @@ P3-22K is complete when:
 - ConsentDocumentSyncEventHandler contains the previous consent_document/create behavior;
 - all previous P3 sync processor verifiers remain green;
 - dotnet build and dotnet test remain green.
+---
+
+## 6. P3-22L medical referral sync event handler extraction note
+
+P3-22L extracts medical_referral/create behavior into MedicalReferralSyncEventHandler while preserving ProcessPendingEventAsync dispatch behavior.

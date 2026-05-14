@@ -7,7 +7,7 @@ public sealed class P3SyncProcessorIntegrationHardeningContractTests
     [Fact]
     public void SyncBatchProcessor_KeepsTopologicalCreateOrder()
     {
-        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "ServiceEncounterSyncEventHandler.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "FormResponseSyncEventHandler.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "ConsentDocumentSyncEventHandler.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "ServiceEncounterSyncEventHandler.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "FormResponseSyncEventHandler.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "ConsentDocumentSyncEventHandler.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "MedicalReferralSyncEventHandler.cs"));
 
         var requiredTokens = new[]
         {
@@ -37,7 +37,7 @@ public sealed class P3SyncProcessorIntegrationHardeningContractTests
     [Fact]
     public void SyncBatchProcessor_UsesAtomicMultiKeyPendingBatchReservations()
     {
-        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "ServiceEncounterSyncEventHandler.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "FormResponseSyncEventHandler.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "ConsentDocumentSyncEventHandler.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "ServiceEncounterSyncEventHandler.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "FormResponseSyncEventHandler.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "ConsentDocumentSyncEventHandler.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "MedicalReferralSyncEventHandler.cs"));
 
         var requiredTokens = new[]
         {
