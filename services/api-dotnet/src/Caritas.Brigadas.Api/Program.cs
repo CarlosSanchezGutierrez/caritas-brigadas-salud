@@ -1,3 +1,6 @@
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Caritas.Brigadas.Api.Health;
 using Microsoft.AspNetCore.HttpOverrides;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
@@ -201,8 +204,28 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapHealthChecks("/health/live");
-app.MapHealthChecks("/health/ready");
+app.MapHealthChecks(
+    "/health/live",
+    new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("live"),
+        ResponseWriter = HealthCheckResponseWriter.WriteAsync
+    })
+.WithName("HealthLive")
+.WithTags("Health")
+.Produces(StatusCodes.Status200OK);
+
+app.MapHealthChecks(
+    "/health/ready",
+    new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("ready"),
+        ResponseWriter = HealthCheckResponseWriter.WriteAsync
+    })
+.WithName("HealthReady")
+.WithTags("Health")
+.Produces(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status503ServiceUnavailable);
 
 app.MapGet("/", (HttpContext httpContext) =>
 {

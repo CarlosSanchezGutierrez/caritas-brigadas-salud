@@ -68,6 +68,9 @@ foreach ($Token in $RequiredBaselineTokens) {
 }
 
 $RequiredProgramTokens = @(
+    "using Microsoft.Extensions.Diagnostics.HealthChecks;",
+    "using Microsoft.AspNetCore.Diagnostics.HealthChecks;",
+    "using Caritas.Brigadas.Api.Health;",
     "AddCheck(",
     """api-live""",
     "DatabaseConnectivityHealthCheck",

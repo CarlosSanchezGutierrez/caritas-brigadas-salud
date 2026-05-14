@@ -1,5 +1,4 @@
 using Caritas.Brigadas.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Caritas.Brigadas.Api.Health;
