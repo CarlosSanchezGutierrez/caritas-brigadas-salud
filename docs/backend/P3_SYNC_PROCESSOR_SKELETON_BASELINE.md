@@ -108,3 +108,8 @@ P3-13 supersedes the skeleton for patient create only. After P3-13, SyncBatchPro
 ## 7. P3-14 patient visit handler note
 
 P3-14 supersedes the skeleton for patient_visit create only. After P3-14, SyncBatchProcessor may accept SyncEntityType.PatientVisit with SyncOperation.Create and may create PatientVisit records. Service encounters, vital signs, forms, documents, referrals, and medication deliveries remain conflict-staged until their handlers are implemented.
+---
+
+## 8. P3-15 vital signs handler note
+
+P3-15 supersedes the skeleton for vital_signs create only. After P3-15, SyncBatchProcessor may accept SyncEntityType.VitalSigns with SyncOperation.Create and may create VitalSignsRecord records. Service encounters, forms, documents, referrals, and medication deliveries remain conflict-staged until their handlers are implemented.
