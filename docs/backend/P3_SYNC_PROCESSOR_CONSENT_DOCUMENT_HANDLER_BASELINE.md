@@ -47,6 +47,8 @@ The consent document create handler must:
 - conflict duplicate PatientId plus VisitId plus ConsentType plus DocumentVersion inside the organization;
 - conflict duplicate PatientId plus VisitId plus ConsentType plus DocumentVersion values inside the same pending batch before SaveChangesAsync;
 - reserve pending-batch consent document id and patient-visit-type-version keys only after successful ConsentDocument construction;
+- reserve pending-batch consent document id and patient-visit-type-version keys atomically;
+- rollback the consent document id reservation when patient-visit-type-version key reservation fails;
 - accept the SyncEvent only after the ConsentDocument entity is staged;
 - set SyncEvent.EntityId to the created ConsentDocument.Id through Accept;
 - complete batch counters from stored SyncEvent statuses.
@@ -109,5 +111,6 @@ P3-18 is complete when:
 - SyncBatchProcessor validates signed-by user when provided;
 - SyncBatchProcessor requires signature evidence;
 - SyncBatchProcessor marks duplicate patient-visit-type-version consent as conflict;
+- SyncBatchProcessor rolls back consent document id reservation when patient-visit-type-version key reservation fails;
 - contract tests protect the consent_document-only scope;
 - repository governance and database deployment gates remain green.
