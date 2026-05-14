@@ -174,3 +174,8 @@ P3-23D protects the sync processor against duplicate domain rows caused by repea
 ## 26. P3-23E failed batch regression note
 
 P3-23E protects the sync processor against unsafe retries of terminal failed batches.
+---
+
+## 27. P3-24A API-level endpoint regression note
+
+P3-24A protects the sync process endpoint wiring and removes stale skeleton wording from the public API response.
