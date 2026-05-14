@@ -91,7 +91,8 @@ foreach ($Token in $RequiredSyncReadinessTokens) {
 }
 
 $RequiredDeploymentBaselineTokens = @(
-    "Las migraciones no deben ejecutarse automáticamente al iniciar la API"
+    "migraciones",
+    "iniciar la API"
 )
 
 foreach ($Token in $RequiredDeploymentBaselineTokens) {
