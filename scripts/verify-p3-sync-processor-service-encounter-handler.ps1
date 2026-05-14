@@ -4,6 +4,7 @@ $RepoRoot = Split-Path -Parent $PSScriptRoot
 $DocPath = Join-Path $RepoRoot "docs/backend/P3_SYNC_PROCESSOR_SERVICE_ENCOUNTER_HANDLER_BASELINE.md"
 $ProcessorPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncBatchProcessor.cs"
 $OrderPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncProcessingOrder.cs"
+$ServiceHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/ServiceEncounterSyncEventHandler.cs"
 
 function Assert-FileExists {
     param([string]$Path)
@@ -28,11 +29,13 @@ function Assert-Contains {
 Assert-FileExists $DocPath
 Assert-FileExists $ProcessorPath
 Assert-FileExists $OrderPath
+Assert-FileExists $ServiceHandlerPath
 
 $Doc = Get-Content $DocPath -Raw -Encoding UTF8
 $Processor = Get-Content $ProcessorPath -Raw -Encoding UTF8
 $Order = Get-Content $OrderPath -Raw -Encoding UTF8
-$ProcessorAndOrder = $Processor + $Order
+$ServiceHandler = Get-Content $ServiceHandlerPath -Raw -Encoding UTF8
+$ProcessorAndOrderAndServiceHandler = $Processor + $Order + $ServiceHandler
 
 $RequiredDocTokens = @(
     "P3 Sync Processor Service Encounter Handler Baseline",
@@ -49,8 +52,9 @@ foreach ($Token in $RequiredDocTokens) {
     Assert-Contains $Doc $Token "P3 sync processor service encounter handler baseline"
 }
 
-$RequiredProcessorTokens = @(
+$RequiredTokens = @(
     "HandleServiceEncounterEventAsync",
+    "ServiceEncounterSyncEventHandler",
     "syncEvent.EntityType == SyncEntityType.ServiceEncounter",
     "syncEvent.Operation != SyncOperation.Create",
     "service_encounter_operation_not_implemented",
@@ -79,16 +83,42 @@ $RequiredProcessorTokens = @(
     "return 4;"
 )
 
+foreach ($Token in $RequiredTokens) {
+    Assert-Contains $ProcessorAndOrderAndServiceHandler $Token "SyncBatchProcessor service encounter handler"
+}
+
+$RequiredProcessorTokens = @(
+    "private readonly ServiceEncounterSyncEventHandler _serviceEncounterSyncEventHandler;",
+    "_serviceEncounterSyncEventHandler = new ServiceEncounterSyncEventHandler(dbContext, PayloadJsonOptions);",
+    "    private async Task HandleServiceEncounterEventAsync",
+    "await _serviceEncounterSyncEventHandler.HandleAsync("
+)
+
 foreach ($Token in $RequiredProcessorTokens) {
-    Assert-Contains $ProcessorAndOrder $Token "SyncBatchProcessor service encounter handler"
+    Assert-Contains $Processor $Token "SyncBatchProcessor service encounter handler wrapper"
 }
 
 $ForbiddenProcessorTokens = @(
+    "out CreateServiceEncounterRequest? request",
+    "var encounter = new ServiceEncounter(",
+    "_dbContext.ServiceEncounters.Add(encounter)",
+    "service_encounter_operation_not_implemented",
+    "service_encounter_visit_not_found",
+    "service_encounter_brigade_mismatch",
+    "service_encounter_service_not_found",
+    "service_encounter_service_inactive",
+    "service_encounter_service_not_available_for_brigade",
+    "service_encounter_provider_user_not_found",
+    "service_encounter_folio_already_exists",
+    "service_encounter_folio_duplicate_in_pending_batch",
+    "service_encounter_duplicate_visit_service",
+    "service_encounter_duplicate_visit_service_in_pending_batch",
+    "GenerateSyncEncounterFolio("
 )
 
 foreach ($Token in $ForbiddenProcessorTokens) {
     if ($Processor.Contains($Token)) {
-        throw "SyncBatchProcessor service encounter handler scope violation: $Token"
+        throw "SyncBatchProcessor still contains direct service encounter logic: $Token"
     }
 }
 

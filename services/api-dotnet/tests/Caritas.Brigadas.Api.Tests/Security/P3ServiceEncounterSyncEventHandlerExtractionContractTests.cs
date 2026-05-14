@@ -2,28 +2,24 @@ using Xunit;
 
 namespace Caritas.Brigadas.Api.Tests.Security;
 
-public sealed class P3SyncProcessorServiceEncounterHandlerContractTests
+public sealed class P3ServiceEncounterSyncEventHandlerExtractionContractTests
 {
     [Fact]
-    public void SyncBatchProcessor_HandlesServiceEncounterCreateOnly()
+    public void ServiceEncounterSyncEventHandler_OwnsServiceEncounterCreateBehavior()
     {
-        var source =
-            File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) +
-            File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs")) +
-            File.ReadAllText(GetInfrastructurePath("Sync", "ServiceEncounterSyncEventHandler.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "ServiceEncounterSyncEventHandler.cs"));
 
         var requiredTokens = new[]
         {
-            "HandleServiceEncounterEventAsync",
-            "ServiceEncounterSyncEventHandler",
-            "syncEvent.EntityType == SyncEntityType.ServiceEncounter",
-            "syncEvent.Operation != SyncOperation.Create",
-            "service_encounter_operation_not_implemented",
+            "internal sealed class ServiceEncounterSyncEventHandler",
+            "public async Task HandleAsync",
+            "SyncPayloadReader.TryReadObject",
             "out CreateServiceEncounterRequest? request",
-            "new ServiceEncounter(",
+            "var encounter = new ServiceEncounter(",
             "_dbContext.ServiceEncounters.Add(encounter)",
             "syncEvent.Accept(",
             "encounter.Id",
+            "service_encounter_operation_not_implemented",
             "service_encounter_visit_not_found",
             "service_encounter_brigade_mismatch",
             "service_encounter_service_not_found",
@@ -38,16 +34,17 @@ public sealed class P3SyncProcessorServiceEncounterHandlerContractTests
             "acceptedEncounterVisitServiceKeysInBatch",
             "GenerateSyncEncounterFolio",
             "private static string GenerateSyncEncounterFolio",
-            "return 2;",
-            "return 3;",
-            "return 4;"
+            "reserved only after successful ServiceEncounter construction and reserved atomically",
+            "encounterFolioReserved",
+            "encounterVisitServiceKeyReserved",
+            "acceptedEncounterFoliosInBatch.Remove(normalizedEncounterFolio)"
         };
 
-        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor service encounter handler");
+        AssertRequiredTokens(source, requiredTokens, "ServiceEncounterSyncEventHandler");
     }
 
     [Fact]
-    public void SyncBatchProcessor_DoesNotContainDirectServiceEncounterLogicAfterExtraction()
+    public void SyncBatchProcessor_DelegatesServiceEncounterCreateToServiceEncounterSyncEventHandler()
     {
         var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
 
@@ -59,7 +56,7 @@ public sealed class P3SyncProcessorServiceEncounterHandlerContractTests
             "await _serviceEncounterSyncEventHandler.HandleAsync("
         };
 
-        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor service encounter wrapper");
+        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor service encounter handler extraction");
 
         var forbiddenTokens = new[]
         {
@@ -87,27 +84,20 @@ public sealed class P3SyncProcessorServiceEncounterHandlerContractTests
     }
 
     [Fact]
-    public void ServiceEncounterHandlerBaseline_DefinesServiceEncounterOnlyScope()
+    public void ServiceEncounterHandlerExtractionBaseline_DefinesThirdHandlerExtraction()
     {
-        var source = File.ReadAllText(GetDocPath("P3_SYNC_PROCESSOR_SERVICE_ENCOUNTER_HANDLER_BASELINE.md"));
+        var source = File.ReadAllText(GetDocPath("P3_SERVICE_ENCOUNTER_SYNC_EVENT_HANDLER_EXTRACTION_BASELINE.md"));
 
         var requiredTokens = new[]
         {
-            "P3 Sync Processor Service Encounter Handler Baseline",
-            "EntityType: service_encounter",
-            "Operation: create",
-            "parse PayloadJson as CreateServiceEncounterRequest",
-            "validate service is available for the visit brigade through BrigadeServices",
-            "conflict duplicate VisitId plus ServiceId values inside the same pending batch",
-            "reserved only after successful ServiceEncounter construction",
-            "processor must process service_encounter create events before vital_signs create events",
-            "service_encounter update is not implemented in P3-16",
-            "service_encounter complete/close is not implemented in P3-16",
-            "processor must not create forms, documents, referrals, or medication deliveries in P3-16",
+            "P3 Service Encounter Sync Event Handler Extraction Baseline",
+            "ServiceEncounterSyncEventHandler must own service_encounter/create payload parsing",
+            "SyncBatchProcessor must not directly construct ServiceEncounter",
+            "SyncBatchProcessor must not directly parse CreateServiceEncounterRequest",
             "Acceptance criteria"
         };
 
-        AssertRequiredTokens(source, requiredTokens, "P3 sync processor service encounter handler baseline");
+        AssertRequiredTokens(source, requiredTokens, "P3 service encounter sync event handler extraction baseline");
     }
 
     private static void AssertRequiredTokens(
