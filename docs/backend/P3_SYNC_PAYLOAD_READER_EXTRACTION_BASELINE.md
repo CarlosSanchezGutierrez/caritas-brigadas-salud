@@ -80,3 +80,8 @@ P3-22C is complete when:
 - SyncBatchProcessor no longer directly deserializes current create DTOs;
 - all P3 sync processor verifiers remain green;
 - dotnet build and dotnet test remain green.
+---
+
+## 6. P3-22D formatting hygiene note
+
+P3-22D removes formatting debt after payload reader extraction and makes SyncBatchProcessor formatting hygiene verifier-protected.
