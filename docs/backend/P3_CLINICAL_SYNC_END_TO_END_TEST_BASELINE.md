@@ -99,3 +99,8 @@ P3-22P is complete when:
 The end-to-end test must seed BrigadeService for the selected Brigade and Service before processing service_encounter.
 
 This prevents service_encounter from being marked as service_encounter_service_not_available_for_brigade and validates the full accepted clinical flow.
+---
+
+## 8. P3-23A ordering regression note
+
+P3-23A extends the clinical sync E2E coverage with a reverse insertion order regression to protect SyncProcessingOrder.GetOrder.

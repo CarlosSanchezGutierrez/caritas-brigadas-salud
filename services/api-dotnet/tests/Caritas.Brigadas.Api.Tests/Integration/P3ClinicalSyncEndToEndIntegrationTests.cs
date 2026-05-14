@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.Json;
 using Caritas.Brigadas.Contracts.ConsentDocuments;
 using Caritas.Brigadas.Contracts.FormResponses;
@@ -6,6 +7,7 @@ using Caritas.Brigadas.Contracts.MedicationDeliveries;
 using Caritas.Brigadas.Contracts.Patients;
 using Caritas.Brigadas.Contracts.PatientVisits;
 using Caritas.Brigadas.Contracts.ServiceEncounters;
+using Caritas.Brigadas.Contracts.Sync;
 using Caritas.Brigadas.Contracts.VitalSigns;
 using Caritas.Brigadas.Domain.Entities;
 using Caritas.Brigadas.Infrastructure.Persistence;
@@ -26,6 +28,54 @@ public sealed class P3ClinicalSyncEndToEndIntegrationTests
 
         await using var dbContext = CreateDbContext();
 
+        var seed = await SeedCompleteClinicalBatchAsync(
+            dbContext,
+            reverseEventInsertionOrder: false,
+            cancellationToken);
+
+        var processor = new SyncBatchProcessor(dbContext);
+
+        var result = await processor.ProcessAsync(
+            seed.OrganizationId,
+            seed.SyncBatchId,
+            cancellationToken);
+
+        await AssertCompletedClinicalBatchAsync(
+            dbContext,
+            result,
+            cancellationToken);
+    }
+
+    [Fact]
+    public async Task SyncBatchProcessor_ProcessesOutOfOrderClinicalOfflineBatchUsingSyncProcessingOrder()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var dbContext = CreateDbContext();
+
+        var seed = await SeedCompleteClinicalBatchAsync(
+            dbContext,
+            reverseEventInsertionOrder: true,
+            cancellationToken);
+
+        var processor = new SyncBatchProcessor(dbContext);
+
+        var result = await processor.ProcessAsync(
+            seed.OrganizationId,
+            seed.SyncBatchId,
+            cancellationToken);
+
+        await AssertCompletedClinicalBatchAsync(
+            dbContext,
+            result,
+            cancellationToken);
+    }
+
+    private static async Task<ClinicalSyncSeed> SeedCompleteClinicalBatchAsync(
+        CaritasDbContext dbContext,
+        bool reverseEventInsertionOrder,
+        CancellationToken cancellationToken)
+    {
         var organizationId = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var brigadeId = Guid.NewGuid();
@@ -82,6 +132,7 @@ public sealed class P3ClinicalSyncEndToEndIntegrationTests
             serviceId,
             capacityEstimate: 100,
             assignedLeadUserId: userId));
+
         dbContext.FormTemplates.Add(new FormTemplate(
             formTemplateId,
             organizationId,
@@ -102,7 +153,8 @@ public sealed class P3ClinicalSyncEndToEndIntegrationTests
 
         dbContext.SyncBatches.Add(syncBatch);
 
-        dbContext.SyncEvents.AddRange(
+        var events = new List<SyncEvent>
+        {
             CreateEvent(
                 syncBatchId,
                 organizationId,
@@ -261,17 +313,28 @@ public sealed class P3ClinicalSyncEndToEndIntegrationTests
                     CreatedOffline = true,
                     DeviceId = deviceId
                 },
-                now.AddSeconds(8)));
+                now.AddSeconds(8))
+        };
+
+        if (reverseEventInsertionOrder)
+        {
+            events.Reverse();
+        }
+
+        dbContext.SyncEvents.AddRange(events);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        var processor = new SyncBatchProcessor(dbContext);
-
-        var result = await processor.ProcessAsync(
+        return new ClinicalSyncSeed(
             organizationId,
-            syncBatchId,
-            cancellationToken);
+            syncBatchId);
+    }
 
+    private static async Task AssertCompletedClinicalBatchAsync(
+        CaritasDbContext dbContext,
+        ProcessSyncBatchResultDto result,
+        CancellationToken cancellationToken)
+    {
         Assert.True(result.Completed);
         Assert.Equal(8, result.PendingEventsProcessed);
         Assert.Equal(8, result.AcceptedCount);
@@ -335,4 +398,8 @@ public sealed class P3ClinicalSyncEndToEndIntegrationTests
             receivedAtServer: receivedAtServer,
             idempotencyKey: $"p3-e2e-{localEventId}");
     }
+
+    private sealed record ClinicalSyncSeed(
+        Guid OrganizationId,
+        Guid SyncBatchId);
 }
