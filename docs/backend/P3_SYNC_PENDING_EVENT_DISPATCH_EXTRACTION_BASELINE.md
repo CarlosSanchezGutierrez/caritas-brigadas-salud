@@ -102,3 +102,8 @@ P3-22I extracts vital_signs/create behavior into VitalSignsSyncEventHandler whil
 ## 10. P3-22J form response sync event handler extraction note
 
 P3-22J extracts form_response/create behavior into FormResponseSyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
+---
+
+## 11. P3-22K consent document sync event handler extraction note
+
+P3-22K extracts consent_document/create behavior into ConsentDocumentSyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
