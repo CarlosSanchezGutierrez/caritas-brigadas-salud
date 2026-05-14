@@ -90,7 +90,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             .ThenBy(syncEvent => syncEvent.Id)
             .ToArrayAsync(cancellationToken);
 
-        
+
         pendingEvents = pendingEvents
             .OrderBy(GetSyncProcessingOrder)
             .ThenBy(syncEvent => syncEvent.ReceivedAtServer)
@@ -1024,7 +1024,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 createdOffline: true,
                 deviceId: request.DeviceId ?? batch.DeviceId);
 
-                        // Pending-batch encounter folio and visit-service keys are reserved only after successful ServiceEncounter construction and reserved atomically.
+            // Pending-batch encounter folio and visit-service keys are reserved only after successful ServiceEncounter construction and reserved atomically.
             var encounterFolioReserved = acceptedEncounterFoliosInBatch.Add(normalizedEncounterFolio);
 
             if (!encounterFolioReserved)
@@ -1595,7 +1595,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     submittedAt);
             }
 
-                        // Pending-batch form response id and encounter-template keys are reserved only after successful FormResponse construction and reserved atomically.
+            // Pending-batch form response id and encounter-template keys are reserved only after successful FormResponse construction and reserved atomically.
             var formResponseIdReserved = acceptedFormResponseIdsInBatch.Add(formResponseId);
 
             if (!formResponseIdReserved)
@@ -1881,7 +1881,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 signedAt,
                 request.DeviceId ?? batch.DeviceId);
 
-                        // Pending-batch consent document id and patient-visit-type-version keys are reserved only after successful ConsentDocument construction and reserved atomically.
+            // Pending-batch consent document id and patient-visit-type-version keys are reserved only after successful ConsentDocument construction and reserved atomically.
             var consentDocumentIdReserved = acceptedConsentDocumentIdsInBatch.Add(consentDocumentId);
 
             if (!consentDocumentIdReserved)
