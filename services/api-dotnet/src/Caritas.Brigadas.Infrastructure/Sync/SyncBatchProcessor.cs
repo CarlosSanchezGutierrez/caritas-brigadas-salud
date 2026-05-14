@@ -932,6 +932,7 @@ private async Task HandlePatientEventAsync(
                 createdOffline: true,
                 deviceId: request.DeviceId ?? batch.DeviceId);
 
+            // Pending-batch encounter folio and visit-service keys are reserved only after successful ServiceEncounter construction.
             if (!acceptedEncounterFoliosInBatch.Add(normalizedEncounterFolio))
             {
                 syncEvent.MarkConflict(
