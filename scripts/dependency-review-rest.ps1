@@ -13,10 +13,93 @@ function Get-SeverityRank {
     }
 }
 
+function Get-PositiveIntFromEnvironment {
+    param(
+        [string]$Name,
+        [int]$DefaultValue
+    )
+
+    $RawValue = [string][Environment]::GetEnvironmentVariable($Name)
+
+    if ([string]::IsNullOrWhiteSpace($RawValue)) {
+        return $DefaultValue
+    }
+
+    $ParsedValue = 0
+
+    if ([int]::TryParse($RawValue, [ref]$ParsedValue) -and $ParsedValue -gt 0) {
+        return $ParsedValue
+    }
+
+    throw "$Name must be a positive integer."
+}
+
+function Invoke-DependencyReviewApiWithRetry {
+    param(
+        [string]$Endpoint,
+        [int]$MaxAttempts,
+        [int]$InitialDelaySeconds
+    )
+
+    $Attempt = 1
+    $DelaySeconds = $InitialDelaySeconds
+    $LastOutput = ""
+
+    while ($Attempt -le $MaxAttempts) {
+        Write-Host "Dependency Review API attempt $Attempt of $MaxAttempts."
+
+        $Output = & gh api $Endpoint `
+            -H "Accept: application/vnd.github+json" `
+            -H "X-GitHub-Api-Version: 2022-11-28" 2>&1
+
+        $ExitCode = $LASTEXITCODE
+        $OutputText = [string]::Join("`n", @($Output | ForEach-Object { [string]$_ }))
+        $LastOutput = $OutputText
+
+        if ($ExitCode -eq 0 -and -not [string]::IsNullOrWhiteSpace($OutputText)) {
+            return $OutputText
+        }
+
+        Write-Warning "Dependency Review API attempt $Attempt failed with exit code $ExitCode."
+
+        if (-not [string]::IsNullOrWhiteSpace($OutputText)) {
+            Write-Warning $OutputText
+        }
+
+        if ($Attempt -lt $MaxAttempts) {
+            Write-Host "Retrying Dependency Review API in $DelaySeconds seconds."
+            Start-Sleep -Seconds $DelaySeconds
+            $DelaySeconds = [Math]::Min($DelaySeconds * 2, 30)
+        }
+
+        $Attempt++
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($env:GITHUB_STEP_SUMMARY)) {
+        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value @"
+# Dependency Review API failure
+
+Dependency Review REST API failed after $MaxAttempts attempts.
+
+The gate failed closed because dependency review could not be completed.
+
+Last API output:
+
+
+$LastOutput
+
+"@
+    }
+
+    throw "GitHub Dependency Review API request failed after $MaxAttempts attempts."
+}
+
 $Repository = $env:REPOSITORY
 $BaseSha = $env:BASE_SHA
 $HeadSha = $env:HEAD_SHA
 $FailOnSeverity = if ([string]::IsNullOrWhiteSpace($env:FAIL_ON_SEVERITY)) { "high" } else { $env:FAIL_ON_SEVERITY }
+$MaxAttempts = Get-PositiveIntFromEnvironment "DEPENDENCY_REVIEW_MAX_ATTEMPTS" 4
+$InitialDelaySeconds = Get-PositiveIntFromEnvironment "DEPENDENCY_REVIEW_INITIAL_DELAY_SECONDS" 2
 
 if ([string]::IsNullOrWhiteSpace($env:GH_TOKEN)) {
     throw "GH_TOKEN is required."
@@ -48,14 +131,21 @@ Write-Host "Repository: $Repository"
 Write-Host "Base SHA: $BaseSha"
 Write-Host "Head SHA: $HeadSha"
 Write-Host "Fail on severity: $FailOnSeverity"
+Write-Host "Max API attempts: $MaxAttempts"
+Write-Host "Initial retry delay seconds: $InitialDelaySeconds"
 
-$RawResponse = gh api $Endpoint -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28"
+$RawResponse = Invoke-DependencyReviewApiWithRetry `
+    -Endpoint $Endpoint `
+    -MaxAttempts $MaxAttempts `
+    -InitialDelaySeconds $InitialDelaySeconds
 
-if ($LASTEXITCODE -ne 0) {
-    throw "GitHub Dependency Review API request failed."
+try {
+    $Changes = @($RawResponse | ConvertFrom-Json -ErrorAction Stop)
+}
+catch {
+    throw "GitHub Dependency Review API returned invalid JSON. $($_.Exception.Message)"
 }
 
-$Changes = @($RawResponse | ConvertFrom-Json)
 $ReviewableChanges = @($Changes | Where-Object { $_.change_type -eq "added" -or $_.change_type -eq "changed" })
 $BlockingFindings = New-Object System.Collections.Generic.List[object]
 $VulnerabilityCount = 0
@@ -104,7 +194,7 @@ if (-not [string]::IsNullOrWhiteSpace($env:GITHUB_STEP_SUMMARY)) {
     $SummaryLines = @(
         "# Dependency Review",
         "",
-        "Dependency Review was executed using the GitHub REST API instead of the JavaScript action to avoid clean-run annotations.",
+        "Dependency Review was executed using the GitHub REST API with retry/backoff hardening.",
         "",
         "| Metric | Value |",
         "| --- | ---: |",
@@ -115,7 +205,9 @@ if (-not [string]::IsNullOrWhiteSpace($env:GITHUB_STEP_SUMMARY)) {
         "| Changed | $Changed |",
         "| Vulnerabilities found in added/changed dependencies | $VulnerabilityCount |",
         "| Blocking vulnerabilities in added/changed dependencies | $($BlockingFindings.Count) |",
-        "| Blocking threshold | $FailOnSeverity |"
+        "| Blocking threshold | $FailOnSeverity |",
+        "| API max attempts | $MaxAttempts |",
+        "| Initial retry delay seconds | $InitialDelaySeconds |"
     )
 
     if ($BlockingFindings.Count -gt 0) {
