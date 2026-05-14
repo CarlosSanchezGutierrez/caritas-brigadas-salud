@@ -81,3 +81,8 @@ P3-23A is complete when:
 - the test fixture supports reverse event insertion order;
 - all eight clinical events are still validated;
 - dotnet build and dotnet test pass.
+---
+
+## 7. P3-23B conflict regression note
+
+P3-23B adds a controlled conflict regression proving that duplicate patient folio detection marks one event as conflict without aborting the batch.
