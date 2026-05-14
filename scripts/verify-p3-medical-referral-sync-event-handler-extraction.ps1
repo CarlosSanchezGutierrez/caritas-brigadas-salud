@@ -50,7 +50,7 @@ foreach ($Token in $RequiredDocTokens) {
 $RequiredProcessorTokens = @(
     "private readonly MedicalReferralSyncEventHandler _medicalReferralSyncEventHandler;",
     "_medicalReferralSyncEventHandler = new MedicalReferralSyncEventHandler(dbContext, PayloadJsonOptions);",
-    "    private async Task HandleMedicalReferralEventAsync",
+    "await _medicalReferralSyncEventHandler.HandleAsync(",
     "await _medicalReferralSyncEventHandler.HandleAsync("
 )
 

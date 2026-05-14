@@ -48,7 +48,7 @@ foreach ($Token in $RequiredDocTokens) {
 $RequiredProcessorTokens = @(
     "private readonly ServiceEncounterSyncEventHandler _serviceEncounterSyncEventHandler;",
     "_serviceEncounterSyncEventHandler = new ServiceEncounterSyncEventHandler(dbContext, PayloadJsonOptions);",
-    "    private async Task HandleServiceEncounterEventAsync",
+    "await _serviceEncounterSyncEventHandler.HandleAsync(",
     "await _serviceEncounterSyncEventHandler.HandleAsync("
 )
 

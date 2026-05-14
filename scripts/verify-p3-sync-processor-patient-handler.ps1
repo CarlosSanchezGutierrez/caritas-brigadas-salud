@@ -56,7 +56,7 @@ foreach ($Token in $RequiredDocTokens) {
 }
 
 $RequiredProcessorTokens = @(
-    "HandlePatientEventAsync",
+    "await _patientSyncEventHandler.HandleAsync(",
     "syncEvent.EntityType == SyncEntityType.Patient",
     "syncEvent.Operation != SyncOperation.Create",
     "patient_operation_not_implemented",

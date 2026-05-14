@@ -49,7 +49,7 @@ foreach ($Token in $RequiredDocTokens) {
 $RequiredProcessorTokens = @(
     "private readonly MedicationDeliverySyncEventHandler _medicationDeliverySyncEventHandler;",
     "_medicationDeliverySyncEventHandler = new MedicationDeliverySyncEventHandler(dbContext, PayloadJsonOptions);",
-    "    private async Task HandleMedicationDeliveryEventAsync",
+    "await _medicationDeliverySyncEventHandler.HandleAsync(",
     "await _medicationDeliverySyncEventHandler.HandleAsync("
 )
 

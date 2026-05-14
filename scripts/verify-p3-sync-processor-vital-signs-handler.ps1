@@ -35,7 +35,7 @@ $VitalHandler = Get-Content $VitalHandlerPath -Raw -Encoding UTF8
 $ProcessorAndOrderAndVitalHandler = $Processor + $Order + $VitalHandler
 
 $RequiredTokens = @(
-    "HandleVitalSignsEventAsync",
+    "await _vitalSignsSyncEventHandler.HandleAsync(",
     "VitalSignsSyncEventHandler",
     "SyncEntityType.VitalSigns",
     "return 3;",
@@ -62,7 +62,7 @@ foreach ($Token in $RequiredTokens) {
 $RequiredProcessorTokens = @(
     "private readonly VitalSignsSyncEventHandler _vitalSignsSyncEventHandler;",
     "_vitalSignsSyncEventHandler = new VitalSignsSyncEventHandler(dbContext, PayloadJsonOptions);",
-    "    private async Task HandleVitalSignsEventAsync",
+    "await _vitalSignsSyncEventHandler.HandleAsync(",
     "await _vitalSignsSyncEventHandler.HandleAsync("
 )
 

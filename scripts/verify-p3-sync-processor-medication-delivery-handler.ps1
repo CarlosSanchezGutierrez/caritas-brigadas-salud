@@ -78,7 +78,7 @@ foreach ($Token in $RequiredRequestTokens) {
 }
 
 $RequiredProcessorTokens = @(
-    "HandleMedicationDeliveryEventAsync",
+    "await _medicationDeliverySyncEventHandler.HandleAsync(",
     "syncEvent.EntityType == SyncEntityType.MedicationDelivery",
     "syncEvent.Operation != SyncOperation.Create",
     "medication_delivery_operation_not_implemented",

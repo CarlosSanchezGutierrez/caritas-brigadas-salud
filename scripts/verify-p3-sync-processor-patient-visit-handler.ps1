@@ -39,7 +39,7 @@ $RequiredTokens = @(
     ".OrderBy(SyncProcessingOrder.GetOrder)",
     "SyncEntityType.PatientVisit",
     "return 1;",
-    "HandlePatientVisitEventAsync",
+    "await _patientVisitSyncEventHandler.HandleAsync(",
     "PatientVisitSyncEventHandler",
     "out CreatePatientVisitRequest? request",
     "var visit = new PatientVisit(",
@@ -61,7 +61,7 @@ foreach ($Token in $RequiredTokens) {
 $RequiredProcessorTokens = @(
     "private readonly PatientVisitSyncEventHandler _patientVisitSyncEventHandler;",
     "_patientVisitSyncEventHandler = new PatientVisitSyncEventHandler(dbContext, PayloadJsonOptions);",
-    "    private async Task HandlePatientVisitEventAsync",
+    "await _patientVisitSyncEventHandler.HandleAsync(",
     "await _patientVisitSyncEventHandler.HandleAsync("
 )
 

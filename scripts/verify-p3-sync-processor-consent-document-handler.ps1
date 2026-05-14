@@ -78,7 +78,7 @@ foreach ($Token in $RequiredRequestTokens) {
 }
 
 $RequiredTokens = @(
-    "HandleConsentDocumentEventAsync",
+    "await _consentDocumentSyncEventHandler.HandleAsync(",
     "ConsentDocumentSyncEventHandler",
     "syncEvent.EntityType == SyncEntityType.ConsentDocument",
     "syncEvent.Operation != SyncOperation.Create",
@@ -113,7 +113,7 @@ foreach ($Token in $RequiredTokens) {
 $RequiredProcessorTokens = @(
     "private readonly ConsentDocumentSyncEventHandler _consentDocumentSyncEventHandler;",
     "_consentDocumentSyncEventHandler = new ConsentDocumentSyncEventHandler(dbContext, PayloadJsonOptions);",
-    "    private async Task HandleConsentDocumentEventAsync",
+    "await _consentDocumentSyncEventHandler.HandleAsync(",
     "await _consentDocumentSyncEventHandler.HandleAsync("
 )
 
