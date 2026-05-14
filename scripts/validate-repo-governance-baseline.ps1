@@ -181,3 +181,5 @@ Write-Host "============================================================" -Foreg
 & (Join-Path $RepoRoot "scripts\verify-p3-production-deployment-readiness-baseline.ps1")
 
 & (Join-Path $RepoRoot "scripts\verify-p3-production-auth-hardening-baseline.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-sqlserver-integration-smoke-test-baseline.ps1")
