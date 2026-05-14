@@ -72,7 +72,7 @@ $RequiredProcessorTokens = @(
     "!acceptedVisitFoliosInBatch.Add(normalizedVisitFolio)",
     "GenerateSyncVisitFolio",
     "GetSyncProcessingOrder",
-    ".OrderBy(GetSyncProcessingOrder)",
+    ".OrderBy(SyncProcessingOrder.GetOrder)",
     "pendingEvents = pendingEvents",
     "return 0;",
     "return 1;",
