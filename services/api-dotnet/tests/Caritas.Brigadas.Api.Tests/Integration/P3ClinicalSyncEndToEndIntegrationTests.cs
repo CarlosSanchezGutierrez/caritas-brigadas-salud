@@ -7,6 +7,7 @@ using Caritas.Brigadas.Contracts.MedicationDeliveries;
 using Caritas.Brigadas.Contracts.Patients;
 using Caritas.Brigadas.Contracts.PatientVisits;
 using Caritas.Brigadas.Contracts.ServiceEncounters;
+using Caritas.Brigadas.Contracts.Sync;
 using Caritas.Brigadas.Contracts.VitalSigns;
 using Caritas.Brigadas.Domain.Entities;
 using Caritas.Brigadas.Infrastructure.Persistence;
