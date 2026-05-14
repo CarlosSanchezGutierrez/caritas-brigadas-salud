@@ -99,3 +99,8 @@ P3-22F starts real domain handler extraction by moving patient/create behavior i
 ## 11. P3-22G patient visit sync event handler extraction note
 
 P3-22G continues real domain handler extraction by moving patient_visit/create behavior into PatientVisitSyncEventHandler.
+---
+
+## 12. P3-22G.1 compatibility governance note
+
+P3-22G.1 clarifies that processor-centered verifiers retained during handler extraction are compatibility governance, not accepted technical debt. Current active P3 sync code and governance should not use deprecated compatibility terminology incorrectly.

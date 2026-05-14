@@ -42,7 +42,7 @@ $RequiredDocTokens = @(
     "PendingBatchReservationState",
     "No domain handler is extracted in this package",
     "SyncBatchProcessor must sort pending events using SyncProcessingOrder.GetOrder",
-"Legacy P3 processor tests must read SyncProcessingOrder for topological return tokens",
+"Compatibility P3 processor tests must read SyncProcessingOrder for topological return tokens",
 "handler bodies must continue using their received ISet parameters until handlers are extracted",
     "SyncBatchProcessor must instantiate PendingBatchReservationState once per ProcessAsync call",
     "SyncBatchProcessor must not directly instantiate per-handler HashSet reservation variables",
