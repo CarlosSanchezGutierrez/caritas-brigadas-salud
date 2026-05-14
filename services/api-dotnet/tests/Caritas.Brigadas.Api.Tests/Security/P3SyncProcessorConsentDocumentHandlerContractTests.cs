@@ -2,34 +2,39 @@ using Xunit;
 
 namespace Caritas.Brigadas.Api.Tests.Security;
 
-public sealed class P3SyncProcessorPatientHandlerContractTests
+public sealed class P3SyncProcessorConsentDocumentHandlerContractTests
 {
     [Fact]
-    public void SyncBatchProcessor_HandlesPatientCreateOnly()
+    public void SyncBatchProcessor_HandlesConsentDocumentCreateOnly()
     {
         var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
 
         var requiredTokens = new[]
         {
-            "HandlePatientEventAsync",
-            "syncEvent.EntityType == SyncEntityType.Patient",
+            "HandleConsentDocumentEventAsync",
+            "syncEvent.EntityType == SyncEntityType.ConsentDocument",
             "syncEvent.Operation != SyncOperation.Create",
-            "patient_operation_not_implemented",
-            "JsonSerializer.Deserialize<CreatePatientRequest>",
-            "new Patient(",
-            "_dbContext.Patients.Add(patient)",
+            "consent_document_operation_not_implemented",
+            "JsonSerializer.Deserialize<CreateConsentDocumentRequest>",
+            "CreateConsentDocumentForSync",
+            "SetConsentPropertyIfExists",
+            "_dbContext.Set<ConsentDocument>().Add(consentDocument)",
             "syncEvent.Accept(",
-            "patient.Id",
-            "patient_folio_already_exists",
-            "patient_folio_duplicate_in_pending_batch",
-            "acceptedPatientFoliosInBatch",
-            "acceptedPatientFoliosInBatch.Contains(normalizedFolio)",
-            "!acceptedPatientFoliosInBatch.Add(normalizedFolio)",
-            "GenerateSyncPatientFolio",
-            "ParseSex"
+            "consentDocument.Id",
+            "consent_document_patient_not_found",
+            "consent_document_visit_not_found",
+            "consent_document_signed_by_user_not_found",
+            "consent_document_id_already_exists",
+            "consent_document_duplicate_patient_visit_type_version",
+            "consent_document_duplicate_patient_visit_type_version_in_pending_batch",
+            "acceptedConsentDocumentIdsInBatch",
+            "acceptedConsentDocumentKeysInBatch",
+            "reserved only after successful ConsentDocument construction",
+            "return 5;",
+            "return 6;"
         };
 
-        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor patient handler");
+        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor consent document handler");
 
         var forbiddenTokens = new[]
         {
@@ -44,32 +49,26 @@ public sealed class P3SyncProcessorPatientHandlerContractTests
     }
 
     [Fact]
-    public void PatientHandlerBaseline_DefinesPatientOnlyScope()
+    public void ConsentDocumentHandlerBaseline_DefinesConsentDocumentOnlyScope()
     {
-        var source = File.ReadAllText(GetDocPath("P3_SYNC_PROCESSOR_PATIENT_HANDLER_BASELINE.md"));
+        var source = File.ReadAllText(GetDocPath("P3_SYNC_PROCESSOR_CONSENT_DOCUMENT_HANDLER_BASELINE.md"));
 
         var requiredTokens = new[]
         {
-            "P3 Sync Processor Patient Handler Baseline",
-            "EntityType: patient",
+            "P3 Sync Processor Consent Document Handler Baseline",
+            "EntityType: consent_document",
             "Operation: create",
-            "parse PayloadJson as CreatePatientRequest",
-            "create Patient with OrganizationId from the sync batch route/context",
-            "conflict duplicate PatientFolio inside the organization",
-            "duplicate PatientFolio values inside the same pending batch",
-            "set SyncEvent.EntityId to the created Patient.Id",
-            "patient update is not implemented in P3-13",
-            "patient void is not implemented in P3-13",
-            "processor must not create visits, encounters, vital signs, forms, documents, referrals, or medication deliveries in P3-13",
-            "Acceptance criteria",
-            "P3-14 patient visit handler note",
-            "P3-15 vital signs handler note",
-            "P3-16 service encounter handler note",
-            "P3-17 form response handler note",
-            "P3-18 consent document handler note"
+            "parse PayloadJson as CreateConsentDocumentRequest",
+            "require SignatureDataUrl",
+            "preserve DocumentTextSnapshot as the legal text snapshot",
+            "preserve SignatureDataUrl as the captured signature evidence",
+            "processor response must not expose SignatureDataUrl",
+            "consent_document update is not implemented in P3-18",
+            "document_signature standalone sync is not implemented in P3-18",
+            "Acceptance criteria"
         };
 
-        AssertRequiredTokens(source, requiredTokens, "P3 sync processor patient handler baseline");
+        AssertRequiredTokens(source, requiredTokens, "P3 sync processor consent document handler baseline");
     }
 
     private static void AssertRequiredTokens(
