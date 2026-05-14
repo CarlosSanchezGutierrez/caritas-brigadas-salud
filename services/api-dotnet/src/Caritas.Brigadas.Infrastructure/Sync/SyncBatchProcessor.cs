@@ -1823,8 +1823,10 @@ private async Task HandlePatientEventAsync(
                 signedAt,
                 request.DeviceId ?? batch.DeviceId);
 
-            // Pending-batch consent document id and patient-visit-type-version keys are reserved only after successful ConsentDocument construction.
-            if (!acceptedConsentDocumentIdsInBatch.Add(consentDocumentId))
+                        // Pending-batch consent document id and patient-visit-type-version keys are reserved only after successful ConsentDocument construction and reserved atomically.
+            var consentDocumentIdReserved = acceptedConsentDocumentIdsInBatch.Add(consentDocumentId);
+
+            if (!consentDocumentIdReserved)
             {
                 syncEvent.MarkConflict(
                     processedAt,
@@ -1833,8 +1835,12 @@ private async Task HandlePatientEventAsync(
                 return;
             }
 
-            if (!acceptedConsentDocumentKeysInBatch.Add(consentDocumentKey))
+            var consentDocumentKeyReserved = acceptedConsentDocumentKeysInBatch.Add(consentDocumentKey);
+
+            if (!consentDocumentKeyReserved)
             {
+                acceptedConsentDocumentIdsInBatch.Remove(consentDocumentId);
+
                 syncEvent.MarkConflict(
                     processedAt,
                     "consent_document_duplicate_patient_visit_type_version_in_pending_batch");
