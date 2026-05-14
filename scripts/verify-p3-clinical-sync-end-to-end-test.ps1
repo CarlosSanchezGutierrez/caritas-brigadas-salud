@@ -89,6 +89,7 @@ $RequiredTestTokens = @(
     "Assert.Equal(8, result.AcceptedCount)",
     "Assert.Equal(0, result.RejectedCount)",
     "Assert.Equal(0, result.ConflictCount)",
+    "dbContext.BrigadeServices.Add(new BrigadeService",
     "dbContext.Patients.CountAsync",
     "dbContext.PatientVisits.CountAsync",
     "dbContext.ServiceEncounters.CountAsync",

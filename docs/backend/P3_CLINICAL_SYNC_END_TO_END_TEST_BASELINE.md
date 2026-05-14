@@ -61,7 +61,7 @@ Rules:
 - the test must use CaritasDbContext;
 - the test must instantiate SyncBatchProcessor directly;
 - the test must use EF Core InMemory only inside the test project;
-- the test must seed Organization, User, Brigade, Service, FormTemplate, SyncBatch, and SyncEvents;
+- the test must seed Organization, User, Brigade, Service, BrigadeService, FormTemplate, SyncBatch, and SyncEvents;
 - the test must not require SQL Server;
 - the test must not require HTTP;
 - the test must not require external services;
@@ -92,3 +92,10 @@ P3-22P is complete when:
 - all eight domain rows are persisted;
 - all eight SyncEvents are accepted;
 - dotnet build and dotnet test pass.
+---
+
+## 7. Brigade service availability requirement
+
+The end-to-end test must seed BrigadeService for the selected Brigade and Service before processing service_encounter.
+
+This prevents service_encounter from being marked as service_encounter_service_not_available_for_brigade and validates the full accepted clinical flow.

@@ -28,6 +28,7 @@ public sealed class P3ClinicalSyncEndToEndTestContractTests
             "Assert.Equal(8, result.AcceptedCount)",
             "Assert.Equal(0, result.RejectedCount)",
             "Assert.Equal(0, result.ConflictCount)",
+            "dbContext.BrigadeServices.Add(new BrigadeService",
             "dbContext.Patients.CountAsync",
             "dbContext.PatientVisits.CountAsync",
             "dbContext.ServiceEncounters.CountAsync",
@@ -63,6 +64,7 @@ public sealed class P3ClinicalSyncEndToEndTestContractTests
             "AcceptedCount equals 8",
             "RejectedCount equals 0",
             "ConflictCount equals 0",
+            "BrigadeService",
             "Acceptance criteria"
         };
 
