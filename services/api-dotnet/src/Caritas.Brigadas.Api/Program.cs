@@ -156,7 +156,16 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCaritasSwagger();
 builder.Services.AddProblemDetails();
-builder.Services.AddHealthChecks();
+builder.Services
+    .AddHealthChecks()
+    .AddCheck(
+        "api-live",
+        () => HealthCheckResult.Healthy("API process is running."),
+        tags: new[] { "live" })
+    .AddCheck<DatabaseConnectivityHealthCheck>(
+        "database",
+        failureStatus: HealthStatus.Unhealthy,
+        tags: new[] { "ready" });
 
 var app = builder.Build();
 
