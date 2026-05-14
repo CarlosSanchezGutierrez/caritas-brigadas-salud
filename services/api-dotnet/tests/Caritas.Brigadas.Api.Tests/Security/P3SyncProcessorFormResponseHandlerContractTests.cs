@@ -41,7 +41,6 @@ public sealed class P3SyncProcessorFormResponseHandlerContractTests
 
         var forbiddenTokens = new[]
         {
-            "_dbContext.ConsentDocuments.Add",
             "_dbContext.MedicalReferrals.Add",
             "_dbContext.MedicationDeliveries.Add"
         };

@@ -99,3 +99,8 @@ P3-16 adds service_encounter create handling. After P3-16, ServiceEncounter crea
 ## 9. P3-17 form response handler note
 
 P3-17 adds form_response create handling. After P3-17, FormResponse creation is no longer forbidden in the sync processor. Consent documents, referrals, and medication deliveries remain out of scope.
+---
+
+## 10. P3-18 consent document handler note
+
+P3-18 adds consent_document create handling. After P3-18, ConsentDocument creation is no longer forbidden in the sync processor. Standalone document signatures, referrals, and medication deliveries remain out of scope.

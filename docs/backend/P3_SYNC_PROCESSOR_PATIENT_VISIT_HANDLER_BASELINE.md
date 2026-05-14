@@ -114,3 +114,8 @@ P3-16 adds service_encounter create handling. This is valid after P3-14 because 
 ## 9. P3-17 form response handler note
 
 P3-17 adds form_response create handling. This is valid after service_encounter create because form responses are linked to ServiceEncounter through EncounterId. Consent documents, referrals, and medication deliveries remain out of scope.
+---
+
+## 10. P3-18 consent document handler note
+
+P3-18 adds consent_document create handling. Consent documents may reference VisitId when available and remain linked to PatientId as the legal subject.

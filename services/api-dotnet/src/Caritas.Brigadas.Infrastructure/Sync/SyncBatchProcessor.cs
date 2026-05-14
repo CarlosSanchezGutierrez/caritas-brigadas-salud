@@ -1,9 +1,11 @@
+using System.Reflection;
 using System.Text.Json;
 using Caritas.Brigadas.Application.Sync;
 using Caritas.Brigadas.Contracts.Patients;
 using Caritas.Brigadas.Contracts.PatientVisits;
 using Caritas.Brigadas.Contracts.ServiceEncounters;
 using Caritas.Brigadas.Contracts.FormResponses;
+using Caritas.Brigadas.Contracts.ConsentDocuments;
 using Caritas.Brigadas.Contracts.Sync;
 using Caritas.Brigadas.Contracts.VitalSigns;
 using Caritas.Brigadas.Domain.Common;
@@ -102,6 +104,8 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         var acceptedEncounterVisitServiceKeysInBatch = new HashSet<string>(StringComparer.Ordinal);
         var acceptedFormResponseIdsInBatch = new HashSet<Guid>();
         var acceptedFormResponseEncounterTemplateKeysInBatch = new HashSet<string>(StringComparer.Ordinal);
+        var acceptedConsentDocumentIdsInBatch = new HashSet<Guid>();
+        var acceptedConsentDocumentKeysInBatch = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var syncEvent in pendingEvents)
         {
@@ -185,6 +189,20 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 processedCount++;
                 continue;
             }
+            if (syncEvent.EntityType == SyncEntityType.ConsentDocument)
+            {
+                await HandleConsentDocumentEventAsync(
+                    organizationId,
+                    batch,
+                    syncEvent,
+                    processedAt,
+                    acceptedConsentDocumentIdsInBatch,
+                    acceptedConsentDocumentKeysInBatch,
+                    cancellationToken);
+
+                processedCount++;
+                continue;
+            }
             syncEvent.MarkConflict(
                 processedAt,
                 SkeletonConflictReason);
@@ -221,7 +239,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             RejectedCount = rejectedCount,
             ConflictCount = conflictCount,
             Completed = batch.IsCompleted,
-            Message = "Sync batch processor completed patient, visit, service encounter, vital signs, and form response handler processing."
+            Message = "Sync batch processor completed patient, visit, service encounter, vital signs, form response, and consent document handler processing."
         };
     }
 
@@ -257,7 +275,13 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             return 4;
         }
 
-        return 5;
+        if (syncEvent.EntityType == SyncEntityType.ConsentDocument &&
+            syncEvent.Operation == SyncOperation.Create)
+        {
+            return 5;
+        }
+
+        return 6;
     }
 private async Task HandlePatientEventAsync(
         Guid organizationId,
@@ -1550,6 +1574,339 @@ private async Task HandlePatientEventAsync(
                 processedAt,
                 exception.Message);
         }
+    }
+    private async Task HandleConsentDocumentEventAsync(
+        Guid organizationId,
+        SyncBatch batch,
+        SyncEvent syncEvent,
+        DateTimeOffset processedAt,
+        ISet<Guid> acceptedConsentDocumentIdsInBatch,
+        ISet<string> acceptedConsentDocumentKeysInBatch,
+        CancellationToken cancellationToken)
+    {
+        if (syncEvent.Operation != SyncOperation.Create)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "consent_document_operation_not_implemented");
+
+            return;
+        }
+
+        CreateConsentDocumentRequest? request;
+
+        try
+        {
+            using var payloadDocument = JsonDocument.Parse(syncEvent.PayloadJson);
+
+            if (payloadDocument.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                syncEvent.Reject(
+                    processedAt,
+                    "Consent document payload must be a JSON object.");
+
+                return;
+            }
+
+            request = JsonSerializer.Deserialize<CreateConsentDocumentRequest>(
+                syncEvent.PayloadJson,
+                PayloadJsonOptions);
+        }
+        catch (JsonException)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "Consent document payload JSON is invalid.");
+
+            return;
+        }
+
+        if (request is null)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "Consent document payload is required.");
+
+            return;
+        }
+
+        if (request.PatientId == Guid.Empty)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "PatientId is required for consent document sync.");
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(request.ConsentType))
+        {
+            syncEvent.Reject(
+                processedAt,
+                "ConsentType is required for consent document sync.");
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(request.DocumentVersion))
+        {
+            syncEvent.Reject(
+                processedAt,
+                "DocumentVersion is required for consent document sync.");
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(request.SignatureDataUrl))
+        {
+            syncEvent.Reject(
+                processedAt,
+                "SignatureDataUrl is required for consent document sync.");
+
+            return;
+        }
+
+        var patientExists =
+            _dbContext.Patients.Local.Any(patient =>
+                patient.Id == request.PatientId &&
+                patient.OrganizationId == organizationId &&
+                !patient.IsDeleted) ||
+            await _dbContext.Patients
+                .AsNoTracking()
+                .AnyAsync(
+                    patient =>
+                        patient.Id == request.PatientId &&
+                        patient.OrganizationId == organizationId &&
+                        !patient.IsDeleted,
+                    cancellationToken);
+
+        if (!patientExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "consent_document_patient_not_found");
+
+            return;
+        }
+
+        if (request.VisitId.HasValue)
+        {
+            var visitExists =
+                _dbContext.PatientVisits.Local.Any(visit =>
+                    visit.Id == request.VisitId.Value &&
+                    visit.OrganizationId == organizationId &&
+                    visit.PatientId == request.PatientId &&
+                    visit.BrigadeId == batch.BrigadeId &&
+                    !visit.IsDeleted) ||
+                await _dbContext.PatientVisits
+                    .AsNoTracking()
+                    .AnyAsync(
+                        visit =>
+                            visit.Id == request.VisitId.Value &&
+                            visit.OrganizationId == organizationId &&
+                            visit.PatientId == request.PatientId &&
+                            visit.BrigadeId == batch.BrigadeId &&
+                            !visit.IsDeleted,
+                        cancellationToken);
+
+            if (!visitExists)
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "consent_document_visit_not_found");
+
+                return;
+            }
+        }
+
+        if (request.SignedByUserId.HasValue)
+        {
+            var signedByUserExists = await _dbContext.Users
+                .AsNoTracking()
+                .AnyAsync(
+                    user =>
+                        user.Id == request.SignedByUserId.Value &&
+                        user.OrganizationId == organizationId &&
+                        !user.IsDeleted,
+                    cancellationToken);
+
+            if (!signedByUserExists)
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "consent_document_signed_by_user_not_found");
+
+                return;
+            }
+        }
+
+        var consentDocumentId = syncEvent.EntityId ?? Guid.NewGuid();
+
+        var consentDocumentIdAlreadyExists =
+            acceptedConsentDocumentIdsInBatch.Contains(consentDocumentId) ||
+            _dbContext.Set<ConsentDocument>().Local.Any(document =>
+                document.Id == consentDocumentId &&
+                document.OrganizationId == organizationId &&
+                !document.IsDeleted) ||
+            await _dbContext.Set<ConsentDocument>()
+                .AsNoTracking()
+                .AnyAsync(
+                    document =>
+                        document.Id == consentDocumentId &&
+                        document.OrganizationId == organizationId &&
+                        !document.IsDeleted,
+                    cancellationToken);
+
+        if (consentDocumentIdAlreadyExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "consent_document_id_already_exists");
+
+            return;
+        }
+
+        var normalizedConsentType = request.ConsentType.Trim().ToUpperInvariant();
+        var normalizedDocumentVersion = request.DocumentVersion.Trim();
+
+        var consentDocumentKey =
+            $"{request.PatientId:N}:{(request.VisitId.HasValue ? request.VisitId.Value.ToString("N") : "no_visit")}:{normalizedConsentType}:{normalizedDocumentVersion}";
+
+        if (acceptedConsentDocumentKeysInBatch.Contains(consentDocumentKey))
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "consent_document_duplicate_patient_visit_type_version_in_pending_batch");
+
+            return;
+        }
+
+        var duplicateConsentExists =
+            _dbContext.Set<ConsentDocument>().Local.Any(document =>
+                document.OrganizationId == organizationId &&
+                document.PatientId == request.PatientId &&
+                document.VisitId == request.VisitId &&
+                document.ConsentType == normalizedConsentType &&
+                document.DocumentVersion == normalizedDocumentVersion &&
+                !document.IsDeleted) ||
+            await _dbContext.Set<ConsentDocument>()
+                .AsNoTracking()
+                .AnyAsync(
+                    document =>
+                        document.OrganizationId == organizationId &&
+                        document.PatientId == request.PatientId &&
+                        document.VisitId == request.VisitId &&
+                        document.ConsentType == normalizedConsentType &&
+                        document.DocumentVersion == normalizedDocumentVersion &&
+                        !document.IsDeleted,
+                    cancellationToken);
+
+        if (duplicateConsentExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "consent_document_duplicate_patient_visit_type_version");
+
+            return;
+        }
+
+        try
+        {
+            var signedAt = request.SignedAt ?? DateTimeOffset.UtcNow;
+
+            var consentDocument = CreateConsentDocumentForSync(
+                consentDocumentId,
+                organizationId,
+                request,
+                normalizedConsentType,
+                normalizedDocumentVersion,
+                signedAt,
+                request.DeviceId ?? batch.DeviceId);
+
+            // Pending-batch consent document id and patient-visit-type-version keys are reserved only after successful ConsentDocument construction.
+            if (!acceptedConsentDocumentIdsInBatch.Add(consentDocumentId))
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "consent_document_duplicate_in_pending_batch");
+
+                return;
+            }
+
+            if (!acceptedConsentDocumentKeysInBatch.Add(consentDocumentKey))
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "consent_document_duplicate_patient_visit_type_version_in_pending_batch");
+
+                return;
+            }
+
+            _dbContext.Set<ConsentDocument>().Add(consentDocument);
+
+            syncEvent.Accept(
+                processedAt,
+                consentDocument.Id);
+        }
+        catch (Exception exception) when (exception is DomainException or ArgumentException or TargetInvocationException)
+        {
+            syncEvent.Reject(
+                processedAt,
+                exception.InnerException?.Message ?? exception.Message);
+        }
+    }
+
+    private static ConsentDocument CreateConsentDocumentForSync(
+        Guid id,
+        Guid organizationId,
+        CreateConsentDocumentRequest request,
+        string normalizedConsentType,
+        string normalizedDocumentVersion,
+        DateTimeOffset signedAt,
+        Guid? deviceId)
+    {
+        var consentDocument = (ConsentDocument)Activator.CreateInstance(
+            typeof(ConsentDocument),
+            nonPublic: true)!;
+
+        SetConsentPropertyIfExists(consentDocument, "Id", id);
+        SetConsentPropertyIfExists(consentDocument, "OrganizationId", organizationId);
+        SetConsentPropertyIfExists(consentDocument, "PatientId", request.PatientId);
+        SetConsentPropertyIfExists(consentDocument, "VisitId", request.VisitId);
+        SetConsentPropertyIfExists(consentDocument, "ConsentType", normalizedConsentType);
+        SetConsentPropertyIfExists(consentDocument, "DocumentVersion", normalizedDocumentVersion);
+        SetConsentPropertyIfExists(consentDocument, "DocumentTextSnapshot", request.DocumentTextSnapshot?.Trim());
+        SetConsentPropertyIfExists(consentDocument, "SignatureDataUrl", request.SignatureDataUrl?.Trim());
+        SetConsentPropertyIfExists(consentDocument, "GuardianFullName", request.GuardianFullName?.Trim());
+        SetConsentPropertyIfExists(consentDocument, "GuardianRelationship", request.GuardianRelationship?.Trim());
+        SetConsentPropertyIfExists(consentDocument, "SignedByUserId", request.SignedByUserId);
+        SetConsentPropertyIfExists(consentDocument, "SignedAt", signedAt);
+        SetConsentPropertyIfExists(consentDocument, "CreatedOffline", true);
+        SetConsentPropertyIfExists(consentDocument, "DeviceId", deviceId);
+        SetConsentPropertyIfExists(consentDocument, "SyncStatus", "Pending");
+        SetConsentPropertyIfExists(consentDocument, "CreatedAt", DateTimeOffset.UtcNow);
+        SetConsentPropertyIfExists(consentDocument, "IsDeleted", false);
+
+        return consentDocument;
+    }
+
+    private static void SetConsentPropertyIfExists(
+        object instance,
+        string propertyName,
+        object? value)
+    {
+        var property = instance
+            .GetType()
+            .GetProperty(
+                propertyName,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        if (property is null || !property.CanWrite)
+        {
+            return;
+        }
+
+        property.SetValue(instance, value);
     }
     private static bool TryValidateEvent(
         SyncEvent syncEvent,
