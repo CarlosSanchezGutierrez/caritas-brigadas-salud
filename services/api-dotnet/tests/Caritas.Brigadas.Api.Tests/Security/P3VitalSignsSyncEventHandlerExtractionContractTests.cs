@@ -2,23 +2,18 @@ using Xunit;
 
 namespace Caritas.Brigadas.Api.Tests.Security;
 
-public sealed class P3SyncProcessorVitalSignsHandlerContractTests
+public sealed class P3VitalSignsSyncEventHandlerExtractionContractTests
 {
     [Fact]
-    public void SyncBatchProcessor_HandlesVitalSignsCreateOnly()
+    public void VitalSignsSyncEventHandler_OwnsVitalSignsCreateBehavior()
     {
-        var source =
-            File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) +
-            File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs")) +
-            File.ReadAllText(GetInfrastructurePath("Sync", "VitalSignsSyncEventHandler.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "VitalSignsSyncEventHandler.cs"));
 
         var requiredTokens = new[]
         {
-            "HandleVitalSignsEventAsync",
-            "VitalSignsSyncEventHandler",
-            "SyncEntityType.VitalSigns",
-            "return 3;",
-            "return 4;",
+            "internal sealed class VitalSignsSyncEventHandler",
+            "public async Task HandleAsync",
+            "SyncPayloadReader.TryReadObject",
             "out CreateVitalSignsRecordRequest? request",
             "var vitalSignsRecord = new VitalSignsRecord(",
             "_dbContext.VitalSignsRecords.Add(vitalSignsRecord)",
@@ -31,14 +26,19 @@ public sealed class P3SyncProcessorVitalSignsHandlerContractTests
             "vital_signs_measured_by_user_not_found",
             "vital_signs_id_already_exists",
             "vital_signs_duplicate_in_pending_batch",
-            "acceptedVitalSignsIdsInBatch"
+            "acceptedVitalSignsIdsInBatch",
+            "request.SystolicBloodPressureMmHg",
+            "request.DiastolicBloodPressureMmHg",
+            "request.HeartRateBpm",
+            "request.OxygenSaturationPercent",
+            "request.GlucoseMgDl"
         };
 
-        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor vital signs handler");
+        AssertRequiredTokens(source, requiredTokens, "VitalSignsSyncEventHandler");
     }
 
     [Fact]
-    public void SyncBatchProcessor_DoesNotContainDirectVitalSignsLogicAfterExtraction()
+    public void SyncBatchProcessor_DelegatesVitalSignsCreateToVitalSignsSyncEventHandler()
     {
         var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
 
@@ -50,7 +50,7 @@ public sealed class P3SyncProcessorVitalSignsHandlerContractTests
             "await _vitalSignsSyncEventHandler.HandleAsync("
         };
 
-        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor vital signs wrapper");
+        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor vital signs handler extraction");
 
         var forbiddenTokens = new[]
         {
@@ -70,6 +70,23 @@ public sealed class P3SyncProcessorVitalSignsHandlerContractTests
         {
             Assert.DoesNotContain(token, source, StringComparison.Ordinal);
         }
+    }
+
+    [Fact]
+    public void VitalSignsHandlerExtractionBaseline_DefinesFourthHandlerExtraction()
+    {
+        var source = File.ReadAllText(GetDocPath("P3_VITAL_SIGNS_SYNC_EVENT_HANDLER_EXTRACTION_BASELINE.md"));
+
+        var requiredTokens = new[]
+        {
+            "P3 Vital Signs Sync Event Handler Extraction Baseline",
+            "VitalSignsSyncEventHandler must own vital_signs/create payload parsing",
+            "SyncBatchProcessor must not directly construct VitalSignsRecord",
+            "SyncBatchProcessor must not directly parse CreateVitalSignsRecordRequest",
+            "Acceptance criteria"
+        };
+
+        AssertRequiredTokens(source, requiredTokens, "P3 vital signs sync event handler extraction baseline");
     }
 
     private static void AssertRequiredTokens(
@@ -95,6 +112,15 @@ public sealed class P3SyncProcessorVitalSignsHandlerContractTests
             new[] { FindRepositoryRoot(), "services", "api-dotnet", "src", "Caritas.Brigadas.Infrastructure" }
                 .Concat(segments)
                 .ToArray());
+    }
+
+    private static string GetDocPath(string fileName)
+    {
+        return Path.Combine(
+            FindRepositoryRoot(),
+            "docs",
+            "backend",
+            fileName);
     }
 
     private static string FindRepositoryRoot()

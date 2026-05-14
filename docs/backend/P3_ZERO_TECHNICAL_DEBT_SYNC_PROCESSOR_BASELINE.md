@@ -109,3 +109,8 @@ P3-22G.1 clarifies that processor-centered verifiers retained during handler ext
 ## 13. P3-22H service encounter sync event handler extraction note
 
 P3-22H continues real domain handler extraction by moving service_encounter/create behavior into ServiceEncounterSyncEventHandler.
+---
+
+## 14. P3-22I vital signs sync event handler extraction note
+
+P3-22I continues real domain handler extraction by moving vital_signs/create behavior into VitalSignsSyncEventHandler.
