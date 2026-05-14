@@ -129,3 +129,5 @@ Write-Host "============================================================" -Foreg
 & (Join-Path $RepoRoot "scripts\verify-p3-sync-payload-reader-extraction.ps1")
 
 & (Join-Path $RepoRoot "scripts\verify-p3-sync-processor-formatting-hygiene.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-sync-pending-event-dispatch-extraction.ps1")

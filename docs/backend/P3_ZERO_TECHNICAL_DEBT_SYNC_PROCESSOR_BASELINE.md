@@ -84,3 +84,8 @@ P3-22C reduces SyncBatchProcessor responsibility by moving repeated PayloadJson 
 ## 8. P3-22D formatting hygiene note
 
 P3-22D extends the zero technical debt policy with explicit SyncBatchProcessor formatting hygiene checks.
+---
+
+## 9. P3-22E pending event dispatch extraction note
+
+P3-22E reduces ProcessAsync responsibility by moving pending event dispatch into ProcessPendingEventAsync. Direct handler expansion remains forbidden.
