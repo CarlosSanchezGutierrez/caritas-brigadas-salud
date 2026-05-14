@@ -71,11 +71,8 @@ public sealed class RequestTelemetryMiddleware
                     sanitizedPath,
                     statusCode,
                     elapsedMilliseconds);
-
-                return;
             }
-
-            if (statusCode >= StatusCodes.Status500InternalServerError)
+            else if (statusCode >= StatusCodes.Status500InternalServerError)
             {
                 _logger.LogError(
                     "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
@@ -83,11 +80,8 @@ public sealed class RequestTelemetryMiddleware
                     httpMethod,
                     sanitizedPath,
                     elapsedMilliseconds);
-
-                return;
             }
-
-            if (statusCode >= StatusCodes.Status400BadRequest)
+            else if (statusCode >= StatusCodes.Status400BadRequest)
             {
                 _logger.LogWarning(
                     "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
@@ -95,16 +89,16 @@ public sealed class RequestTelemetryMiddleware
                     httpMethod,
                     sanitizedPath,
                     elapsedMilliseconds);
-
-                return;
             }
-
-            _logger.LogInformation(
-                "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
-                statusCode,
-                httpMethod,
-                sanitizedPath,
-                elapsedMilliseconds);
+            else
+            {
+                _logger.LogInformation(
+                    "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
+                    statusCode,
+                    httpMethod,
+                    sanitizedPath,
+                    elapsedMilliseconds);
+            }
         }
     }
 

@@ -13,6 +13,18 @@ function Assert-FileExists {
     }
 }
 
+function Assert-NotContains {
+    param(
+        [string]$Content,
+        [string]$Token,
+        [string]$Label
+    )
+
+    if ($Content.Contains($Token)) {
+        throw "$Label contains forbidden token: $Token"
+    }
+}
+
 function Assert-Contains {
     param(
         [string]$Content,
@@ -107,6 +119,19 @@ $RequiredTelemetryTokens = @(
 
 foreach ($Token in $RequiredTelemetryTokens) {
     Assert-Contains $Telemetry $Token "RequestTelemetryMiddleware"
+}
+
+$ForbiddenTelemetryTokens = @(
+    "PayloadJson",
+    "Request.Body",
+    "Request.QueryString",
+    "ConnectionStrings",
+    "Bearer ",
+    "Password"
+)
+
+foreach ($Token in $ForbiddenTelemetryTokens) {
+    Assert-NotContains $Telemetry $Token "RequestTelemetryMiddleware"
 }
 
 Assert-Contains $HttpContextExtensions "GetCorrelationId" "HttpContextExtensions"
