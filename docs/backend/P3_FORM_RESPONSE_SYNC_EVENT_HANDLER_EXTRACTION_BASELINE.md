@@ -89,3 +89,8 @@ P3-22J is complete when:
 - FormResponseSyncEventHandler contains the previous form_response/create behavior;
 - all previous P3 sync processor verifiers remain green;
 - dotnet build and dotnet test remain green.
+---
+
+## 6. P3-22K consent document sync event handler extraction note
+
+P3-22K extracts consent_document/create behavior into ConsentDocumentSyncEventHandler while preserving ProcessPendingEventAsync dispatch behavior.

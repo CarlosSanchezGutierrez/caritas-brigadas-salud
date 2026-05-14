@@ -5,6 +5,7 @@ $DocPath = Join-Path $RepoRoot "docs/backend/P3_SYNC_PROCESSOR_CONSENT_DOCUMENT_
 $RequestPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Contracts/ConsentDocuments/CreateConsentDocumentRequest.cs"
 $ProcessorPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncBatchProcessor.cs"
 $OrderPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncProcessingOrder.cs"
+$ConsentHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/ConsentDocumentSyncEventHandler.cs"
 
 function Assert-FileExists {
     param([string]$Path)
@@ -30,12 +31,14 @@ Assert-FileExists $DocPath
 Assert-FileExists $RequestPath
 Assert-FileExists $ProcessorPath
 Assert-FileExists $OrderPath
+Assert-FileExists $ConsentHandlerPath
 
 $Doc = Get-Content $DocPath -Raw -Encoding UTF8
 $Request = Get-Content $RequestPath -Raw -Encoding UTF8
 $Processor = Get-Content $ProcessorPath -Raw -Encoding UTF8
 $Order = Get-Content $OrderPath -Raw -Encoding UTF8
-$ProcessorAndOrder = $Processor + $Order
+$ConsentHandler = Get-Content $ConsentHandlerPath -Raw -Encoding UTF8
+$ProcessorAndOrderAndConsentHandler = $Processor + $Order + $ConsentHandler
 
 $RequiredDocTokens = @(
     "P3 Sync Processor Consent Document Handler Baseline",
@@ -74,8 +77,9 @@ foreach ($Token in $RequiredRequestTokens) {
     Assert-Contains $Request $Token "CreateConsentDocumentRequest"
 }
 
-$RequiredProcessorTokens = @(
+$RequiredTokens = @(
     "HandleConsentDocumentEventAsync",
+    "ConsentDocumentSyncEventHandler",
     "syncEvent.EntityType == SyncEntityType.ConsentDocument",
     "syncEvent.Operation != SyncOperation.Create",
     "consent_document_operation_not_implemented",
@@ -102,16 +106,41 @@ $RequiredProcessorTokens = @(
     "return 6;"
 )
 
+foreach ($Token in $RequiredTokens) {
+    Assert-Contains $ProcessorAndOrderAndConsentHandler $Token "SyncBatchProcessor consent document handler"
+}
+
+$RequiredProcessorTokens = @(
+    "private readonly ConsentDocumentSyncEventHandler _consentDocumentSyncEventHandler;",
+    "_consentDocumentSyncEventHandler = new ConsentDocumentSyncEventHandler(dbContext, PayloadJsonOptions);",
+    "    private async Task HandleConsentDocumentEventAsync",
+    "await _consentDocumentSyncEventHandler.HandleAsync("
+)
+
 foreach ($Token in $RequiredProcessorTokens) {
-    Assert-Contains $ProcessorAndOrder $Token "SyncBatchProcessor consent document handler"
+    Assert-Contains $Processor $Token "SyncBatchProcessor consent document handler wrapper"
 }
 
 $ForbiddenProcessorTokens = @(
+    "out CreateConsentDocumentRequest? request",
+    "CreateConsentDocumentForSync",
+    "SetConsentPropertyIfExists",
+    "_dbContext.Set<ConsentDocument>().Add(consentDocument)",
+    "consent_document_operation_not_implemented",
+    "consent_document_patient_not_found",
+    "consent_document_visit_not_found",
+    "consent_document_signed_by_user_not_found",
+    "consent_document_id_already_exists",
+    "consent_document_duplicate_patient_visit_type_version",
+    "consent_document_duplicate_patient_visit_type_version_in_pending_batch",
+    "consentDocumentIdReserved",
+    "consentDocumentKeyReserved",
+    "acceptedConsentDocumentIdsInBatch.Remove(consentDocumentId)"
 )
 
 foreach ($Token in $ForbiddenProcessorTokens) {
     if ($Processor.Contains($Token)) {
-        throw "SyncBatchProcessor consent document handler scope violation: $Token"
+        throw "SyncBatchProcessor still contains direct consent document logic: $Token"
     }
 }
 

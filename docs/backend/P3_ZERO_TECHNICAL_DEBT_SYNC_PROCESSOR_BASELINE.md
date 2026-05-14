@@ -119,3 +119,8 @@ P3-22I continues real domain handler extraction by moving vital_signs/create beh
 ## 15. P3-22J form response sync event handler extraction note
 
 P3-22J continues real domain handler extraction by moving form_response/create behavior into FormResponseSyncEventHandler.
+---
+
+## 16. P3-22K consent document sync event handler extraction note
+
+P3-22K continues real domain handler extraction by moving consent_document/create behavior into ConsentDocumentSyncEventHandler.
