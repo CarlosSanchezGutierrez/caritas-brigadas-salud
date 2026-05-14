@@ -45,8 +45,10 @@ The medication delivery create handler must:
 - preserve ExpirationDate;
 - preserve Instructions;
 - preserve ReceivedByName when provided;
+- preserve DeliveredByUserId and ReceivedByName when provided even if MarkAsDelivered is false;
 - support optional delivered transition only when MarkAsDelivered is true and DeliveredByUserId is provided;
 - conflict duplicate MedicationDelivery id inside the organization;
+- duplicate MedicationDelivery id checks must include globally duplicated ids because primary key uniqueness is not tenant-scoped;
 - conflict duplicate MedicationDelivery id values inside the same pending batch before SaveChangesAsync;
 - reserve pending-batch medication delivery id only after successful MedicationDelivery construction and optional delivered transition;
 - accept the SyncEvent only after the MedicationDelivery entity is staged;
@@ -110,5 +112,7 @@ P3-20 is complete when:
 - SyncBatchProcessor validates delivered-by user when provided;
 - SyncBatchProcessor rejects SignatureId until document_signature handling exists;
 - SyncBatchProcessor marks duplicate medication delivery id as conflict;
+- SyncBatchProcessor includes globally duplicated medication delivery ids when checking id uniqueness;
+- SyncBatchProcessor preserves non-delivered medication receipt metadata instead of silently dropping it;
 - contract tests protect the medication_delivery-only scope;
 - repository governance and database deployment gates remain green.

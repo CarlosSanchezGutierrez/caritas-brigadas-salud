@@ -31,10 +31,7 @@ public sealed class P3SyncProcessorSkeletonContractTests
 
         AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor skeleton");
 
-        var forbiddenTokens = new[]
-        {
-
-        };
+        var forbiddenTokens = System.Array.Empty<string>();
 
         foreach (var token in forbiddenTokens)
         {

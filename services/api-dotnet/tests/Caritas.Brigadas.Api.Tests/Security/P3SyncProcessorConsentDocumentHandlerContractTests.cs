@@ -40,9 +40,7 @@ public sealed class P3SyncProcessorConsentDocumentHandlerContractTests
 
         AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor consent document handler");
 
-        var forbiddenTokens = new[]
-        {
-        };
+        var forbiddenTokens = System.Array.Empty<string>();
 
         foreach (var token in forbiddenTokens)
         {

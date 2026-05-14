@@ -2397,17 +2397,16 @@ private async Task HandlePatientEventAsync(
 
         var medicationDeliveryId = syncEvent.EntityId ?? Guid.NewGuid();
 
+        // Medication delivery id duplicate checks include globally duplicated ids because primary key uniqueness is not tenant-scoped.
         var medicationDeliveryIdAlreadyExists =
             acceptedMedicationDeliveryIdsInBatch.Contains(medicationDeliveryId) ||
             _dbContext.Set<MedicationDelivery>().Local.Any(delivery =>
-                delivery.Id == medicationDeliveryId &&
-                delivery.OrganizationId == organizationId) ||
+                delivery.Id == medicationDeliveryId) ||
             await _dbContext.Set<MedicationDelivery>()
                 .AsNoTracking()
                 .AnyAsync(
                     delivery =>
-                        delivery.Id == medicationDeliveryId &&
-                        delivery.OrganizationId == organizationId,
+                        delivery.Id == medicationDeliveryId,
                     cancellationToken);
 
         if (medicationDeliveryIdAlreadyExists)
@@ -2421,6 +2420,7 @@ private async Task HandlePatientEventAsync(
 
         try
         {
+            // Non-delivered medication receipt metadata is preserved through constructor fields instead of silently dropped.
             var medicationDelivery = new MedicationDelivery(
                 medicationDeliveryId,
                 organizationId,
@@ -2431,7 +2431,10 @@ private async Task HandlePatientEventAsync(
                 request.Quantity,
                 request.LotNumber,
                 request.ExpirationDate,
-                request.Instructions);
+                request.Instructions,
+                request.MarkAsDelivered ? null : request.DeliveredByUserId,
+                request.MarkAsDelivered ? null : request.ReceivedByName,
+                signatureId: null);
 
             if (request.MarkAsDelivered && request.DeliveredByUserId.HasValue)
             {

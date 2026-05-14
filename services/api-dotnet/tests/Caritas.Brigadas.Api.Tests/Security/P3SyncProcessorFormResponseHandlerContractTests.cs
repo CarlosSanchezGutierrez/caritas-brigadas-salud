@@ -39,9 +39,7 @@ public sealed class P3SyncProcessorFormResponseHandlerContractTests
 
         AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor form response handler");
 
-        var forbiddenTokens = new[]
-        {
-        };
+        var forbiddenTokens = System.Array.Empty<string>();
 
         foreach (var token in forbiddenTokens)
         {

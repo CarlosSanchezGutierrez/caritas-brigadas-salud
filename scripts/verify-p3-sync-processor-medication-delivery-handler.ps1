@@ -90,12 +90,20 @@ $RequiredProcessorTokens = @(
     "medication_delivery_duplicate_in_pending_batch",
     "acceptedMedicationDeliveryIdsInBatch",
     "reserved only after successful MedicationDelivery construction and optional delivered transition",
+    "Medication delivery id duplicate checks include globally duplicated ids because primary key uniqueness is not tenant-scoped",
+    "Non-delivered medication receipt metadata is preserved through constructor fields instead of silently dropped",
+    "request.MarkAsDelivered ? null : request.DeliveredByUserId",
+    "request.MarkAsDelivered ? null : request.ReceivedByName",
     "return 7;",
     "return 8;"
 )
 
 foreach ($Token in $RequiredProcessorTokens) {
     Assert-Contains $Processor $Token "SyncBatchProcessor medication delivery handler"
+}
+
+if ($Processor -match "delivery\.Id == medicationDeliveryId[\s\S]{0,120}delivery\.OrganizationId == organizationId") {
+    throw "MedicationDelivery duplicate id check must not be tenant-scoped because primary key uniqueness is global."
 }
 
 Write-Host "P3 sync processor medication delivery handler verification passed." -ForegroundColor Green

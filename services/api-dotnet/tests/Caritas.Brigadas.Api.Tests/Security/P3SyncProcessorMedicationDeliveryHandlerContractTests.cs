@@ -30,6 +30,10 @@ public sealed class P3SyncProcessorMedicationDeliveryHandlerContractTests
             "medication_delivery_duplicate_in_pending_batch",
             "acceptedMedicationDeliveryIdsInBatch",
             "reserved only after successful MedicationDelivery construction and optional delivered transition",
+            "Medication delivery id duplicate checks include globally duplicated ids because primary key uniqueness is not tenant-scoped",
+            "Non-delivered medication receipt metadata is preserved through constructor fields instead of silently dropped",
+            "request.MarkAsDelivered ? null : request.DeliveredByUserId",
+            "request.MarkAsDelivered ? null : request.ReceivedByName",
             "return 7;",
             "return 8;"
         };
@@ -60,6 +64,42 @@ public sealed class P3SyncProcessorMedicationDeliveryHandlerContractTests
         AssertRequiredTokens(source, requiredTokens, "P3 sync processor medication delivery handler baseline");
     }
 
+
+    [Fact]
+    public void MedicationDelivery_IdDuplicateCheck_IsGlobal()
+    {
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
+
+        Assert.DoesNotMatch(
+            "delivery\\.Id == medicationDeliveryId[\\s\\S]{0,120}delivery\\.OrganizationId == organizationId",
+            source);
+
+        Assert.Contains(
+            "Medication delivery id duplicate checks include globally duplicated ids because primary key uniqueness is not tenant-scoped",
+            source,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MedicationDelivery_ReceiptMetadata_IsPreservedWhenNotDelivered()
+    {
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
+
+        Assert.Contains(
+            "Non-delivered medication receipt metadata is preserved through constructor fields instead of silently dropped",
+            source,
+            StringComparison.Ordinal);
+
+        Assert.Contains(
+            "request.MarkAsDelivered ? null : request.DeliveredByUserId",
+            source,
+            StringComparison.Ordinal);
+
+        Assert.Contains(
+            "request.MarkAsDelivered ? null : request.ReceivedByName",
+            source,
+            StringComparison.Ordinal);
+    }
     private static void AssertRequiredTokens(
         string source,
         IReadOnlyCollection<string> requiredTokens,
