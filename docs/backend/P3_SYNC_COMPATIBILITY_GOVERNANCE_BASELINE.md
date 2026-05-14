@@ -47,11 +47,11 @@ Extracted handlers:
 - PatientSyncEventHandler;
 - PatientVisitSyncEventHandler;
 - ServiceEncounterSyncEventHandler;
-- VitalSignsSyncEventHandler.
+- VitalSignsSyncEventHandler;
+- FormResponseSyncEventHandler.
 
 Still pending extraction:
 
-- FormResponseSyncEventHandler;
 - ConsentDocumentSyncEventHandler;
 - MedicalReferralSyncEventHandler;
 - MedicationDeliverySyncEventHandler.

@@ -5,6 +5,7 @@ $DocPath = Join-Path $RepoRoot "docs/backend/P3_SYNC_PROCESSOR_INTEGRATION_HARDE
 $ProcessorPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncBatchProcessor.cs"
 $OrderPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncProcessingOrder.cs"
 $ServiceHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/ServiceEncounterSyncEventHandler.cs"
+$FormHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/FormResponseSyncEventHandler.cs"
 $SecurityTestsPath = Join-Path $RepoRoot "services/api-dotnet/tests/Caritas.Brigadas.Api.Tests/Security"
 
 function Assert-FileExists {
@@ -31,12 +32,14 @@ Assert-FileExists $DocPath
 Assert-FileExists $ProcessorPath
 Assert-FileExists $OrderPath
 Assert-FileExists $ServiceHandlerPath
+Assert-FileExists $FormHandlerPath
 
 $Doc = Get-Content $DocPath -Raw -Encoding UTF8
 $Processor = Get-Content $ProcessorPath -Raw -Encoding UTF8
 $Order = Get-Content $OrderPath -Raw -Encoding UTF8
 $ServiceHandler = Get-Content $ServiceHandlerPath -Raw -Encoding UTF8
-$ProcessorAndOrder = $Processor + $Order + $ServiceHandler
+$FormHandler = Get-Content $FormHandlerPath -Raw -Encoding UTF8
+$ProcessorAndOrder = $Processor + $Order + $ServiceHandler + $FormHandler
 
 $RequiredDocTokens = @(
     "P3 Sync Processor Integration Hardening Baseline",

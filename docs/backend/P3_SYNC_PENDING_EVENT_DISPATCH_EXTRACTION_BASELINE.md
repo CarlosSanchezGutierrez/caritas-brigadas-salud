@@ -97,3 +97,8 @@ P3-22H extracts service_encounter/create behavior into ServiceEncounterSyncEvent
 ## 9. P3-22I vital signs sync event handler extraction note
 
 P3-22I extracts vital_signs/create behavior into VitalSignsSyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
+---
+
+## 10. P3-22J form response sync event handler extraction note
+
+P3-22J extracts form_response/create behavior into FormResponseSyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
