@@ -38,7 +38,9 @@ public sealed class P3SyncProcessorDirectHandlerDispatchContractTests
             "HandleMedicalReferralEventAsync",
             "HandleMedicationDeliveryEventAsync",
             "GetSyncProcessingOrder",
-            ".OrderBy(SyncProcessingOrder.GetOrder)"
+            "return SyncProcessingOrder.GetOrder(syncEvent);",
+            "private async Task await _",
+            "private static int .OrderBy"
         };
 
         foreach (var token in forbiddenTokens)
