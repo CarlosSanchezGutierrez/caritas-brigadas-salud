@@ -194,3 +194,8 @@ P3-24C protects sync event listing privacy by ensuring PayloadJson remains inter
 ## 30. P3-24D tenant boundary endpoint API regression note
 
 P3-24D protects sync API tenant boundaries by ensuring cross-tenant batch access returns 404 and does not process or leak payload content.
+---
+
+## 31. P3-25A sync backend readiness checklist note
+
+P3-25A closes the P3 sync backend workstream as a documented and governance-protected readiness package.

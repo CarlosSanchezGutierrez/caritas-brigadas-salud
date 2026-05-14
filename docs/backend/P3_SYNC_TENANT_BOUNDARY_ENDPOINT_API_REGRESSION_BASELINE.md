@@ -97,3 +97,8 @@ P3-24D is complete when:
 - the process mismatch test does not create Patient rows;
 - the original batch and event remain unchanged;
 - dotnet build and dotnet test pass.
+---
+
+## 8. P3-25A sync backend readiness checklist note
+
+P3-25A consolidates processor-level, API-level, privacy, tenant boundary, and governance evidence into a backend sync readiness checklist.
