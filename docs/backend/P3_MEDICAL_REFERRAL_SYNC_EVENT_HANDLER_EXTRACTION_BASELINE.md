@@ -103,3 +103,8 @@ P3-22L is complete when:
 - MedicalReferralSyncEventHandler contains the previous medical_referral/create behavior;
 - all previous P3 sync processor verifiers remain green;
 - dotnet build and dotnet test remain green.
+---
+
+## 7. P3-22M medication delivery sync event handler extraction note
+
+P3-22M extracts medication_delivery/create behavior into MedicationDeliverySyncEventHandler while preserving ProcessPendingEventAsync dispatch behavior.

@@ -50,11 +50,12 @@ Extracted handlers:
 - VitalSignsSyncEventHandler;
 - FormResponseSyncEventHandler;
 - ConsentDocumentSyncEventHandler;
-- MedicalReferralSyncEventHandler.
+- MedicalReferralSyncEventHandler;
+- MedicationDeliverySyncEventHandler.
 
 Still pending extraction:
 
-- MedicationDeliverySyncEventHandler.
+- none. All primary P3 sync event handlers are extracted.
 
 ---
 
