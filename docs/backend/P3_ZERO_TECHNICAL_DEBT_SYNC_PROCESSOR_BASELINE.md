@@ -179,3 +179,8 @@ P3-23E protects the sync processor against unsafe retries of terminal failed bat
 ## 27. P3-24A API-level endpoint regression note
 
 P3-24A protects the sync process endpoint wiring and removes stale skeleton wording from the public API response.
+---
+
+## 28. P3-24B create batch endpoint API regression note
+
+P3-24B protects the sync intake endpoint and confirms that creation receives batches and events without applying clinical writes.
