@@ -134,3 +134,8 @@ P3-22L continues real domain handler extraction by moving medical_referral/creat
 ## 18. P3-22M medication delivery sync event handler extraction note
 
 P3-22M completes primary domain handler extraction by moving medication_delivery/create behavior into MedicationDeliverySyncEventHandler.
+---
+
+## 19. P3-22N post-extraction hygiene note
+
+P3-22N removes stale SyncBatchProcessor helpers and unused request-contract imports left behind after handler extraction.
