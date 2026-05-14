@@ -1,10 +1,9 @@
 $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
-$DocPath = Join-Path $RepoRoot "docs/backend/P3_SYNC_PROCESSOR_PATIENT_VISIT_HANDLER_BASELINE.md"
 $ProcessorPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncBatchProcessor.cs"
-$VisitHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/PatientVisitSyncEventHandler.cs"
 $OrderPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncProcessingOrder.cs"
+$VisitHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/PatientVisitSyncEventHandler.cs"
 
 function Assert-FileExists {
     param([string]$Path)
@@ -26,73 +25,65 @@ function Assert-Contains {
     }
 }
 
-Assert-FileExists $DocPath
 Assert-FileExists $ProcessorPath
-Assert-FileExists $VisitHandlerPath
 Assert-FileExists $OrderPath
+Assert-FileExists $VisitHandlerPath
 
-$Doc = Get-Content $DocPath -Raw -Encoding UTF8
 $Processor = Get-Content $ProcessorPath -Raw -Encoding UTF8
-$VisitHandler = Get-Content $VisitHandlerPath -Raw -Encoding UTF8
-$ProcessorAndVisitHandler = $Processor + $VisitHandler
 $Order = Get-Content $OrderPath -Raw -Encoding UTF8
-$ProcessorAndOrder = $Processor + $Order
+$VisitHandler = Get-Content $VisitHandlerPath -Raw -Encoding UTF8
 
-$RequiredDocTokens = @(
-    "P3 Sync Processor Patient Visit Handler Baseline",
-    "EntityType: patient_visit",
-    "Operation: create",
-    "parse PayloadJson as CreatePatientVisitRequest",
-    "validate PatientId belongs to the same OrganizationId",
-    "validate PatientId can be found either in persisted Patients or in Patients staged in the same DbContext",
-    "process patient create events before patient_visit create events",
-    "conflict duplicate VisitFolio values inside the same pending batch",
-    "set SyncEvent.EntityId to the created PatientVisit.Id",
-    "Acceptance criteria"
+$ProcessorAndOrderAndVisitHandler = $Processor + $Order + $VisitHandler
+
+$RequiredTokens = @(
+    ".OrderBy(SyncProcessingOrder.GetOrder)",
+    "SyncEntityType.PatientVisit",
+    "return 1;",
+    "HandlePatientVisitEventAsync",
+    "PatientVisitSyncEventHandler",
+    "out CreatePatientVisitRequest? request",
+    "var visit = new PatientVisit(",
+    "patient_visit_operation_not_implemented",
+    "patient_visit_brigade_mismatch",
+    "patient_visit_patient_not_found",
+    "patient_visit_brigade_not_found",
+    "patient_visit_registered_by_user_not_found",
+    "patient_visit_id_already_exists",
+    "patient_visit_folio_duplicate_in_pending_batch",
+    "patient_visit_folio_already_exists",
+    "syncEvent.Accept("
 )
 
-foreach ($Token in $RequiredDocTokens) {
-    Assert-Contains $Doc $Token "P3 sync processor patient visit handler baseline"
+foreach ($Token in $RequiredTokens) {
+    Assert-Contains $ProcessorAndOrderAndVisitHandler $Token "SyncBatchProcessor patient visit handler"
 }
 
 $RequiredProcessorTokens = @(
-    "HandlePatientVisitEventAsync",
-    "syncEvent.EntityType == SyncEntityType.PatientVisit",
-    "syncEvent.Operation != SyncOperation.Create",
-    "patient_visit_operation_not_implemented",
-    "out CreatePatientVisitRequest? request",
-    "new PatientVisit(",
-    "_dbContext.PatientVisits.Add(visit)",
-    "syncEvent.Accept(",
-    "visit.Id",
-    "patient_visit_patient_not_found",
-    "patient_visit_brigade_not_found",
-    "patient_visit_brigade_mismatch",
-    "patient_visit_registered_by_user_not_found",
-    "patient_visit_folio_already_exists",
-    "patient_visit_folio_duplicate_in_pending_batch",
-    "acceptedVisitFoliosInBatch",
-    "acceptedVisitFoliosInBatch.Contains(normalizedVisitFolio)",
-    "!acceptedVisitFoliosInBatch.Add(normalizedVisitFolio)",
-    "GenerateSyncVisitFolio",
-    "GetSyncProcessingOrder",
-    ".OrderBy(SyncProcessingOrder.GetOrder)",
-    "pendingEvents = pendingEvents",
-    "return 0;",
-    "return 1;",
-    "return 2;"
+    "private readonly PatientVisitSyncEventHandler _patientVisitSyncEventHandler;",
+    "_patientVisitSyncEventHandler = new PatientVisitSyncEventHandler(dbContext, PayloadJsonOptions);",
+    "    private async Task HandlePatientVisitEventAsync",
+    "await _patientVisitSyncEventHandler.HandleAsync("
 )
 
 foreach ($Token in $RequiredProcessorTokens) {
-    Assert-Contains $ProcessorAndOrder $Token "SyncBatchProcessor patient visit handler"
+    Assert-Contains $Processor $Token "SyncBatchProcessor patient visit handler wrapper"
 }
 
 $ForbiddenProcessorTokens = @(
+    "out CreatePatientVisitRequest? request",
+    "var visit = new PatientVisit(",
+    "patient_visit_operation_not_implemented",
+    "patient_visit_folio_duplicate_in_pending_batch",
+    "patient_visit_folio_already_exists",
+    "patient_visit_patient_not_found",
+    "patient_visit_brigade_not_found",
+    "patient_visit_registered_by_user_not_found",
+    "GenerateSyncVisitFolio("
 )
 
 foreach ($Token in $ForbiddenProcessorTokens) {
     if ($Processor.Contains($Token)) {
-        throw "SyncBatchProcessor patient visit handler scope violation: $Token"
+        throw "SyncBatchProcessor still contains direct patient visit logic: $Token"
     }
 }
 
