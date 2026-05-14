@@ -677,6 +677,90 @@ public sealed class P3ClinicalSyncEndToEndIntegrationTests
         Assert.Equal(0, completedBatch.RejectedCount);
         Assert.Equal(0, completedBatch.ConflictCount);
     }
+
+    [Fact]
+    public async Task SyncBatchProcessor_ThrowsWhenFailedBatchIsProcessed()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var dbContext = CreateDbContext();
+
+        var organizationId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var brigadeId = Guid.NewGuid();
+        var syncBatchId = Guid.NewGuid();
+        var deviceId = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+
+        dbContext.Organizations.Add(new Organization(
+            organizationId,
+            "Caritas Monterrey P3 Failed Batch Regression"));
+
+        dbContext.Users.Add(new User(
+            userId,
+            organizationId,
+            "Medico Failed Batch Regression",
+            "medico.failed.batch.regression@caritas.local"));
+
+        dbContext.Brigades.Add(new Brigade(
+            brigadeId,
+            organizationId,
+            "Brigada P3 Failed Batch Regression",
+            "medical",
+            DateOnly.FromDateTime(now.UtcDateTime),
+            municipality: "Monterrey",
+            colony: "Centro",
+            locationText: "Caritas Monterrey"));
+
+        var syncBatch = new SyncBatch(
+            syncBatchId,
+            organizationId,
+            deviceId,
+            userId,
+            now,
+            brigadeId,
+            eventsCount: 1);
+
+        syncBatch.Fail(
+            now.AddMinutes(1),
+            "Synthetic failed batch for P3 failed batch regression.");
+
+        dbContext.SyncBatches.Add(syncBatch);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var processor = new SyncBatchProcessor(dbContext);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => processor.ProcessAsync(
+                organizationId,
+                syncBatchId,
+                cancellationToken));
+
+        Assert.Equal("Failed sync batch cannot be processed.", exception.Message);
+
+        Assert.Equal(0, await dbContext.Patients.CountAsync(cancellationToken));
+        Assert.Equal(0, await dbContext.PatientVisits.CountAsync(cancellationToken));
+        Assert.Equal(0, await dbContext.ServiceEncounters.CountAsync(cancellationToken));
+        Assert.Equal(0, await dbContext.VitalSignsRecords.CountAsync(cancellationToken));
+        Assert.Equal(0, await dbContext.FormResponses.CountAsync(cancellationToken));
+        Assert.Equal(0, await dbContext.ConsentDocuments.CountAsync(cancellationToken));
+        Assert.Equal(0, await dbContext.MedicalReferrals.CountAsync(cancellationToken));
+        Assert.Equal(0, await dbContext.MedicationDeliveries.CountAsync(cancellationToken));
+        Assert.Equal(0, await dbContext.SyncEvents.CountAsync(cancellationToken));
+
+        var failedBatch = await dbContext.SyncBatches.SingleAsync(cancellationToken);
+
+        Assert.Equal(SyncBatchStatus.Failed, failedBatch.Status);
+        Assert.Equal(1, failedBatch.EventsCount);
+        Assert.Equal(0, failedBatch.AcceptedCount);
+        Assert.Equal(0, failedBatch.RejectedCount);
+        Assert.Equal(0, failedBatch.ConflictCount);
+        Assert.Contains(
+            "Synthetic failed batch for P3 failed batch regression.",
+            failedBatch.ErrorSummary,
+            StringComparison.Ordinal);
+    }
     private static CaritasDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<CaritasDbContext>()

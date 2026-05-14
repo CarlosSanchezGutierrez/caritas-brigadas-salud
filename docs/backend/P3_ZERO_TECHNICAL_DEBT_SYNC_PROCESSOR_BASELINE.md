@@ -169,3 +169,8 @@ P3-23C protects the sync processor against regression where malformed payload JS
 ## 25. P3-23D idempotency regression note
 
 P3-23D protects the sync processor against duplicate domain rows caused by repeated processing of already completed batches.
+---
+
+## 26. P3-23E failed batch regression note
+
+P3-23E protects the sync processor against unsafe retries of terminal failed batches.
