@@ -2,34 +2,42 @@ using Xunit;
 
 namespace Caritas.Brigadas.Api.Tests.Security;
 
-public sealed class P3SyncProcessorPatientHandlerContractTests
+public sealed class P3SyncProcessorFormResponseHandlerContractTests
 {
     [Fact]
-    public void SyncBatchProcessor_HandlesPatientCreateOnly()
+    public void SyncBatchProcessor_HandlesFormResponseCreateOnly()
     {
         var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
 
         var requiredTokens = new[]
         {
-            "HandlePatientEventAsync",
-            "syncEvent.EntityType == SyncEntityType.Patient",
+            "HandleFormResponseEventAsync",
+            "syncEvent.EntityType == SyncEntityType.FormResponse",
             "syncEvent.Operation != SyncOperation.Create",
-            "patient_operation_not_implemented",
-            "JsonSerializer.Deserialize<CreatePatientRequest>",
-            "new Patient(",
-            "_dbContext.Patients.Add(patient)",
+            "form_response_operation_not_implemented",
+            "JsonSerializer.Deserialize<CreateFormResponseRequest>",
+            "new FormResponse(",
+            "_dbContext.FormResponses.Add(formResponse)",
             "syncEvent.Accept(",
-            "patient.Id",
-            "patient_folio_already_exists",
-            "patient_folio_duplicate_in_pending_batch",
-            "acceptedPatientFoliosInBatch",
-            "acceptedPatientFoliosInBatch.Contains(normalizedFolio)",
-            "!acceptedPatientFoliosInBatch.Add(normalizedFolio)",
-            "GenerateSyncPatientFolio",
-            "ParseSex"
+            "formResponse.Id",
+            "form_response_encounter_not_found",
+            "form_response_brigade_mismatch",
+            "form_response_template_not_found",
+            "form_response_template_inactive",
+            "form_response_template_not_yet_effective",
+            "form_response_template_expired",
+            "form_response_submitted_by_user_not_found",
+            "form_response_id_already_exists",
+            "form_response_duplicate_encounter_template",
+            "form_response_duplicate_encounter_template_in_pending_batch",
+            "acceptedFormResponseIdsInBatch",
+            "acceptedFormResponseEncounterTemplateKeysInBatch",
+            "reserved only after successful FormResponse construction",
+            "return 4;",
+            "return 5;"
         };
 
-        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor patient handler");
+        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor form response handler");
 
         var forbiddenTokens = new[]
         {
@@ -45,31 +53,25 @@ public sealed class P3SyncProcessorPatientHandlerContractTests
     }
 
     [Fact]
-    public void PatientHandlerBaseline_DefinesPatientOnlyScope()
+    public void FormResponseHandlerBaseline_DefinesFormResponseOnlyScope()
     {
-        var source = File.ReadAllText(GetDocPath("P3_SYNC_PROCESSOR_PATIENT_HANDLER_BASELINE.md"));
+        var source = File.ReadAllText(GetDocPath("P3_SYNC_PROCESSOR_FORM_RESPONSE_HANDLER_BASELINE.md"));
 
         var requiredTokens = new[]
         {
-            "P3 Sync Processor Patient Handler Baseline",
-            "EntityType: patient",
+            "P3 Sync Processor Form Response Handler Baseline",
+            "EntityType: form_response",
             "Operation: create",
-            "parse PayloadJson as CreatePatientRequest",
-            "create Patient with OrganizationId from the sync batch route/context",
-            "conflict duplicate PatientFolio inside the organization",
-            "duplicate PatientFolio values inside the same pending batch",
-            "set SyncEvent.EntityId to the created Patient.Id",
-            "patient update is not implemented in P3-13",
-            "patient void is not implemented in P3-13",
-            "processor must not create visits, encounters, vital signs, forms, documents, referrals, or medication deliveries in P3-13",
-            "Acceptance criteria",
-            "P3-14 patient visit handler note",
-            "P3-15 vital signs handler note",
-            "P3-16 service encounter handler note",
-            "P3-17 form response handler note"
+            "parse PayloadJson as CreateFormResponseRequest",
+            "validate ResponseJson is valid JSON",
+            "processor must process service_encounter create events before form_response create events",
+            "processor must not log raw PayloadJson or ResponseJson",
+            "form_response update is not implemented in P3-17",
+            "form_response void is not implemented in P3-17",
+            "Acceptance criteria"
         };
 
-        AssertRequiredTokens(source, requiredTokens, "P3 sync processor patient handler baseline");
+        AssertRequiredTokens(source, requiredTokens, "P3 sync processor form response handler baseline");
     }
 
     private static void AssertRequiredTokens(

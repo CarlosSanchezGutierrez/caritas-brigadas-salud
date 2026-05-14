@@ -3,6 +3,7 @@ using Caritas.Brigadas.Application.Sync;
 using Caritas.Brigadas.Contracts.Patients;
 using Caritas.Brigadas.Contracts.PatientVisits;
 using Caritas.Brigadas.Contracts.ServiceEncounters;
+using Caritas.Brigadas.Contracts.FormResponses;
 using Caritas.Brigadas.Contracts.Sync;
 using Caritas.Brigadas.Contracts.VitalSigns;
 using Caritas.Brigadas.Domain.Common;
@@ -99,6 +100,8 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         var acceptedVitalSignsIdsInBatch = new HashSet<Guid>();
         var acceptedEncounterFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
         var acceptedEncounterVisitServiceKeysInBatch = new HashSet<string>(StringComparer.Ordinal);
+        var acceptedFormResponseIdsInBatch = new HashSet<Guid>();
+        var acceptedFormResponseEncounterTemplateKeysInBatch = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var syncEvent in pendingEvents)
         {
@@ -168,6 +171,20 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 processedCount++;
                 continue;
             }
+            if (syncEvent.EntityType == SyncEntityType.FormResponse)
+            {
+                await HandleFormResponseEventAsync(
+                    organizationId,
+                    batch,
+                    syncEvent,
+                    processedAt,
+                    acceptedFormResponseIdsInBatch,
+                    acceptedFormResponseEncounterTemplateKeysInBatch,
+                    cancellationToken);
+
+                processedCount++;
+                continue;
+            }
             syncEvent.MarkConflict(
                 processedAt,
                 SkeletonConflictReason);
@@ -204,7 +221,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             RejectedCount = rejectedCount,
             ConflictCount = conflictCount,
             Completed = batch.IsCompleted,
-            Message = "Sync batch processor completed patient, visit, service encounter, and vital signs handler processing."
+            Message = "Sync batch processor completed patient, visit, service encounter, vital signs, and form response handler processing."
         };
     }
 
@@ -234,7 +251,13 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             return 3;
         }
 
-        return 4;
+        if (syncEvent.EntityType == SyncEntityType.FormResponse &&
+            syncEvent.Operation == SyncOperation.Create)
+        {
+            return 4;
+        }
+
+        return 5;
     }
 private async Task HandlePatientEventAsync(
         Guid organizationId,
@@ -1210,6 +1233,324 @@ private async Task HandlePatientEventAsync(
         }
     }
 
+    private async Task HandleFormResponseEventAsync(
+        Guid organizationId,
+        SyncBatch batch,
+        SyncEvent syncEvent,
+        DateTimeOffset processedAt,
+        ISet<Guid> acceptedFormResponseIdsInBatch,
+        ISet<string> acceptedFormResponseEncounterTemplateKeysInBatch,
+        CancellationToken cancellationToken)
+    {
+        if (syncEvent.Operation != SyncOperation.Create)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "form_response_operation_not_implemented");
+
+            return;
+        }
+
+        CreateFormResponseRequest? request;
+
+        try
+        {
+            using var payloadDocument = JsonDocument.Parse(syncEvent.PayloadJson);
+
+            if (payloadDocument.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                syncEvent.Reject(
+                    processedAt,
+                    "Form response payload must be a JSON object.");
+
+                return;
+            }
+
+            request = JsonSerializer.Deserialize<CreateFormResponseRequest>(
+                syncEvent.PayloadJson,
+                PayloadJsonOptions);
+        }
+        catch (JsonException)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "Form response payload JSON is invalid.");
+
+            return;
+        }
+
+        if (request is null)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "Form response payload is required.");
+
+            return;
+        }
+
+        if (request.EncounterId == Guid.Empty)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "EncounterId is required for form response sync.");
+
+            return;
+        }
+
+        if (request.FormTemplateId == Guid.Empty)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "FormTemplateId is required for form response sync.");
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(request.ResponseJson))
+        {
+            syncEvent.Reject(
+                processedAt,
+                "ResponseJson is required for form response sync.");
+
+            return;
+        }
+
+        try
+        {
+            using var responseDocument = JsonDocument.Parse(request.ResponseJson);
+
+            if (responseDocument.RootElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            {
+                syncEvent.Reject(
+                    processedAt,
+                    "Form response JSON root is empty.");
+
+                return;
+            }
+        }
+        catch (JsonException)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "Form response JSON is invalid.");
+
+            return;
+        }
+
+        ServiceEncounter? trackedEncounter = _dbContext.ServiceEncounters.Local.FirstOrDefault(encounter =>
+            encounter.Id == request.EncounterId &&
+            encounter.OrganizationId == organizationId &&
+            !encounter.IsDeleted);
+
+        var encounter = trackedEncounter ?? await _dbContext.ServiceEncounters
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                item =>
+                    item.Id == request.EncounterId &&
+                    item.OrganizationId == organizationId &&
+                    !item.IsDeleted,
+                cancellationToken);
+
+        if (encounter is null)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "form_response_encounter_not_found");
+
+            return;
+        }
+
+        if (encounter.BrigadeId != batch.BrigadeId)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "form_response_brigade_mismatch");
+
+            return;
+        }
+
+        var submittedAt = request.SubmittedAt ?? DateTimeOffset.UtcNow;
+
+        FormTemplate? trackedTemplate = _dbContext.FormTemplates.Local.FirstOrDefault(template =>
+            template.Id == request.FormTemplateId &&
+            template.OrganizationId == organizationId &&
+            template.ServiceId == encounter.ServiceId &&
+            !template.IsDeleted);
+
+        var formTemplate = trackedTemplate ?? await _dbContext.FormTemplates
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                template =>
+                    template.Id == request.FormTemplateId &&
+                    template.OrganizationId == organizationId &&
+                    template.ServiceId == encounter.ServiceId &&
+                    !template.IsDeleted,
+                cancellationToken);
+
+        if (formTemplate is null)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "form_response_template_not_found");
+
+            return;
+        }
+
+        if (!formTemplate.IsActive)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "form_response_template_inactive");
+
+            return;
+        }
+
+        if (formTemplate.EffectiveFrom.HasValue &&
+            submittedAt < formTemplate.EffectiveFrom.Value)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "form_response_template_not_yet_effective");
+
+            return;
+        }
+
+        if (formTemplate.EffectiveTo.HasValue &&
+            submittedAt > formTemplate.EffectiveTo.Value)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "form_response_template_expired");
+
+            return;
+        }
+
+        if (request.SubmittedByUserId.HasValue)
+        {
+            var submittedByUserExists = await _dbContext.Users
+                .AsNoTracking()
+                .AnyAsync(
+                    user =>
+                        user.Id == request.SubmittedByUserId.Value &&
+                        user.OrganizationId == organizationId &&
+                        !user.IsDeleted,
+                    cancellationToken);
+
+            if (!submittedByUserExists)
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "form_response_submitted_by_user_not_found");
+
+                return;
+            }
+        }
+
+        var formResponseId = syncEvent.EntityId ?? Guid.NewGuid();
+
+        var formResponseIdAlreadyExists =
+            acceptedFormResponseIdsInBatch.Contains(formResponseId) ||
+            _dbContext.FormResponses.Local.Any(response =>
+                response.Id == formResponseId &&
+                response.OrganizationId == organizationId &&
+                !response.IsDeleted) ||
+            await _dbContext.FormResponses
+                .AsNoTracking()
+                .AnyAsync(
+                    response =>
+                        response.Id == formResponseId &&
+                        response.OrganizationId == organizationId &&
+                        !response.IsDeleted,
+                    cancellationToken);
+
+        if (formResponseIdAlreadyExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "form_response_id_already_exists");
+
+            return;
+        }
+
+        var encounterTemplateKey = $"{request.EncounterId:N}:{request.FormTemplateId:N}";
+
+        if (acceptedFormResponseEncounterTemplateKeysInBatch.Contains(encounterTemplateKey))
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "form_response_duplicate_encounter_template_in_pending_batch");
+
+            return;
+        }
+
+        var duplicateResponseExists = await _dbContext.FormResponses
+            .AsNoTracking()
+            .AnyAsync(
+                response =>
+                    response.EncounterId == request.EncounterId &&
+                    response.FormTemplateId == request.FormTemplateId &&
+                    !response.IsDeleted,
+                cancellationToken);
+
+        if (duplicateResponseExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "form_response_duplicate_encounter_template");
+
+            return;
+        }
+
+        try
+        {
+            var formResponse = new FormResponse(
+                formResponseId,
+                organizationId,
+                request.EncounterId,
+                request.FormTemplateId,
+                request.ResponseJson,
+                createdOffline: true,
+                deviceId: request.DeviceId ?? batch.DeviceId);
+
+            if (request.SubmittedByUserId.HasValue)
+            {
+                formResponse.Complete(
+                    request.SubmittedByUserId.Value,
+                    submittedAt);
+            }
+
+            // Pending-batch form response id and encounter-template keys are reserved only after successful FormResponse construction.
+            if (!acceptedFormResponseIdsInBatch.Add(formResponseId))
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "form_response_duplicate_in_pending_batch");
+
+                return;
+            }
+
+            if (!acceptedFormResponseEncounterTemplateKeysInBatch.Add(encounterTemplateKey))
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "form_response_duplicate_encounter_template_in_pending_batch");
+
+                return;
+            }
+
+            _dbContext.FormResponses.Add(formResponse);
+
+            syncEvent.Accept(
+                processedAt,
+                formResponse.Id);
+        }
+        catch (DomainException exception)
+        {
+            syncEvent.Reject(
+                processedAt,
+                exception.Message);
+        }
+    }
     private static bool TryValidateEvent(
         SyncEvent syncEvent,
         out string? rejectionReason)

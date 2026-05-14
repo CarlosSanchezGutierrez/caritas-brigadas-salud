@@ -111,3 +111,8 @@ P3-16 is complete when:
 - SyncBatchProcessor processes service_encounter before vital_signs;
 - contract tests protect the service_encounter-only scope;
 - repository governance and database deployment gates remain green.
+---
+
+## 7. P3-17 form response handler note
+
+P3-17 adds form_response create handling. After P3-17, form_response create events can resolve encounters staged earlier in the same DbContext because service_encounter create is processed before form_response create.
