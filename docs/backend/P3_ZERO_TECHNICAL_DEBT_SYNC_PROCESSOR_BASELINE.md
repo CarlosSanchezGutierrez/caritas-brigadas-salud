@@ -94,3 +94,8 @@ P3-22E reduces ProcessAsync responsibility by moving pending event dispatch into
 ## 10. P3-22F patient sync event handler extraction note
 
 P3-22F starts real domain handler extraction by moving patient/create behavior into PatientSyncEventHandler.
+---
+
+## 11. P3-22G patient visit sync event handler extraction note
+
+P3-22G continues real domain handler extraction by moving patient_visit/create behavior into PatientVisitSyncEventHandler.

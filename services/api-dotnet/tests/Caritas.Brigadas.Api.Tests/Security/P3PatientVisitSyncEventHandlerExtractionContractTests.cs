@@ -2,23 +2,18 @@ using Xunit;
 
 namespace Caritas.Brigadas.Api.Tests.Security;
 
-public sealed class P3SyncProcessorPatientVisitHandlerContractTests
+public sealed class P3PatientVisitSyncEventHandlerExtractionContractTests
 {
     [Fact]
-    public void SyncProcessorPatientVisitHandler_ContainsExpectedCreateContract()
+    public void PatientVisitSyncEventHandler_OwnsPatientVisitCreateBehavior()
     {
-        var source =
-            File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) +
-            File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs")) +
-            File.ReadAllText(GetInfrastructurePath("Sync", "PatientVisitSyncEventHandler.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "PatientVisitSyncEventHandler.cs"));
 
         var requiredTokens = new[]
         {
-            ".OrderBy(SyncProcessingOrder.GetOrder)",
-            "SyncEntityType.PatientVisit",
-            "return 1;",
-            "HandlePatientVisitEventAsync",
-            "PatientVisitSyncEventHandler",
+            "internal sealed class PatientVisitSyncEventHandler",
+            "public async Task HandleAsync",
+            "SyncPayloadReader.TryReadObject",
             "out CreatePatientVisitRequest? request",
             "var visit = new PatientVisit(",
             "patient_visit_operation_not_implemented",
@@ -29,14 +24,15 @@ public sealed class P3SyncProcessorPatientVisitHandlerContractTests
             "patient_visit_id_already_exists",
             "patient_visit_folio_duplicate_in_pending_batch",
             "patient_visit_folio_already_exists",
+            "GenerateSyncVisitFolio",
             "syncEvent.Accept("
         };
 
-        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor patient visit handler");
+        AssertRequiredTokens(source, requiredTokens, "PatientVisitSyncEventHandler");
     }
 
     [Fact]
-    public void SyncBatchProcessor_DoesNotContainDirectPatientVisitLogicAfterExtraction()
+    public void SyncBatchProcessor_DelegatesPatientVisitCreateToPatientVisitSyncEventHandler()
     {
         var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
 
@@ -48,13 +44,12 @@ public sealed class P3SyncProcessorPatientVisitHandlerContractTests
             "await _patientVisitSyncEventHandler.HandleAsync("
         };
 
-        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor patient visit wrapper");
+        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor patient visit handler extraction");
 
         var forbiddenTokens = new[]
         {
             "out CreatePatientVisitRequest? request",
             "var visit = new PatientVisit(",
-            "patient_visit_operation_not_implemented",
             "patient_visit_folio_duplicate_in_pending_batch",
             "patient_visit_folio_already_exists",
             "patient_visit_patient_not_found",
@@ -67,6 +62,23 @@ public sealed class P3SyncProcessorPatientVisitHandlerContractTests
         {
             Assert.DoesNotContain(token, source, StringComparison.Ordinal);
         }
+    }
+
+    [Fact]
+    public void PatientVisitHandlerExtractionBaseline_DefinesSecondHandlerExtraction()
+    {
+        var source = File.ReadAllText(GetDocPath("P3_PATIENT_VISIT_SYNC_EVENT_HANDLER_EXTRACTION_BASELINE.md"));
+
+        var requiredTokens = new[]
+        {
+            "P3 Patient Visit Sync Event Handler Extraction Baseline",
+            "PatientVisitSyncEventHandler must own patient_visit/create payload parsing",
+            "SyncBatchProcessor must not directly construct PatientVisit",
+            "SyncBatchProcessor must not directly parse CreatePatientVisitRequest",
+            "Acceptance criteria"
+        };
+
+        AssertRequiredTokens(source, requiredTokens, "P3 patient visit sync event handler extraction baseline");
     }
 
     private static void AssertRequiredTokens(
@@ -92,6 +104,15 @@ public sealed class P3SyncProcessorPatientVisitHandlerContractTests
             new[] { FindRepositoryRoot(), "services", "api-dotnet", "src", "Caritas.Brigadas.Infrastructure" }
                 .Concat(segments)
                 .ToArray());
+    }
+
+    private static string GetDocPath(string fileName)
+    {
+        return Path.Combine(
+            FindRepositoryRoot(),
+            "docs",
+            "backend",
+            fileName);
     }
 
     private static string FindRepositoryRoot()

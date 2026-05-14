@@ -82,3 +82,8 @@ P3-22E is complete when:
 ## 6. P3-22F patient sync event handler extraction note
 
 P3-22F extracts patient/create behavior into PatientSyncEventHandler while preserving ProcessPendingEventAsync dispatch behavior.
+---
+
+## 7. P3-22G patient visit sync event handler extraction note
+
+P3-22G extracts patient_visit/create behavior into PatientVisitSyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.

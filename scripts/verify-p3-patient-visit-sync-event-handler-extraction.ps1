@@ -1,8 +1,8 @@
 $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
+$DocPath = Join-Path $RepoRoot "docs/backend/P3_PATIENT_VISIT_SYNC_EVENT_HANDLER_EXTRACTION_BASELINE.md"
 $ProcessorPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncBatchProcessor.cs"
-$OrderPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncProcessingOrder.cs"
 $VisitHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/PatientVisitSyncEventHandler.cs"
 
 function Assert-FileExists {
@@ -25,37 +25,24 @@ function Assert-Contains {
     }
 }
 
+Assert-FileExists $DocPath
 Assert-FileExists $ProcessorPath
-Assert-FileExists $OrderPath
 Assert-FileExists $VisitHandlerPath
 
+$Doc = Get-Content $DocPath -Raw -Encoding UTF8
 $Processor = Get-Content $ProcessorPath -Raw -Encoding UTF8
-$Order = Get-Content $OrderPath -Raw -Encoding UTF8
 $VisitHandler = Get-Content $VisitHandlerPath -Raw -Encoding UTF8
 
-$ProcessorAndOrderAndVisitHandler = $Processor + $Order + $VisitHandler
-
-$RequiredTokens = @(
-    ".OrderBy(SyncProcessingOrder.GetOrder)",
-    "SyncEntityType.PatientVisit",
-    "return 1;",
-    "HandlePatientVisitEventAsync",
-    "PatientVisitSyncEventHandler",
-    "out CreatePatientVisitRequest? request",
-    "var visit = new PatientVisit(",
-    "patient_visit_operation_not_implemented",
-    "patient_visit_brigade_mismatch",
-    "patient_visit_patient_not_found",
-    "patient_visit_brigade_not_found",
-    "patient_visit_registered_by_user_not_found",
-    "patient_visit_id_already_exists",
-    "patient_visit_folio_duplicate_in_pending_batch",
-    "patient_visit_folio_already_exists",
-    "syncEvent.Accept("
+$RequiredDocTokens = @(
+    "P3 Patient Visit Sync Event Handler Extraction Baseline",
+    "PatientVisitSyncEventHandler must own patient_visit/create payload parsing",
+    "SyncBatchProcessor must not directly construct PatientVisit",
+    "SyncBatchProcessor must not directly parse CreatePatientVisitRequest",
+    "Acceptance criteria"
 )
 
-foreach ($Token in $RequiredTokens) {
-    Assert-Contains $ProcessorAndOrderAndVisitHandler $Token "SyncBatchProcessor patient visit handler"
+foreach ($Token in $RequiredDocTokens) {
+    Assert-Contains $Doc $Token "P3 patient visit sync event handler extraction baseline"
 }
 
 $RequiredProcessorTokens = @(
@@ -66,13 +53,12 @@ $RequiredProcessorTokens = @(
 )
 
 foreach ($Token in $RequiredProcessorTokens) {
-    Assert-Contains $Processor $Token "SyncBatchProcessor patient visit handler wrapper"
+    Assert-Contains $Processor $Token "SyncBatchProcessor patient visit handler extraction"
 }
 
 $ForbiddenProcessorTokens = @(
     "out CreatePatientVisitRequest? request",
     "var visit = new PatientVisit(",
-    "patient_visit_operation_not_implemented",
     "patient_visit_folio_duplicate_in_pending_batch",
     "patient_visit_folio_already_exists",
     "patient_visit_patient_not_found",
@@ -83,8 +69,30 @@ $ForbiddenProcessorTokens = @(
 
 foreach ($Token in $ForbiddenProcessorTokens) {
     if ($Processor.Contains($Token)) {
-        throw "SyncBatchProcessor still contains direct patient visit logic: $Token"
+        throw "SyncBatchProcessor still contains direct patient visit handler logic: $Token"
     }
 }
 
-Write-Host "P3 sync processor patient visit handler verification passed." -ForegroundColor Green
+$RequiredVisitHandlerTokens = @(
+    "internal sealed class PatientVisitSyncEventHandler",
+    "public async Task HandleAsync",
+    "SyncPayloadReader.TryReadObject",
+    "out CreatePatientVisitRequest? request",
+    "var visit = new PatientVisit(",
+    "patient_visit_operation_not_implemented",
+    "patient_visit_brigade_mismatch",
+    "patient_visit_patient_not_found",
+    "patient_visit_brigade_not_found",
+    "patient_visit_registered_by_user_not_found",
+    "patient_visit_id_already_exists",
+    "patient_visit_folio_duplicate_in_pending_batch",
+    "patient_visit_folio_already_exists",
+    "GenerateSyncVisitFolio",
+    "syncEvent.Accept("
+)
+
+foreach ($Token in $RequiredVisitHandlerTokens) {
+    Assert-Contains $VisitHandler $Token "PatientVisitSyncEventHandler"
+}
+
+Write-Host "P3 patient visit sync event handler extraction verification passed." -ForegroundColor Green
