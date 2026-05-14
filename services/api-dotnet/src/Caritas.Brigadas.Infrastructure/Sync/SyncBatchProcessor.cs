@@ -24,10 +24,12 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
     private static readonly JsonSerializerOptions PayloadJsonOptions = new(JsonSerializerDefaults.Web);
 
     private readonly CaritasDbContext _dbContext;
+    private readonly PatientSyncEventHandler _patientSyncEventHandler;
 
     public SyncBatchProcessor(CaritasDbContext dbContext)
     {
         _dbContext = dbContext;
+        _patientSyncEventHandler = new PatientSyncEventHandler(dbContext, PayloadJsonOptions);
     }
 
     public async Task<ProcessSyncBatchResultDto> ProcessAsync(
@@ -289,148 +291,12 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         ISet<string> acceptedPatientFoliosInBatch,
         CancellationToken cancellationToken)
     {
-        if (syncEvent.Operation != SyncOperation.Create)
-        {
-            syncEvent.MarkConflict(
-                processedAt,
-                "patient_operation_not_implemented");
-
-            return;
-        }
-
-        if (!SyncPayloadReader.TryReadObject(
-                syncEvent.PayloadJson,
-                "Patient",
-                PayloadJsonOptions,
-                out CreatePatientRequest? request,
-                out var payloadRejectionReason))
-        {
-            syncEvent.Reject(
-                processedAt,
-                payloadRejectionReason);
-
-            return;
-        }
-
-        var patientId = syncEvent.EntityId ?? Guid.NewGuid();
-
-        var patientIdAlreadyExists = await _dbContext.Patients
-            .AsNoTracking()
-            .AnyAsync(
-                patient =>
-                    patient.Id == patientId &&
-                    patient.OrganizationId == organizationId &&
-                    !patient.IsDeleted,
-                cancellationToken);
-
-        if (patientIdAlreadyExists ||
-            _dbContext.Patients.Local.Any(patient => patient.Id == patientId && patient.OrganizationId == organizationId && !patient.IsDeleted))
-        {
-            syncEvent.MarkConflict(
-                processedAt,
-                "patient_id_already_exists");
-
-            return;
-        }
-
-        var patientFolio = string.IsNullOrWhiteSpace(request.PatientFolio)
-            ? GenerateSyncPatientFolio(syncEvent)
-            : request.PatientFolio.Trim();
-
-        var normalizedFolio = patientFolio.ToUpperInvariant();
-
-        if (acceptedPatientFoliosInBatch.Contains(normalizedFolio))
-        {
-            syncEvent.MarkConflict(
-                processedAt,
-                "patient_folio_duplicate_in_pending_batch");
-
-            return;
-        }
-
-        var folioExists = await _dbContext.Patients
-            .AsNoTracking()
-            .AnyAsync(
-                patient =>
-                    patient.OrganizationId == organizationId &&
-                    patient.PatientFolio == normalizedFolio &&
-                    !patient.IsDeleted,
-                cancellationToken);
-
-        if (folioExists)
-        {
-            syncEvent.MarkConflict(
-                processedAt,
-                "patient_folio_already_exists");
-
-            return;
-        }
-
-        try
-        {
-            var patient = new Patient(
-                patientId,
-                organizationId,
-                patientFolio,
-                request.FirstName,
-                request.PaternalLastName,
-                request.MaternalLastName,
-                request.BirthDate,
-                request.ApproximateAge,
-                ParseSex(request.Sex));
-
-            patient.UpdateSensitiveIdentifiers(
-                request.Curp,
-                request.Phone);
-
-            patient.UpdateLocation(
-                request.AddressLine,
-                request.Municipality,
-                request.Colony,
-                request.Community);
-
-            if (request.IsMigrant)
-            {
-                patient.MarkAsMigrant();
-            }
-
-            if (request.IsPartialRecord)
-            {
-                if (string.IsNullOrWhiteSpace(request.PartialRecordReason))
-                {
-                    syncEvent.Reject(
-                        processedAt,
-                        "Partial record reason is required when patient record is marked as partial.");
-
-                    return;
-                }
-
-                patient.MarkAsPartialRecord(request.PartialRecordReason);
-            }
-
-            patient.UpdateAdminNotes(request.NotesAdmin);
-
-            if (!acceptedPatientFoliosInBatch.Add(normalizedFolio))
-            {
-                syncEvent.MarkConflict(
-                    processedAt,
-                    "patient_folio_duplicate_in_pending_batch");
-
-                return;
-            }
-
-            _dbContext.Patients.Add(patient);
-
-            syncEvent.Accept(
-                processedAt,
-                patient.Id);
-        }
-        catch (DomainException exception)
-        {
-            syncEvent.Reject(
-                processedAt,
-                exception.Message);
-        }
+        await _patientSyncEventHandler.HandleAsync(
+            organizationId,
+            syncEvent,
+            processedAt,
+            acceptedPatientFoliosInBatch,
+            cancellationToken);
     }
 
     private async Task HandlePatientVisitEventAsync(

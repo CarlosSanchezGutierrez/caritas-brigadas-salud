@@ -3,6 +3,7 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $DocPath = Join-Path $RepoRoot "docs/backend/P3_SYNC_PROCESSOR_PATIENT_HANDLER_BASELINE.md"
 $ProcessorPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncBatchProcessor.cs"
+$PatientHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/PatientSyncEventHandler.cs"
 
 function Assert-FileExists {
     param([string]$Path)
@@ -26,9 +27,12 @@ function Assert-Contains {
 
 Assert-FileExists $DocPath
 Assert-FileExists $ProcessorPath
+Assert-FileExists $PatientHandlerPath
 
 $Doc = Get-Content $DocPath -Raw -Encoding UTF8
 $Processor = Get-Content $ProcessorPath -Raw -Encoding UTF8
+$PatientHandler = Get-Content $PatientHandlerPath -Raw -Encoding UTF8
+$ProcessorAndPatientHandler = $Processor + $PatientHandler
 
 $RequiredDocTokens = @(
     "P3 Sync Processor Patient Handler Baseline",
@@ -71,7 +75,7 @@ $RequiredProcessorTokens = @(
 )
 
 foreach ($Token in $RequiredProcessorTokens) {
-    Assert-Contains $Processor $Token "SyncBatchProcessor patient handler"
+    Assert-Contains $ProcessorAndPatientHandler $Token "SyncBatchProcessor patient handler"
 }
 
 $ForbiddenProcessorTokens = @(
