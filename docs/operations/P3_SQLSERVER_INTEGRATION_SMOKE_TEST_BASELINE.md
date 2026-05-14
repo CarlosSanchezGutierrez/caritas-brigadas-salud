@@ -11,7 +11,7 @@ Depends on: P3-26B production authentication hardening baseline
 
 P3-26C adds a real SQL Server smoke test entry point.
 
-The goal is to validate that the backend can build, resolve the EF Core design-time context, list migrations, and optionally apply migrations against a configured SQL Server smoke database.
+The goal is to validate that the backend can build, restore local EF Core tools, resolve the EF Core design-time context, list migrations, and optionally apply migrations against a configured SQL Server smoke database.
 
 ---
 
@@ -57,9 +57,10 @@ The SQL Server smoke script must perform:
 2. validate connection string presence when -Required is used;
 3. reject unsafe database names unless explicitly allowed;
 4. set CARITAS_SQLSERVER_CONNECTION;
-5. dotnet build with warnaserror;
-6. dotnet ef migrations list for CaritasDbContext;
-7. dotnet ef database update for CaritasDbContext unless -SkipDatabaseUpdate is used.
+5. dotnet tool restore for the local tool manifest;
+6. dotnet build with warnaserror;
+7. dotnet ef migrations list for CaritasDbContext;
+8. dotnet ef database update for CaritasDbContext unless -SkipDatabaseUpdate is used.
 
 ---
 
@@ -67,6 +68,7 @@ The SQL Server smoke script must perform:
 
 The smoke script must use:
 
+- dotnet tool restore;
 - dotnet build;
 - dotnet ef migrations list;
 - dotnet ef database update;

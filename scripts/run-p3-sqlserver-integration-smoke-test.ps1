@@ -37,6 +37,10 @@ $ApiRoot = Join-Path $RepoRoot "services/api-dotnet"
 $InfrastructureProject = "src/Caritas.Brigadas.Infrastructure"
 $StartupProject = "src/Caritas.Brigadas.Api"
 $Context = "CaritasDbContext"
+$ToolManifestCandidates = @(
+    (Join-Path $ApiRoot ".config/dotnet-tools.json")
+    (Join-Path $ApiRoot "dotnet-tools.json")
+)
 
 if ([string]::IsNullOrWhiteSpace($ConnectionString)) {
     if ($Required) {
@@ -83,11 +87,22 @@ else {
 Push-Location $ApiRoot
 
 try {
+    $ToolManifestPath = $ToolManifestCandidates |
+        Where-Object { Test-Path $_ } |
+        Select-Object -First 1
+
+    if ([string]::IsNullOrWhiteSpace($ToolManifestPath)) {
+        throw "dotnet local tool manifest was not found. Expected .config/dotnet-tools.json or dotnet-tools.json under services/api-dotnet."
+    }
+
+    dotnet tool restore --tool-manifest $ToolManifestPath
+    Assert-ExitCode $LASTEXITCODE "dotnet tool restore failed during SQL Server smoke test."
+
     dotnet build "Caritas.Brigadas.sln" -warnaserror
     Assert-ExitCode $LASTEXITCODE "dotnet build failed during SQL Server smoke test."
 
     dotnet ef --version
-    Assert-ExitCode $LASTEXITCODE "dotnet ef is not available. Install dotnet-ef before running SQL Server smoke test."
+    Assert-ExitCode $LASTEXITCODE "dotnet ef is not available after dotnet tool restore."
 
     dotnet ef migrations list `
         --project $InfrastructureProject `

@@ -15,6 +15,7 @@ public sealed class P3SqlServerIntegrationSmokeTestBaselineContractTests
             "real SQL Server smoke test entry point",
             "CARITAS_SQLSERVER_SMOKE_CONNECTION",
             "CARITAS_SQLSERVER_CONNECTION",
+            "dotnet tool restore",
             "dotnet ef migrations list",
             "dotnet ef database update",
             "--project src/Caritas.Brigadas.Infrastructure",
@@ -40,6 +41,10 @@ public sealed class P3SqlServerIntegrationSmokeTestBaselineContractTests
             "SkipDatabaseUpdate",
             "AllowNonSmokeDatabase",
             "Refusing to run SQL Server smoke test against a database without a Smoke/Test/Local/Dev marker.",
+            "$ToolManifestCandidates",
+            "$ToolManifestPath",
+            "dotnet tool restore",
+            "dotnet tool restore --tool-manifest $ToolManifestPath",
             "dotnet build",
             "dotnet ef --version",
             "dotnet ef migrations list",
@@ -51,6 +56,18 @@ public sealed class P3SqlServerIntegrationSmokeTestBaselineContractTests
         };
 
         AssertRequiredTokens(source, requiredTokens, "P3 SQL Server smoke script");
+
+        var restoreIndex = source.IndexOf(
+            "dotnet tool restore --tool-manifest $ToolManifestPath",
+            StringComparison.Ordinal);
+
+        var efIndex = source.IndexOf(
+            "dotnet ef --version",
+            StringComparison.Ordinal);
+
+        Assert.True(restoreIndex >= 0, "Smoke script must restore local dotnet tools.");
+        Assert.True(efIndex >= 0, "Smoke script must check dotnet ef.");
+        Assert.True(restoreIndex < efIndex, "Smoke script must restore local tools before invoking dotnet ef.");
     }
 
     [Fact]
@@ -66,7 +83,9 @@ public sealed class P3SqlServerIntegrationSmokeTestBaselineContractTests
             "DesignTimeCaritasDbContextFactory.cs",
             "CARITAS_SQLSERVER_CONNECTION",
             "UseSqlServer",
-            "verify-p3-sqlserver-integration-smoke-test-baseline.ps1"
+            "verify-p3-sqlserver-integration-smoke-test-baseline.ps1",
+            "dotnet tool restore",
+            "dotnet tool restore --tool-manifest $ToolManifestPath"
         };
 
         AssertRequiredTokens(source, requiredTokens, "P3 SQL Server smoke verifier");
