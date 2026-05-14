@@ -184,3 +184,8 @@ P3-24A protects the sync process endpoint wiring and removes stale skeleton word
 ## 28. P3-24B create batch endpoint API regression note
 
 P3-24B protects the sync intake endpoint and confirms that creation receives batches and events without applying clinical writes.
+---
+
+## 29. P3-24C list events endpoint API regression note
+
+P3-24C protects sync event listing privacy by ensuring PayloadJson remains internal processing data.

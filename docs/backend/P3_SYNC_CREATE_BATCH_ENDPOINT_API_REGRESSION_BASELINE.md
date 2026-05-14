@@ -92,3 +92,8 @@ P3-24B is complete when:
 - the test registers ISyncBatchWriteRepository;
 - the endpoint response is validated as ApiResponse JSON;
 - dotnet build and dotnet test pass.
+---
+
+## 8. P3-24C list events endpoint API regression note
+
+P3-24C validates that the HTTP sync event listing route exposes metadata only and does not leak PayloadJson.
