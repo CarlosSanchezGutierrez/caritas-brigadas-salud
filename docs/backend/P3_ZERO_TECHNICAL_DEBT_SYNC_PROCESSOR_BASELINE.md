@@ -114,3 +114,8 @@ P3-22H continues real domain handler extraction by moving service_encounter/crea
 ## 14. P3-22I vital signs sync event handler extraction note
 
 P3-22I continues real domain handler extraction by moving vital_signs/create behavior into VitalSignsSyncEventHandler.
+---
+
+## 15. P3-22J form response sync event handler extraction note
+
+P3-22J continues real domain handler extraction by moving form_response/create behavior into FormResponseSyncEventHandler.

@@ -8,6 +8,7 @@ $PatientHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Briga
 $VisitHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/PatientVisitSyncEventHandler.cs"
 $ServiceHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/ServiceEncounterSyncEventHandler.cs"
 $VitalHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/VitalSignsSyncEventHandler.cs"
+$FormHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/FormResponseSyncEventHandler.cs"
 
 function Assert-FileExists {
     param([string]$Path)
@@ -36,6 +37,7 @@ Assert-FileExists $PatientHandlerPath
 Assert-FileExists $VisitHandlerPath
 Assert-FileExists $ServiceHandlerPath
 Assert-FileExists $VitalHandlerPath
+Assert-FileExists $FormHandlerPath
 
 $Doc = Get-Content $DocPath -Raw -Encoding UTF8
 $Processor = Get-Content $ProcessorPath -Raw -Encoding UTF8
@@ -44,7 +46,8 @@ $PatientHandler = Get-Content $PatientHandlerPath -Raw -Encoding UTF8
 $VisitHandler = Get-Content $VisitHandlerPath -Raw -Encoding UTF8
 $ServiceHandler = Get-Content $ServiceHandlerPath -Raw -Encoding UTF8
 $VitalHandler = Get-Content $VitalHandlerPath -Raw -Encoding UTF8
-$ProcessorAndPatientHandler = $Processor + $PatientHandler + $VisitHandler + $ServiceHandler + $VitalHandler
+$FormHandler = Get-Content $FormHandlerPath -Raw -Encoding UTF8
+$ProcessorAndPatientHandler = $Processor + $PatientHandler + $VisitHandler + $ServiceHandler + $VitalHandler + $FormHandler
 
 $RequiredDocTokens = @(
     "P3 Sync Payload Reader Extraction Baseline",

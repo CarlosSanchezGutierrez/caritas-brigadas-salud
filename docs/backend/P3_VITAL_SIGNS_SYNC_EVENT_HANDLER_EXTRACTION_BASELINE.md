@@ -81,3 +81,8 @@ P3-22I is complete when:
 - VitalSignsSyncEventHandler contains the previous vital_signs/create behavior;
 - all previous P3 sync processor verifiers remain green;
 - dotnet build and dotnet test remain green.
+---
+
+## 6. P3-22J form response sync event handler extraction note
+
+P3-22J extracts form_response/create behavior into FormResponseSyncEventHandler while preserving ProcessPendingEventAsync dispatch behavior.

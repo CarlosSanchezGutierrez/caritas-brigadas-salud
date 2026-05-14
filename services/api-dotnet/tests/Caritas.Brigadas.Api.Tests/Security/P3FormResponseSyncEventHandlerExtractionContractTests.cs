@@ -2,21 +2,18 @@ using Xunit;
 
 namespace Caritas.Brigadas.Api.Tests.Security;
 
-public sealed class P3SyncProcessorFormResponseHandlerContractTests
+public sealed class P3FormResponseSyncEventHandlerExtractionContractTests
 {
     [Fact]
-    public void SyncBatchProcessor_HandlesFormResponseCreateOnly()
+    public void FormResponseSyncEventHandler_OwnsFormResponseCreateBehavior()
     {
-        var source =
-            File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) +
-            File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs")) +
-            File.ReadAllText(GetInfrastructurePath("Sync", "FormResponseSyncEventHandler.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "FormResponseSyncEventHandler.cs"));
 
         var requiredTokens = new[]
         {
-            "HandleFormResponseEventAsync",
-            "FormResponseSyncEventHandler",
-            "SyncEntityType.FormResponse",
+            "internal sealed class FormResponseSyncEventHandler",
+            "public async Task HandleAsync",
+            "SyncPayloadReader.TryReadObject",
             "out CreateFormResponseRequest? request",
             "JsonDocument.Parse(request.ResponseJson)",
             "var formResponse = new FormResponse(",
@@ -43,11 +40,11 @@ public sealed class P3SyncProcessorFormResponseHandlerContractTests
             "acceptedFormResponseIdsInBatch.Remove(formResponseId)"
         };
 
-        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor form response handler");
+        AssertRequiredTokens(source, requiredTokens, "FormResponseSyncEventHandler");
     }
 
     [Fact]
-    public void SyncBatchProcessor_DoesNotContainDirectFormResponseLogicAfterExtraction()
+    public void SyncBatchProcessor_DelegatesFormResponseCreateToFormResponseSyncEventHandler()
     {
         var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
 
@@ -59,7 +56,7 @@ public sealed class P3SyncProcessorFormResponseHandlerContractTests
             "await _formResponseSyncEventHandler.HandleAsync("
         };
 
-        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor form response wrapper");
+        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor form response handler extraction");
 
         var forbiddenTokens = new[]
         {
@@ -89,6 +86,23 @@ public sealed class P3SyncProcessorFormResponseHandlerContractTests
         }
     }
 
+    [Fact]
+    public void FormResponseHandlerExtractionBaseline_DefinesFifthHandlerExtraction()
+    {
+        var source = File.ReadAllText(GetDocPath("P3_FORM_RESPONSE_SYNC_EVENT_HANDLER_EXTRACTION_BASELINE.md"));
+
+        var requiredTokens = new[]
+        {
+            "P3 Form Response Sync Event Handler Extraction Baseline",
+            "FormResponseSyncEventHandler must own form_response/create payload parsing",
+            "SyncBatchProcessor must not directly construct FormResponse",
+            "SyncBatchProcessor must not directly parse CreateFormResponseRequest",
+            "Acceptance criteria"
+        };
+
+        AssertRequiredTokens(source, requiredTokens, "P3 form response sync event handler extraction baseline");
+    }
+
     private static void AssertRequiredTokens(
         string source,
         IReadOnlyCollection<string> requiredTokens,
@@ -112,6 +126,15 @@ public sealed class P3SyncProcessorFormResponseHandlerContractTests
             new[] { FindRepositoryRoot(), "services", "api-dotnet", "src", "Caritas.Brigadas.Infrastructure" }
                 .Concat(segments)
                 .ToArray());
+    }
+
+    private static string GetDocPath(string fileName)
+    {
+        return Path.Combine(
+            FindRepositoryRoot(),
+            "docs",
+            "backend",
+            fileName);
     }
 
     private static string FindRepositoryRoot()
