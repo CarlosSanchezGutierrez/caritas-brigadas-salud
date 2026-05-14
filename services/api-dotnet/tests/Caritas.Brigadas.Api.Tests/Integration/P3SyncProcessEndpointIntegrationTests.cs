@@ -7,6 +7,7 @@ using Caritas.Brigadas.Infrastructure.Persistence;
 using Caritas.Brigadas.Infrastructure.Sync;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -133,6 +134,8 @@ public sealed class P3SyncProcessEndpointIntegrationTests
                 builder.ConfigureServices(services =>
                 {
                     services.RemoveAll<DbContextOptions<CaritasDbContext>>();
+                    services.RemoveAll<DbContextOptions>();
+                    services.RemoveAll<IDbContextOptionsConfiguration<CaritasDbContext>>();
                     services.RemoveAll<CaritasDbContext>();
 
                     services.AddDbContext<CaritasDbContext>(options =>
