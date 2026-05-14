@@ -102,3 +102,8 @@ P3-24C is complete when:
 - the test uses in-memory CaritasDbContext;
 - the test registers ISyncBatchReadRepository;
 - dotnet build and dotnet test pass.
+---
+
+## 9. P3-24D tenant boundary endpoint API regression note
+
+P3-24D extends sync API-level coverage to GET by id and process endpoint tenant mismatch behavior.
