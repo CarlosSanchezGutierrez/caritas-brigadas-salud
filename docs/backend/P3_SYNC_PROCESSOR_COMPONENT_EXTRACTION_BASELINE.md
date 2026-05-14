@@ -72,3 +72,8 @@ P3-22B is complete when:
 - SyncBatchProcessor no longer declares direct HashSet reservation variables in ProcessAsync;
 - all P3 sync processor verifiers remain green;
 - dotnet build and dotnet test remain green.
+---
+
+## 6. P3-22C payload reader extraction note
+
+P3-22C extracts repeated PayloadJson object parsing and DTO deserialization into SyncPayloadReader without changing handler behavior.

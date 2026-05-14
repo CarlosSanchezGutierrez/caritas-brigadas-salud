@@ -74,3 +74,8 @@ P3-22A is complete when:
 ## 6. P3-22B component extraction note
 
 P3-22B extracts SyncProcessingOrder and PendingBatchReservationState as internal components. New direct handlers remain forbidden until domain handlers are extracted into dedicated internal handler classes.
+---
+
+## 7. P3-22C payload reader extraction note
+
+P3-22C reduces SyncBatchProcessor responsibility by moving repeated PayloadJson parsing into SyncPayloadReader. Direct handler expansion remains forbidden.

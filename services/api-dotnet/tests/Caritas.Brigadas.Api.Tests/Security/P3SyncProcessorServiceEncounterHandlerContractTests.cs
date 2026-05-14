@@ -15,7 +15,7 @@ public sealed class P3SyncProcessorServiceEncounterHandlerContractTests
             "syncEvent.EntityType == SyncEntityType.ServiceEncounter",
             "syncEvent.Operation != SyncOperation.Create",
             "service_encounter_operation_not_implemented",
-            "JsonSerializer.Deserialize<CreateServiceEncounterRequest>",
+            "out CreateServiceEncounterRequest? request",
             "new ServiceEncounter(",
             "_dbContext.ServiceEncounters.Add(encounter)",
             "syncEvent.Accept(",

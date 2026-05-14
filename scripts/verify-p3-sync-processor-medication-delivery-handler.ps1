@@ -79,7 +79,7 @@ $RequiredProcessorTokens = @(
     "syncEvent.EntityType == SyncEntityType.MedicationDelivery",
     "syncEvent.Operation != SyncOperation.Create",
     "medication_delivery_operation_not_implemented",
-    "JsonSerializer.Deserialize<CreateMedicationDeliveryRequest>",
+    "out CreateMedicationDeliveryRequest? request",
     "new MedicationDelivery(",
     "medicationDelivery.MarkDelivered(",
     "_dbContext.Set<MedicationDelivery>().Add(medicationDelivery)",

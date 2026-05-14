@@ -43,7 +43,7 @@ public sealed class P3SyncProcessorVitalSignsHandlerContractTests
             "syncEvent.EntityType == SyncEntityType.VitalSigns",
             "syncEvent.Operation != SyncOperation.Create",
             "vital_signs_operation_not_implemented",
-            "JsonSerializer.Deserialize<CreateVitalSignsRecordRequest>",
+            "out CreateVitalSignsRecordRequest? request",
             "new VitalSignsRecord(",
             "_dbContext.VitalSignsRecords.Add(vitalSignsRecord)",
             "syncEvent.Accept(",

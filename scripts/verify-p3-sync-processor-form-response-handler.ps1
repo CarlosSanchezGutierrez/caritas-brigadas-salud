@@ -74,7 +74,7 @@ $RequiredProcessorTokens = @(
     "syncEvent.EntityType == SyncEntityType.FormResponse",
     "syncEvent.Operation != SyncOperation.Create",
     "form_response_operation_not_implemented",
-    "JsonSerializer.Deserialize<CreateFormResponseRequest>",
+    "out CreateFormResponseRequest? request",
     "new FormResponse(",
     "_dbContext.FormResponses.Add(formResponse)",
     "syncEvent.Accept(",

@@ -284,44 +284,21 @@ private async Task HandlePatientEventAsync(
             return;
         }
 
-        CreatePatientRequest? request;
-
-        try
-        {
-            using var document = JsonDocument.Parse(syncEvent.PayloadJson);
-
-            if (document.RootElement.ValueKind != JsonValueKind.Object)
-            {
-                syncEvent.Reject(
-                    processedAt,
-                    "Patient payload must be a JSON object.");
-
-                return;
-            }
-
-            request = JsonSerializer.Deserialize<CreatePatientRequest>(
+        if (!SyncPayloadReader.TryReadObject(
                 syncEvent.PayloadJson,
-                PayloadJsonOptions);
-        }
-        catch (JsonException)
+                "Patient",
+                PayloadJsonOptions,
+                out CreatePatientRequest? request,
+                out var payloadRejectionReason))
         {
             syncEvent.Reject(
                 processedAt,
-                "Patient payload JSON is invalid.");
+                payloadRejectionReason);
 
             return;
         }
 
-        if (request is null)
-        {
-            syncEvent.Reject(
-                processedAt,
-                "Patient payload is required.");
-
-            return;
-        }
-
-        var patientId = syncEvent.EntityId ?? Guid.NewGuid();
+var patientId = syncEvent.EntityId ?? Guid.NewGuid();
 
         var patientIdAlreadyExists = await _dbContext.Patients
             .AsNoTracking()
@@ -459,44 +436,21 @@ private async Task HandlePatientEventAsync(
             return;
         }
 
-        CreatePatientVisitRequest? request;
-
-        try
-        {
-            using var document = JsonDocument.Parse(syncEvent.PayloadJson);
-
-            if (document.RootElement.ValueKind != JsonValueKind.Object)
-            {
-                syncEvent.Reject(
-                    processedAt,
-                    "Patient visit payload must be a JSON object.");
-
-                return;
-            }
-
-            request = JsonSerializer.Deserialize<CreatePatientVisitRequest>(
+        if (!SyncPayloadReader.TryReadObject(
                 syncEvent.PayloadJson,
-                PayloadJsonOptions);
-        }
-        catch (JsonException)
+                "Patient visit",
+                PayloadJsonOptions,
+                out CreatePatientVisitRequest? request,
+                out var payloadRejectionReason))
         {
             syncEvent.Reject(
                 processedAt,
-                "Patient visit payload JSON is invalid.");
+                payloadRejectionReason);
 
             return;
         }
 
-        if (request is null)
-        {
-            syncEvent.Reject(
-                processedAt,
-                "Patient visit payload is required.");
-
-            return;
-        }
-
-        if (request.PatientId == Guid.Empty)
+if (request.PatientId == Guid.Empty)
         {
             syncEvent.Reject(
                 processedAt,
@@ -697,44 +651,21 @@ private async Task HandlePatientEventAsync(
             return;
         }
 
-        CreateServiceEncounterRequest? request;
-
-        try
-        {
-            using var document = JsonDocument.Parse(syncEvent.PayloadJson);
-
-            if (document.RootElement.ValueKind != JsonValueKind.Object)
-            {
-                syncEvent.Reject(
-                    processedAt,
-                    "Service encounter payload must be a JSON object.");
-
-                return;
-            }
-
-            request = JsonSerializer.Deserialize<CreateServiceEncounterRequest>(
+        if (!SyncPayloadReader.TryReadObject(
                 syncEvent.PayloadJson,
-                PayloadJsonOptions);
-        }
-        catch (JsonException)
+                "Service encounter",
+                PayloadJsonOptions,
+                out CreateServiceEncounterRequest? request,
+                out var payloadRejectionReason))
         {
             syncEvent.Reject(
                 processedAt,
-                "Service encounter payload JSON is invalid.");
+                payloadRejectionReason);
 
             return;
         }
 
-        if (request is null)
-        {
-            syncEvent.Reject(
-                processedAt,
-                "Service encounter payload is required.");
-
-            return;
-        }
-
-        if (request.VisitId == Guid.Empty)
+if (request.VisitId == Guid.Empty)
         {
             syncEvent.Reject(
                 processedAt,
@@ -1020,44 +951,21 @@ private async Task HandlePatientEventAsync(
             return;
         }
 
-        CreateVitalSignsRecordRequest? request;
-
-        try
-        {
-            using var document = JsonDocument.Parse(syncEvent.PayloadJson);
-
-            if (document.RootElement.ValueKind != JsonValueKind.Object)
-            {
-                syncEvent.Reject(
-                    processedAt,
-                    "Vital signs payload must be a JSON object.");
-
-                return;
-            }
-
-            request = JsonSerializer.Deserialize<CreateVitalSignsRecordRequest>(
+        if (!SyncPayloadReader.TryReadObject(
                 syncEvent.PayloadJson,
-                PayloadJsonOptions);
-        }
-        catch (JsonException)
+                "Vital signs",
+                PayloadJsonOptions,
+                out CreateVitalSignsRecordRequest? request,
+                out var payloadRejectionReason))
         {
             syncEvent.Reject(
                 processedAt,
-                "Vital signs payload JSON is invalid.");
+                payloadRejectionReason);
 
             return;
         }
 
-        if (request is null)
-        {
-            syncEvent.Reject(
-                processedAt,
-                "Vital signs payload is required.");
-
-            return;
-        }
-
-        if (request.PatientId == Guid.Empty)
+if (request.PatientId == Guid.Empty)
         {
             syncEvent.Reject(
                 processedAt,
@@ -1267,44 +1175,21 @@ private async Task HandlePatientEventAsync(
             return;
         }
 
-        CreateFormResponseRequest? request;
-
-        try
-        {
-            using var payloadDocument = JsonDocument.Parse(syncEvent.PayloadJson);
-
-            if (payloadDocument.RootElement.ValueKind != JsonValueKind.Object)
-            {
-                syncEvent.Reject(
-                    processedAt,
-                    "Form response payload must be a JSON object.");
-
-                return;
-            }
-
-            request = JsonSerializer.Deserialize<CreateFormResponseRequest>(
+        if (!SyncPayloadReader.TryReadObject(
                 syncEvent.PayloadJson,
-                PayloadJsonOptions);
-        }
-        catch (JsonException)
+                "Form response",
+                PayloadJsonOptions,
+                out CreateFormResponseRequest? request,
+                out var payloadRejectionReason))
         {
             syncEvent.Reject(
                 processedAt,
-                "Form response payload JSON is invalid.");
+                payloadRejectionReason);
 
             return;
         }
 
-        if (request is null)
-        {
-            syncEvent.Reject(
-                processedAt,
-                "Form response payload is required.");
-
-            return;
-        }
-
-        if (request.EncounterId == Guid.Empty)
+if (request.EncounterId == Guid.Empty)
         {
             syncEvent.Reject(
                 processedAt,
@@ -1591,44 +1476,21 @@ private async Task HandlePatientEventAsync(
             return;
         }
 
-        CreateConsentDocumentRequest? request;
-
-        try
-        {
-            using var payloadDocument = JsonDocument.Parse(syncEvent.PayloadJson);
-
-            if (payloadDocument.RootElement.ValueKind != JsonValueKind.Object)
-            {
-                syncEvent.Reject(
-                    processedAt,
-                    "Consent document payload must be a JSON object.");
-
-                return;
-            }
-
-            request = JsonSerializer.Deserialize<CreateConsentDocumentRequest>(
+        if (!SyncPayloadReader.TryReadObject(
                 syncEvent.PayloadJson,
-                PayloadJsonOptions);
-        }
-        catch (JsonException)
+                "Consent document",
+                PayloadJsonOptions,
+                out CreateConsentDocumentRequest? request,
+                out var payloadRejectionReason))
         {
             syncEvent.Reject(
                 processedAt,
-                "Consent document payload JSON is invalid.");
+                payloadRejectionReason);
 
             return;
         }
 
-        if (request is null)
-        {
-            syncEvent.Reject(
-                processedAt,
-                "Consent document payload is required.");
-
-            return;
-        }
-
-        if (request.PatientId == Guid.Empty)
+if (request.PatientId == Guid.Empty)
         {
             syncEvent.Reject(
                 processedAt,
@@ -1930,44 +1792,21 @@ private async Task HandlePatientEventAsync(
             return;
         }
 
-        CreateMedicalReferralRequest? request;
-
-        try
-        {
-            using var payloadDocument = JsonDocument.Parse(syncEvent.PayloadJson);
-
-            if (payloadDocument.RootElement.ValueKind != JsonValueKind.Object)
-            {
-                syncEvent.Reject(
-                    processedAt,
-                    "Medical referral payload must be a JSON object.");
-
-                return;
-            }
-
-            request = JsonSerializer.Deserialize<CreateMedicalReferralRequest>(
+        if (!SyncPayloadReader.TryReadObject(
                 syncEvent.PayloadJson,
-                PayloadJsonOptions);
-        }
-        catch (JsonException)
+                "Medical referral",
+                PayloadJsonOptions,
+                out CreateMedicalReferralRequest? request,
+                out var payloadRejectionReason))
         {
             syncEvent.Reject(
                 processedAt,
-                "Medical referral payload JSON is invalid.");
+                payloadRejectionReason);
 
             return;
         }
 
-        if (request is null)
-        {
-            syncEvent.Reject(
-                processedAt,
-                "Medical referral payload is required.");
-
-            return;
-        }
-
-        if (request.EncounterId == Guid.Empty)
+if (request.EncounterId == Guid.Empty)
         {
             syncEvent.Reject(
                 processedAt,
@@ -2200,44 +2039,21 @@ private async Task HandlePatientEventAsync(
             return;
         }
 
-        CreateMedicationDeliveryRequest? request;
-
-        try
-        {
-            using var payloadDocument = JsonDocument.Parse(syncEvent.PayloadJson);
-
-            if (payloadDocument.RootElement.ValueKind != JsonValueKind.Object)
-            {
-                syncEvent.Reject(
-                    processedAt,
-                    "Medication delivery payload must be a JSON object.");
-
-                return;
-            }
-
-            request = JsonSerializer.Deserialize<CreateMedicationDeliveryRequest>(
+        if (!SyncPayloadReader.TryReadObject(
                 syncEvent.PayloadJson,
-                PayloadJsonOptions);
-        }
-        catch (JsonException)
+                "Medication delivery",
+                PayloadJsonOptions,
+                out CreateMedicationDeliveryRequest? request,
+                out var payloadRejectionReason))
         {
             syncEvent.Reject(
                 processedAt,
-                "Medication delivery payload JSON is invalid.");
+                payloadRejectionReason);
 
             return;
         }
 
-        if (request is null)
-        {
-            syncEvent.Reject(
-                processedAt,
-                "Medication delivery payload is required.");
-
-            return;
-        }
-
-        if (request.EncounterId == Guid.Empty)
+if (request.EncounterId == Guid.Empty)
         {
             syncEvent.Reject(
                 processedAt,
