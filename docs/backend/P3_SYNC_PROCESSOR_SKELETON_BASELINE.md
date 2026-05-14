@@ -128,3 +128,8 @@ P3-17 supersedes the skeleton for form_response create only. After P3-17, SyncBa
 ## 11. P3-18 consent document handler note
 
 P3-18 supersedes the skeleton for consent_document create only. After P3-18, SyncBatchProcessor may accept SyncEntityType.ConsentDocument with SyncOperation.Create and may create ConsentDocument records. Standalone document signatures, referrals, medication deliveries, and external pass records remain conflict-staged until their handlers are implemented.
+---
+
+## 12. P3-19 medical referral handler note
+
+P3-19 supersedes the skeleton for medical_referral create only. After P3-19, SyncBatchProcessor may accept SyncEntityType.MedicalReferral with SyncOperation.Create and may create MedicalReferral records. Medication deliveries, standalone document signatures, referral lifecycle transitions, and external outcome updates remain conflict-staged until their handlers are implemented.

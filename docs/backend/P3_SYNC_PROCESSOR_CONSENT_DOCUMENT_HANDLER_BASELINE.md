@@ -114,3 +114,8 @@ P3-18 is complete when:
 - SyncBatchProcessor rolls back consent document id reservation when patient-visit-type-version key reservation fails;
 - contract tests protect the consent_document-only scope;
 - repository governance and database deployment gates remain green.
+---
+
+## 7. P3-19 medical referral handler note
+
+P3-19 adds medical_referral create handling. Referral/pass records remain separate from consent documents because they represent clinical external handoff evidence, not privacy signature evidence.

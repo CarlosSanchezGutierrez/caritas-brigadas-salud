@@ -6,6 +6,7 @@ using Caritas.Brigadas.Contracts.PatientVisits;
 using Caritas.Brigadas.Contracts.ServiceEncounters;
 using Caritas.Brigadas.Contracts.FormResponses;
 using Caritas.Brigadas.Contracts.ConsentDocuments;
+using Caritas.Brigadas.Contracts.MedicalReferrals;
 using Caritas.Brigadas.Contracts.Sync;
 using Caritas.Brigadas.Contracts.VitalSigns;
 using Caritas.Brigadas.Domain.Common;
@@ -106,6 +107,8 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         var acceptedFormResponseEncounterTemplateKeysInBatch = new HashSet<string>(StringComparer.Ordinal);
         var acceptedConsentDocumentIdsInBatch = new HashSet<Guid>();
         var acceptedConsentDocumentKeysInBatch = new HashSet<string>(StringComparer.Ordinal);
+        var acceptedMedicalReferralIdsInBatch = new HashSet<Guid>();
+        var acceptedMedicalReferralFoliosInBatch = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var syncEvent in pendingEvents)
         {
@@ -203,6 +206,20 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 processedCount++;
                 continue;
             }
+            if (syncEvent.EntityType == SyncEntityType.MedicalReferral)
+            {
+                await HandleMedicalReferralEventAsync(
+                    organizationId,
+                    batch,
+                    syncEvent,
+                    processedAt,
+                    acceptedMedicalReferralIdsInBatch,
+                    acceptedMedicalReferralFoliosInBatch,
+                    cancellationToken);
+
+                processedCount++;
+                continue;
+            }
             syncEvent.MarkConflict(
                 processedAt,
                 SkeletonConflictReason);
@@ -239,7 +256,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             RejectedCount = rejectedCount,
             ConflictCount = conflictCount,
             Completed = batch.IsCompleted,
-            Message = "Sync batch processor completed patient, visit, service encounter, vital signs, form response, and consent document handler processing."
+            Message = "Sync batch processor completed patient, visit, service encounter, vital signs, form response, consent document, and medical referral handler processing."
         };
     }
 
@@ -281,7 +298,13 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             return 5;
         }
 
-        return 6;
+        if (syncEvent.EntityType == SyncEntityType.MedicalReferral &&
+            syncEvent.Operation == SyncOperation.Create)
+        {
+            return 6;
+        }
+
+        return 7;
     }
 private async Task HandlePatientEventAsync(
         Guid organizationId,
@@ -1914,6 +1937,279 @@ private async Task HandlePatientEventAsync(
 
         property.SetValue(instance, value);
     }
+    private async Task HandleMedicalReferralEventAsync(
+        Guid organizationId,
+        SyncBatch batch,
+        SyncEvent syncEvent,
+        DateTimeOffset processedAt,
+        ISet<Guid> acceptedMedicalReferralIdsInBatch,
+        ISet<string> acceptedMedicalReferralFoliosInBatch,
+        CancellationToken cancellationToken)
+    {
+        if (syncEvent.Operation != SyncOperation.Create)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "medical_referral_operation_not_implemented");
+
+            return;
+        }
+
+        CreateMedicalReferralRequest? request;
+
+        try
+        {
+            using var payloadDocument = JsonDocument.Parse(syncEvent.PayloadJson);
+
+            if (payloadDocument.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                syncEvent.Reject(
+                    processedAt,
+                    "Medical referral payload must be a JSON object.");
+
+                return;
+            }
+
+            request = JsonSerializer.Deserialize<CreateMedicalReferralRequest>(
+                syncEvent.PayloadJson,
+                PayloadJsonOptions);
+        }
+        catch (JsonException)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "Medical referral payload JSON is invalid.");
+
+            return;
+        }
+
+        if (request is null)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "Medical referral payload is required.");
+
+            return;
+        }
+
+        if (request.EncounterId == Guid.Empty)
+        {
+            syncEvent.Reject(
+                processedAt,
+                "EncounterId is required for medical referral sync.");
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(request.ReferralReason))
+        {
+            syncEvent.Reject(
+                processedAt,
+                "ReferralReason is required for medical referral sync.");
+
+            return;
+        }
+
+        if (request.ProviderSignatureId.HasValue)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "medical_referral_provider_signature_not_supported_until_document_signature_handler");
+
+            return;
+        }
+
+        ServiceEncounter? trackedEncounter = _dbContext.ServiceEncounters.Local.FirstOrDefault(encounter =>
+            encounter.Id == request.EncounterId &&
+            encounter.OrganizationId == organizationId &&
+            !encounter.IsDeleted);
+
+        var encounter = trackedEncounter ?? await _dbContext.ServiceEncounters
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                item =>
+                    item.Id == request.EncounterId &&
+                    item.OrganizationId == organizationId &&
+                    !item.IsDeleted,
+                cancellationToken);
+
+        if (encounter is null)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "medical_referral_encounter_not_found");
+
+            return;
+        }
+
+        if (encounter.BrigadeId != batch.BrigadeId)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "medical_referral_brigade_mismatch");
+
+            return;
+        }
+
+        var patientExists =
+            _dbContext.Patients.Local.Any(patient =>
+                patient.Id == encounter.PatientId &&
+                patient.OrganizationId == organizationId &&
+                !patient.IsDeleted) ||
+            await _dbContext.Patients
+                .AsNoTracking()
+                .AnyAsync(
+                    patient =>
+                        patient.Id == encounter.PatientId &&
+                        patient.OrganizationId == organizationId &&
+                        !patient.IsDeleted,
+                    cancellationToken);
+
+        if (!patientExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "medical_referral_patient_not_found");
+
+            return;
+        }
+
+        if (request.ReferredByUserId.HasValue)
+        {
+            var referredByUserExists = await _dbContext.Users
+                .AsNoTracking()
+                .AnyAsync(
+                    user =>
+                        user.Id == request.ReferredByUserId.Value &&
+                        user.OrganizationId == organizationId &&
+                        !user.IsDeleted,
+                    cancellationToken);
+
+            if (!referredByUserExists)
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "medical_referral_referred_by_user_not_found");
+
+                return;
+            }
+        }
+
+        var medicalReferralId = syncEvent.EntityId ?? Guid.NewGuid();
+
+        var medicalReferralIdAlreadyExists =
+            acceptedMedicalReferralIdsInBatch.Contains(medicalReferralId) ||
+            _dbContext.Set<MedicalReferral>().Local.Any(referral =>
+                referral.Id == medicalReferralId &&
+                referral.OrganizationId == organizationId &&
+                !referral.IsDeleted) ||
+            await _dbContext.Set<MedicalReferral>()
+                .AsNoTracking()
+                .AnyAsync(
+                    referral =>
+                        referral.Id == medicalReferralId &&
+                        referral.OrganizationId == organizationId &&
+                        !referral.IsDeleted,
+                    cancellationToken);
+
+        if (medicalReferralIdAlreadyExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "medical_referral_id_already_exists");
+
+            return;
+        }
+
+        var referralFolio = string.IsNullOrWhiteSpace(request.ReferralFolio)
+            ? GenerateSyncMedicalReferralFolio(syncEvent)
+            : request.ReferralFolio.Trim();
+
+        var normalizedReferralFolio = referralFolio.ToUpperInvariant();
+
+        if (acceptedMedicalReferralFoliosInBatch.Contains(normalizedReferralFolio))
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "medical_referral_folio_duplicate_in_pending_batch");
+
+            return;
+        }
+
+        var referralFolioExists =
+            _dbContext.Set<MedicalReferral>().Local.Any(referral =>
+                referral.OrganizationId == organizationId &&
+                referral.ReferralFolio == normalizedReferralFolio &&
+                !referral.IsDeleted) ||
+            await _dbContext.Set<MedicalReferral>()
+                .AsNoTracking()
+                .AnyAsync(
+                    referral =>
+                        referral.OrganizationId == organizationId &&
+                        referral.ReferralFolio == normalizedReferralFolio &&
+                        !referral.IsDeleted,
+                    cancellationToken);
+
+        if (referralFolioExists)
+        {
+            syncEvent.MarkConflict(
+                processedAt,
+                "medical_referral_folio_already_exists");
+
+            return;
+        }
+
+        try
+        {
+            var medicalReferral = new MedicalReferral(
+                medicalReferralId,
+                organizationId,
+                request.EncounterId,
+                encounter.PatientId,
+                normalizedReferralFolio,
+                request.ReferralReason,
+                request.DestinationInstitution,
+                request.Priority,
+                request.ReferredByUserId);
+
+            // Pending-batch medical referral id and referral folio are reserved only after successful MedicalReferral construction and reserved atomically.
+            var medicalReferralIdReserved = acceptedMedicalReferralIdsInBatch.Add(medicalReferralId);
+
+            if (!medicalReferralIdReserved)
+            {
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "medical_referral_duplicate_in_pending_batch");
+
+                return;
+            }
+
+            var medicalReferralFolioReserved = acceptedMedicalReferralFoliosInBatch.Add(normalizedReferralFolio);
+
+            if (!medicalReferralFolioReserved)
+            {
+                acceptedMedicalReferralIdsInBatch.Remove(medicalReferralId);
+
+                syncEvent.MarkConflict(
+                    processedAt,
+                    "medical_referral_folio_duplicate_in_pending_batch");
+
+                return;
+            }
+
+            _dbContext.Set<MedicalReferral>().Add(medicalReferral);
+
+            syncEvent.Accept(
+                processedAt,
+                medicalReferral.Id);
+        }
+        catch (DomainException exception)
+        {
+            syncEvent.Reject(
+                processedAt,
+                exception.Message);
+        }
+    }
     private static bool TryValidateEvent(
         SyncEvent syncEvent,
         out string? rejectionReason)
@@ -1954,6 +2250,11 @@ private async Task HandlePatientEventAsync(
     private static string GenerateSyncPatientFolio(SyncEvent syncEvent)
     {
         return $"PAT-SYNC-{syncEvent.Id:N}"[..41];
+    }
+
+    private static string GenerateSyncMedicalReferralFolio(SyncEvent syncEvent)
+    {
+        return $"REF-SYNC-{syncEvent.Id:N}"[..41];
     }
 
     private static string GenerateSyncEncounterFolio(SyncEvent syncEvent)

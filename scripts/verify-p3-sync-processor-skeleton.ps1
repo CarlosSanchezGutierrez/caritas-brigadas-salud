@@ -53,6 +53,7 @@ $RequiredDocTokens = @(
     "P3-16 supersedes the skeleton for service_encounter create",
     "P3-17 supersedes the skeleton for form_response create",
     "P3-18 supersedes the skeleton for consent_document create",
+    "P3-19 supersedes the skeleton for medical_referral create",
     "Acceptance criteria"
 )
 
@@ -85,7 +86,6 @@ foreach ($Token in $RequiredProcessorTokens) {
 }
 
 $ForbiddenProcessorTokens = @(
-    "_dbContext.MedicalReferrals.Add",
     "_dbContext.MedicationDeliveries.Add"
 )
 
