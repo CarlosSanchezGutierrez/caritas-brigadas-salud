@@ -34,7 +34,6 @@ public sealed class P3SyncProcessorSkeletonContractTests
         var forbiddenTokens = new[]
         {
             "_dbContext.ServiceEncounters.Add",
-            "_dbContext.VitalSignsRecords.Add",
             "_dbContext.FormResponses.Add",
             "_dbContext.ConsentDocuments.Add",
             "_dbContext.MedicalReferrals.Add",
@@ -105,6 +104,7 @@ public sealed class P3SyncProcessorSkeletonContractTests
             "Acceptance criteria",
             "P3-13 supersedes the skeleton for patient create",
             "P3-14 supersedes the skeleton for patient_visit create",
+            "P3-15 supersedes the skeleton for vital_signs create",
             "processor must not complete against client-supplied event totals"
         };
 

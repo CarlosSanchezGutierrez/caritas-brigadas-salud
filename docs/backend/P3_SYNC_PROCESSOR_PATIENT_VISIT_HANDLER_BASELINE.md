@@ -99,3 +99,8 @@ P3-14 is complete when:
 - SyncBatchProcessor still marks unsupported entity types as conflict;
 - contract tests protect the patient_visit-only scope;
 - repository governance and database deployment gates remain green.
+---
+
+## 7. P3-15 vital signs handler note
+
+P3-15 adds vital_signs create handling. This is valid after P3-14 because vital signs are linked to PatientVisit through VisitId. Service encounters, forms, documents, referrals, and medication deliveries remain out of scope.

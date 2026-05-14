@@ -49,6 +49,7 @@ $RequiredDocTokens = @(
     "processor must not complete against client-supplied event totals",
     "P3-13 supersedes the skeleton for patient create",
     "P3-14 supersedes the skeleton for patient_visit create",
+    "P3-15 supersedes the skeleton for vital_signs create",
     "Acceptance criteria"
 )
 
@@ -82,7 +83,6 @@ foreach ($Token in $RequiredProcessorTokens) {
 
 $ForbiddenProcessorTokens = @(
     "_dbContext.ServiceEncounters.Add",
-    "_dbContext.VitalSignsRecords.Add",
     "_dbContext.FormResponses.Add",
     "_dbContext.ConsentDocuments.Add",
     "_dbContext.MedicalReferrals.Add",

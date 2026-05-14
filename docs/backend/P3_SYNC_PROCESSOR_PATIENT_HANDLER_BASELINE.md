@@ -84,3 +84,8 @@ P3-13 is complete when:
 ## 6. P3-14 patient visit handler note
 
 P3-14 adds patient_visit create handling. After P3-14, PatientVisit creation is no longer forbidden in the sync processor. Service encounters, vital signs, forms, documents, referrals, and medication deliveries remain out of scope.
+---
+
+## 7. P3-15 vital signs handler note
+
+P3-15 adds vital_signs create handling. After P3-15, VitalSignsRecord creation is no longer forbidden in the sync processor. Service encounters, forms, documents, referrals, and medication deliveries remain out of scope.
