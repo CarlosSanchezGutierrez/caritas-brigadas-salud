@@ -175,3 +175,5 @@ Write-Host "============================================================" -Foreg
 & (Join-Path $RepoRoot "scripts\verify-p3-sync-list-events-endpoint-api-regression.ps1")
 
 & (Join-Path $RepoRoot "scripts\verify-p3-sync-tenant-boundary-endpoint-api-regression.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-sync-backend-readiness-checklist.ps1")
