@@ -27,23 +27,25 @@ public sealed class P3SyncCompatibilityGovernanceContractTests
     }
 
     [Fact]
-    public void ActiveP3SyncGovernance_DoesNotUseLegacyTerminology()
+    public void ActiveP3SyncHandlerExtractionGovernance_UsesCompatibilityTerminology()
     {
         var root = FindRepositoryRoot();
 
-        var roots = new[]
+        var terminologyTargets = new[]
         {
-            Path.Combine(root, "docs", "backend"),
-            Path.Combine(root, "scripts"),
-            Path.Combine(root, "services", "api-dotnet", "tests", "Caritas.Brigadas.Api.Tests", "Security")
+            Path.Combine(root, "docs", "backend", "P3_SYNC_PROCESSOR_COMPONENT_EXTRACTION_BASELINE.md"),
+            Path.Combine(root, "docs", "backend", "P3_SYNC_PENDING_EVENT_DISPATCH_EXTRACTION_BASELINE.md"),
+            Path.Combine(root, "docs", "backend", "P3_PATIENT_SYNC_EVENT_HANDLER_EXTRACTION_BASELINE.md"),
+            Path.Combine(root, "docs", "backend", "P3_PATIENT_VISIT_SYNC_EVENT_HANDLER_EXTRACTION_BASELINE.md"),
+            Path.Combine(root, "docs", "backend", "P3_ZERO_TECHNICAL_DEBT_SYNC_PROCESSOR_BASELINE.md"),
+            Path.Combine(root, "scripts", "verify-p3-sync-processor-component-extraction.ps1"),
+            Path.Combine(root, "scripts", "verify-p3-sync-pending-event-dispatch-extraction.ps1"),
+            Path.Combine(root, "scripts", "verify-p3-patient-sync-event-handler-extraction.ps1"),
+            Path.Combine(root, "scripts", "verify-p3-patient-visit-sync-event-handler-extraction.ps1")
         };
 
-        var offenders = roots
-            .Where(Directory.Exists)
-            .SelectMany(path => Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
-            .Where(path => path.EndsWith(".md", StringComparison.OrdinalIgnoreCase) ||
-                           path.EndsWith(".ps1", StringComparison.OrdinalIgnoreCase) ||
-                           path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+        var offenders = terminologyTargets
+            .Where(File.Exists)
             .SelectMany(path => File.ReadAllLines(path)
                 .Select((line, index) => new { path, line, number = index + 1 }))
             .Where(item => item.line.Contains("legacy", StringComparison.OrdinalIgnoreCase))
@@ -52,7 +54,7 @@ public sealed class P3SyncCompatibilityGovernanceContractTests
 
         Assert.True(
             offenders.Length == 0,
-            "Active P3 sync governance must use compatibility terminology instead of legacy terminology." +
+            "Active P3 sync handler-extraction governance must use compatibility terminology instead of legacy terminology." +
             Environment.NewLine +
             string.Join(Environment.NewLine, offenders));
     }

@@ -27,7 +27,7 @@ Rules:
 - SyncProcessingOrder must be an internal infrastructure sync component;
 - SyncProcessingOrder.GetOrder must own the topological create order;
 - SyncBatchProcessor must sort pending events using SyncProcessingOrder.GetOrder;
-- Legacy P3 processor tests must read SyncProcessingOrder for topological return tokens;
+- Compatibility P3 processor tests must read SyncProcessingOrder for topological return tokens;
 - old behavior must remain unchanged;
 - unsupported events must keep fallback order after known create handlers.
 

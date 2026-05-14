@@ -103,4 +103,4 @@ P3-22G continues real domain handler extraction by moving patient_visit/create b
 
 ## 12. P3-22G.1 compatibility governance note
 
-P3-22G.1 clarifies that processor-centered verifiers retained during handler extraction are compatibility governance, not accepted technical debt. Current active P3 sync code and governance should not use legacy terminology.
+P3-22G.1 clarifies that processor-centered verifiers retained during handler extraction are compatibility governance, not accepted technical debt. Current active P3 sync code and governance should not use deprecated compatibility terminology incorrectly.

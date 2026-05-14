@@ -44,22 +44,35 @@ foreach ($Token in $RequiredDocTokens) {
     Assert-Contains $Doc $Token "P3 sync compatibility governance baseline"
 }
 
-$SearchRoots = @(
-    Join-Path $RepoRoot "docs/backend",
-    Join-Path $RepoRoot "scripts",
-    Join-Path $RepoRoot "services/api-dotnet/tests/Caritas.Brigadas.Api.Tests/Security"
+# Scope deliberately limited:
+# Do not scan all docs/backend or all security tests because legitimate concepts such as
+# LegacyRole, historical imports, and old external referral formats are allowed outside
+# active P3 sync handler-extraction governance.
+$TerminologyTargets = @(
+    "docs/backend/P3_SYNC_PROCESSOR_COMPONENT_EXTRACTION_BASELINE.md",
+    "docs/backend/P3_SYNC_PENDING_EVENT_DISPATCH_EXTRACTION_BASELINE.md",
+    "docs/backend/P3_PATIENT_SYNC_EVENT_HANDLER_EXTRACTION_BASELINE.md",
+    "docs/backend/P3_PATIENT_VISIT_SYNC_EVENT_HANDLER_EXTRACTION_BASELINE.md",
+    "docs/backend/P3_ZERO_TECHNICAL_DEBT_SYNC_PROCESSOR_BASELINE.md",
+    "scripts/verify-p3-sync-processor-component-extraction.ps1",
+    "scripts/verify-p3-sync-pending-event-dispatch-extraction.ps1",
+    "scripts/verify-p3-patient-sync-event-handler-extraction.ps1",
+    "scripts/verify-p3-patient-visit-sync-event-handler-extraction.ps1"
 )
 
 $ForbiddenMatches = @()
 
-foreach ($Root in $SearchRoots) {
-    if (-not (Test-Path $Root)) {
+foreach ($RelativePath in $TerminologyTargets) {
+    $Path = Join-Path $RepoRoot $RelativePath
+
+    if (-not (Test-Path $Path)) {
         continue
     }
 
-    $ForbiddenMatches += Get-ChildItem $Root -Recurse -File |
-        Where-Object { $_.Extension -in @(".md", ".ps1", ".cs") } |
-        Select-String -Pattern "\blegacy\b" -CaseSensitive:$false
+    $ForbiddenMatches += Select-String `
+        -Path $Path `
+        -Pattern "\blegacy\b" `
+        -CaseSensitive:$false
 }
 
 if ($ForbiddenMatches) {
@@ -67,7 +80,7 @@ if ($ForbiddenMatches) {
         Write-Host "$($_.Path):$($_.LineNumber):$($_.Line)" -ForegroundColor Red
     }
 
-    throw "P3 sync governance must use compatibility terminology instead of legacy terminology."
+    throw "Active P3 sync handler-extraction governance must use compatibility terminology instead of legacy terminology."
 }
 
 Write-Host "P3 sync compatibility governance verification passed." -ForegroundColor Green

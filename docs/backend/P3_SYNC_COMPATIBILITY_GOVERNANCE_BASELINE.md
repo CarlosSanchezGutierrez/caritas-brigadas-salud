@@ -70,3 +70,15 @@ The backend is not finished until:
 - authorization/tenant/privacy gates remain green;
 - database deployment baseline remains idempotent;
 - CI remains green with build, tests, governance, and database gates.
+---
+
+## 6. Terminology scan scope
+
+The terminology scan is intentionally scoped to active P3 sync handler-extraction governance files.
+
+The scan must not target unrelated backend documents where legacy is a valid domain concept, including:
+
+- historical import/orphan detection documentation;
+- backward-compatible authorization claims;
+- external paper/form migration notes;
+- tests explicitly validating LegacyRole behavior.
