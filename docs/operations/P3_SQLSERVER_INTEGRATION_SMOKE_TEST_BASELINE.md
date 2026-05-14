@@ -11,7 +11,7 @@ Depends on: P3-26B production authentication hardening baseline
 
 P3-26C adds a real SQL Server smoke test entry point.
 
-The goal is to validate that the backend can build, resolve the EF Core design-time context, list migrations, and optionally apply migrations against a configured SQL Server smoke database.
+The goal is to validate that the backend can build, restore local EF Core tools, resolve the EF Core design-time context, list migrations, and optionally apply migrations against a configured SQL Server smoke database.
 
 ---
 

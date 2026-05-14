@@ -48,10 +48,7 @@ $RequiredBaselineTokens = @(
     "real SQL Server smoke test entry point",
     "CARITAS_SQLSERVER_SMOKE_CONNECTION",
     "CARITAS_SQLSERVER_CONNECTION",
-    "Smoke",
-    "Test",
-    "Local",
-    "Dev",
+    "dotnet tool restore",
     "dotnet ef migrations list",
     "dotnet ef database update",
     "--project src/Caritas.Brigadas.Infrastructure",
@@ -72,18 +69,35 @@ $RequiredSmokeScriptTokens = @(
     "SkipDatabaseUpdate",
     "AllowNonSmokeDatabase",
     "Refusing to run SQL Server smoke test against a database without a Smoke/Test/Local/Dev marker.",
+    '$ToolManifestCandidates',
+    '$ToolManifestPath',
+    '(Join-Path $ApiRoot ".config/dotnet-tools.json")',
+    '(Join-Path $ApiRoot "dotnet-tools.json")',
+    "dotnet tool restore",
+    'dotnet tool restore --tool-manifest $ToolManifestPath',
     "dotnet build",
     "dotnet ef --version",
     "dotnet ef migrations list",
     "dotnet ef database update",
-    "--project $InfrastructureProject",
-    "--startup-project $StartupProject",
-    "--context $Context",
+    '--project $InfrastructureProject',
+    '--startup-project $StartupProject',
+    '--context $Context',
     "P3 SQL Server integration smoke test passed."
 )
 
 foreach ($Token in $RequiredSmokeScriptTokens) {
     Assert-Contains $SmokeScript $Token "P3 SQL Server smoke script"
+}
+
+if ($SmokeScript -match 'Join-Path\s+\$ApiRoot\s+"\.config/dotnet-tools\.json",') {
+    throw "P3 SQL Server smoke script still contains invalid comma-based Join-Path invocation."
+}
+
+$RestoreIndex = $SmokeScript.IndexOf('dotnet tool restore --tool-manifest $ToolManifestPath', [System.StringComparison]::Ordinal)
+$EfVersionIndex = $SmokeScript.IndexOf("dotnet ef --version", [System.StringComparison]::Ordinal)
+
+if ($RestoreIndex -lt 0 -or $EfVersionIndex -lt 0 -or $RestoreIndex -gt $EfVersionIndex) {
+    throw "P3 SQL Server smoke script must restore local tools before invoking dotnet ef."
 }
 
 $RequiredProductionReadinessTokens = @(

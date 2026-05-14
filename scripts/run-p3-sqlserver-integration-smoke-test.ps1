@@ -38,8 +38,8 @@ $InfrastructureProject = "src/Caritas.Brigadas.Infrastructure"
 $StartupProject = "src/Caritas.Brigadas.Api"
 $Context = "CaritasDbContext"
 $ToolManifestCandidates = @(
-    Join-Path $ApiRoot ".config/dotnet-tools.json",
-    Join-Path $ApiRoot "dotnet-tools.json"
+    (Join-Path $ApiRoot ".config/dotnet-tools.json")
+    (Join-Path $ApiRoot "dotnet-tools.json")
 )
 
 if ([string]::IsNullOrWhiteSpace($ConnectionString)) {
