@@ -43,7 +43,9 @@ The medical referral create handler must:
 - preserve ReferralReason;
 - preserve Priority;
 - conflict duplicate MedicalReferral id inside the organization;
+- duplicate MedicalReferral id checks must include soft-deleted rows because primary key uniqueness is not soft-delete filtered;
 - conflict duplicate ReferralFolio inside the organization;
+- duplicate ReferralFolio checks must include soft-deleted rows because the OrganizationId plus ReferralFolio unique index is not soft-delete filtered;
 - conflict duplicate ReferralFolio values inside the same pending batch before SaveChangesAsync;
 - reserve pending-batch medical referral id and referral folio only after successful MedicalReferral construction;
 - reserve pending-batch medical referral id and referral folio atomically;
@@ -108,6 +110,7 @@ P3-19 is complete when:
 - SyncBatchProcessor validates referred-by user when provided;
 - SyncBatchProcessor rejects ProviderSignatureId until document_signature handling exists;
 - SyncBatchProcessor marks duplicate referral folio as conflict;
+- SyncBatchProcessor includes soft-deleted rows when checking referral folio uniqueness;
 - SyncBatchProcessor rolls back medical referral id reservation when referral folio reservation fails;
 - contract tests protect the medical_referral-only scope;
 - repository governance and database deployment gates remain green.

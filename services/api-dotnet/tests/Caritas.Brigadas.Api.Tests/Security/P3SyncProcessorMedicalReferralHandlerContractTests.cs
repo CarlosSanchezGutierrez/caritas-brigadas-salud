@@ -35,6 +35,8 @@ public sealed class P3SyncProcessorMedicalReferralHandlerContractTests
             "medicalReferralFolioReserved",
             "acceptedMedicalReferralIdsInBatch.Remove(medicalReferralId)",
             "reserved only after successful MedicalReferral construction and reserved atomically",
+            "Medical referral id duplicate checks include soft-deleted rows because primary key uniqueness is not filtered by IsDeleted",
+            "Medical referral folio duplicate checks include soft-deleted rows because database unique index is not filtered by IsDeleted",
             "return 6;",
             "return 7;"
         };
@@ -75,6 +77,25 @@ public sealed class P3SyncProcessorMedicalReferralHandlerContractTests
         AssertRequiredTokens(source, requiredTokens, "P3 sync processor medical referral handler baseline");
     }
 
+
+    [Fact]
+    public void MedicalReferral_FolioDuplicateCheck_IncludesSoftDeletedRows()
+    {
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
+
+        Assert.DoesNotMatch(
+            "referral\\.Id == medicalReferralId[\\s\\S]{0,180}!referral\\.IsDeleted",
+            source);
+
+        Assert.DoesNotMatch(
+            "referral\\.ReferralFolio == normalizedReferralFolio[\\s\\S]{0,180}!referral\\.IsDeleted",
+            source);
+
+        Assert.Contains(
+            "Medical referral folio duplicate checks include soft-deleted rows because database unique index is not filtered by IsDeleted",
+            source,
+            StringComparison.Ordinal);
+    }
     private static void AssertRequiredTokens(
         string source,
         IReadOnlyCollection<string> requiredTokens,

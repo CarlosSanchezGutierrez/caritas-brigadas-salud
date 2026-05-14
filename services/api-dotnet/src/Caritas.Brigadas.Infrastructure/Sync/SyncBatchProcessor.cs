@@ -2097,19 +2097,18 @@ private async Task HandlePatientEventAsync(
 
         var medicalReferralId = syncEvent.EntityId ?? Guid.NewGuid();
 
+        // Medical referral id duplicate checks include soft-deleted rows because primary key uniqueness is not filtered by IsDeleted.
         var medicalReferralIdAlreadyExists =
             acceptedMedicalReferralIdsInBatch.Contains(medicalReferralId) ||
             _dbContext.Set<MedicalReferral>().Local.Any(referral =>
                 referral.Id == medicalReferralId &&
-                referral.OrganizationId == organizationId &&
-                !referral.IsDeleted) ||
+                referral.OrganizationId == organizationId) ||
             await _dbContext.Set<MedicalReferral>()
                 .AsNoTracking()
                 .AnyAsync(
                     referral =>
                         referral.Id == medicalReferralId &&
-                        referral.OrganizationId == organizationId &&
-                        !referral.IsDeleted,
+                        referral.OrganizationId == organizationId,
                     cancellationToken);
 
         if (medicalReferralIdAlreadyExists)
@@ -2136,18 +2135,17 @@ private async Task HandlePatientEventAsync(
             return;
         }
 
+        // Medical referral folio duplicate checks include soft-deleted rows because database unique index is not filtered by IsDeleted.
         var referralFolioExists =
             _dbContext.Set<MedicalReferral>().Local.Any(referral =>
                 referral.OrganizationId == organizationId &&
-                referral.ReferralFolio == normalizedReferralFolio &&
-                !referral.IsDeleted) ||
+                referral.ReferralFolio == normalizedReferralFolio) ||
             await _dbContext.Set<MedicalReferral>()
                 .AsNoTracking()
                 .AnyAsync(
                     referral =>
                         referral.OrganizationId == organizationId &&
-                        referral.ReferralFolio == normalizedReferralFolio &&
-                        !referral.IsDeleted,
+                        referral.ReferralFolio == normalizedReferralFolio,
                     cancellationToken);
 
         if (referralFolioExists)

@@ -92,6 +92,8 @@ $RequiredProcessorTokens = @(
     "medicalReferralFolioReserved",
     "acceptedMedicalReferralIdsInBatch.Remove(medicalReferralId)",
     "reserved only after successful MedicalReferral construction and reserved atomically",
+    "Medical referral id duplicate checks include soft-deleted rows because primary key uniqueness is not filtered by IsDeleted",
+    "Medical referral folio duplicate checks include soft-deleted rows because database unique index is not filtered by IsDeleted",
     "return 6;",
     "return 7;"
 )
@@ -108,6 +110,14 @@ foreach ($Token in $ForbiddenProcessorTokens) {
     if ($Processor.Contains($Token)) {
         throw "SyncBatchProcessor medical referral handler scope violation: $Token"
     }
+}
+
+if ($Processor -match "referral\.Id == medicalReferralId[\s\S]{0,180}!referral\.IsDeleted") {
+    throw "MedicalReferral id duplicate check must include soft-deleted rows."
+}
+
+if ($Processor -match "referral\.ReferralFolio == normalizedReferralFolio[\s\S]{0,180}!referral\.IsDeleted") {
+    throw "MedicalReferral folio duplicate check must include soft-deleted rows because the unique index is not soft-delete filtered."
 }
 
 Write-Host "P3 sync processor medical referral handler verification passed." -ForegroundColor Green
