@@ -89,3 +89,8 @@ P3-22D extends the zero technical debt policy with explicit SyncBatchProcessor f
 ## 9. P3-22E pending event dispatch extraction note
 
 P3-22E reduces ProcessAsync responsibility by moving pending event dispatch into ProcessPendingEventAsync. Direct handler expansion remains forbidden.
+---
+
+## 10. P3-22F patient sync event handler extraction note
+
+P3-22F starts real domain handler extraction by moving patient/create behavior into PatientSyncEventHandler.

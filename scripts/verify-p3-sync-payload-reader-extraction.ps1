@@ -4,6 +4,7 @@ $RepoRoot = Split-Path -Parent $PSScriptRoot
 $DocPath = Join-Path $RepoRoot "docs/backend/P3_SYNC_PAYLOAD_READER_EXTRACTION_BASELINE.md"
 $ProcessorPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncBatchProcessor.cs"
 $ReaderPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncPayloadReader.cs"
+$PatientHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/PatientSyncEventHandler.cs"
 
 function Assert-FileExists {
     param([string]$Path)
@@ -28,10 +29,13 @@ function Assert-Contains {
 Assert-FileExists $DocPath
 Assert-FileExists $ProcessorPath
 Assert-FileExists $ReaderPath
+Assert-FileExists $PatientHandlerPath
 
 $Doc = Get-Content $DocPath -Raw -Encoding UTF8
 $Processor = Get-Content $ProcessorPath -Raw -Encoding UTF8
 $Reader = Get-Content $ReaderPath -Raw -Encoding UTF8
+$PatientHandler = Get-Content $PatientHandlerPath -Raw -Encoding UTF8
+$ProcessorAndPatientHandler = $Processor + $PatientHandler
 
 $RequiredDocTokens = @(
     "P3 Sync Payload Reader Extraction Baseline",
@@ -79,7 +83,7 @@ $RequiredProcessorTokens = @(
 )
 
 foreach ($Token in $RequiredProcessorTokens) {
-    Assert-Contains $Processor $Token "SyncBatchProcessor payload reader extraction"
+    Assert-Contains $ProcessorAndPatientHandler $Token "SyncBatchProcessor payload reader extraction"
 }
 
 $ForbiddenProcessorTokens = @(

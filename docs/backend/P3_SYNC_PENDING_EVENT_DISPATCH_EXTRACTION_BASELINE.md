@@ -77,3 +77,8 @@ P3-22E is complete when:
 - ProcessPendingEventAsync dispatches to all existing handlers;
 - all previous P3 sync processor verifiers remain green;
 - dotnet build and dotnet test remain green.
+---
+
+## 6. P3-22F patient sync event handler extraction note
+
+P3-22F extracts patient/create behavior into PatientSyncEventHandler while preserving ProcessPendingEventAsync dispatch behavior.
