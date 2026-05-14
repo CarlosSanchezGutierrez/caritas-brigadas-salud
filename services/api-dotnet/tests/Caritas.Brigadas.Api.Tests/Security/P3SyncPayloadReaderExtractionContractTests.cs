@@ -29,7 +29,7 @@ public sealed class P3SyncPayloadReaderExtractionContractTests
     [Fact]
     public void SyncBatchProcessor_UsesSyncPayloadReaderForCurrentCreateDtos()
     {
-        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "PatientSyncEventHandler.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "PatientVisitSyncEventHandler.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "PatientSyncEventHandler.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "PatientVisitSyncEventHandler.cs")) + File.ReadAllText(GetInfrastructurePath("Sync", "ServiceEncounterSyncEventHandler.cs"));
 
         var requiredTokens = new[]
         {

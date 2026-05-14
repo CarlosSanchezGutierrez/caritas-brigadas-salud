@@ -45,11 +45,11 @@ Rules:
 Extracted handlers:
 
 - PatientSyncEventHandler;
-- PatientVisitSyncEventHandler.
+- PatientVisitSyncEventHandler;
+- ServiceEncounterSyncEventHandler.
 
 Still pending extraction:
 
-- ServiceEncounterSyncEventHandler;
 - VitalSignsSyncEventHandler;
 - FormResponseSyncEventHandler;
 - ConsentDocumentSyncEventHandler;

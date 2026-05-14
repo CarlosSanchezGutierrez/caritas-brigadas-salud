@@ -78,3 +78,8 @@ P3-22G is complete when:
 - PatientVisitSyncEventHandler contains the previous patient_visit/create behavior;
 - all previous P3 sync processor verifiers remain green;
 - dotnet build and dotnet test remain green.
+---
+
+## 6. P3-22H service encounter sync event handler extraction note
+
+P3-22H extracts service_encounter/create behavior into ServiceEncounterSyncEventHandler while preserving ProcessPendingEventAsync dispatch behavior.

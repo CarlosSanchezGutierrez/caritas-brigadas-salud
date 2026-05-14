@@ -3,6 +3,7 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $DocPath = Join-Path $RepoRoot "docs/backend/P3_ZERO_TECHNICAL_DEBT_SYNC_PROCESSOR_BASELINE.md"
 $ProcessorPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncBatchProcessor.cs"
+$ServiceHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/ServiceEncounterSyncEventHandler.cs"
 
 function Assert-FileExists {
     param([string]$Path)
@@ -26,9 +27,12 @@ function Assert-Contains {
 
 Assert-FileExists $DocPath
 Assert-FileExists $ProcessorPath
+Assert-FileExists $ServiceHandlerPath
 
 $Doc = Get-Content $DocPath -Raw -Encoding UTF8
 $Processor = Get-Content $ProcessorPath -Raw -Encoding UTF8
+$ServiceHandler = Get-Content $ServiceHandlerPath -Raw -Encoding UTF8
+$ProcessorAndServiceHandler = $Processor + $ServiceHandler
 
 $RequiredDocTokens = @(
     "P3 Zero Technical Debt Sync Processor Baseline",
@@ -64,7 +68,7 @@ $RequiredProcessorTokens = @(
 )
 
 foreach ($Token in $RequiredProcessorTokens) {
-    Assert-Contains $Processor $Token "SyncBatchProcessor zero technical debt guard"
+    Assert-Contains $ProcessorAndServiceHandler $Token "SyncBatchProcessor zero technical debt guard"
 }
 
 $ForbiddenProcessorPatterns = @(

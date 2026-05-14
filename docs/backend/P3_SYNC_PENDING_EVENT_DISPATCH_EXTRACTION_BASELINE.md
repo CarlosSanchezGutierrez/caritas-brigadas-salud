@@ -87,3 +87,8 @@ P3-22F extracts patient/create behavior into PatientSyncEventHandler while prese
 ## 7. P3-22G patient visit sync event handler extraction note
 
 P3-22G extracts patient_visit/create behavior into PatientVisitSyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
+---
+
+## 8. P3-22H service encounter sync event handler extraction note
+
+P3-22H extracts service_encounter/create behavior into ServiceEncounterSyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
