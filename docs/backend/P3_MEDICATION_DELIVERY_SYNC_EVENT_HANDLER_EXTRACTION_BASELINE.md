@@ -96,3 +96,8 @@ P3-22M is complete when:
 - MedicationDeliverySyncEventHandler contains the previous medication_delivery/create behavior;
 - all previous P3 sync processor verifiers remain green;
 - dotnet build and dotnet test remain green.
+---
+
+## 7. P3-22N post-extraction hygiene note
+
+P3-22N removes SyncBatchProcessor post-extraction residue after all primary P3 sync event handlers have been extracted.

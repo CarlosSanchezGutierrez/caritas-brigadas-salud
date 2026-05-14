@@ -1,11 +1,6 @@
 using System.Text.Json;
 using Caritas.Brigadas.Application.Sync;
-using Caritas.Brigadas.Contracts.Patients;
-using Caritas.Brigadas.Contracts.PatientVisits;
-using Caritas.Brigadas.Contracts.ServiceEncounters;
-using Caritas.Brigadas.Contracts.FormResponses;
 using Caritas.Brigadas.Contracts.Sync;
-using Caritas.Brigadas.Contracts.VitalSigns;
 using Caritas.Brigadas.Domain.Common;
 using Caritas.Brigadas.Domain.Entities;
 using Caritas.Brigadas.Domain.Enums;
@@ -101,7 +96,6 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             .OrderBy(syncEvent => syncEvent.ReceivedAtServer)
             .ThenBy(syncEvent => syncEvent.Id)
             .ToArrayAsync(cancellationToken);
-
 
         pendingEvents = pendingEvents
             .OrderBy(SyncProcessingOrder.GetOrder)
@@ -381,6 +375,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             acceptedFormResponseEncounterTemplateKeysInBatch,
             cancellationToken);
     }
+
     private async Task HandleConsentDocumentEventAsync(
         Guid organizationId,
         SyncBatch batch,
@@ -400,9 +395,6 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             cancellationToken);
     }
 
-
-
-
     private async Task HandleMedicalReferralEventAsync(
         Guid organizationId,
         SyncBatch batch,
@@ -421,6 +413,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             acceptedMedicalReferralFoliosInBatch,
             cancellationToken);
     }
+
     private async Task HandleMedicationDeliveryEventAsync(
         Guid organizationId,
         SyncBatch batch,
@@ -437,6 +430,7 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
             acceptedMedicationDeliveryIdsInBatch,
             cancellationToken);
     }
+
     private static bool TryValidateEvent(
         SyncEvent syncEvent,
         out string? rejectionReason)
@@ -472,34 +466,6 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
         }
 
         return true;
-    }
-
-    private static string GenerateSyncPatientFolio(SyncEvent syncEvent)
-    {
-        return $"PAT-SYNC-{syncEvent.Id:N}"[..41];
-    }
-
-
-
-
-
-
-
-    private static Sex ParseSex(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return Sex.NotSpecified;
-        }
-
-        var normalized = value.Trim().ToLowerInvariant();
-
-        return normalized switch
-        {
-            "male" or "masculino" or "m" => Sex.Male,
-            "female" or "femenino" or "f" => Sex.Female,
-            _ => Sex.NotSpecified
-        };
     }
 
     private static SyncBatchSummaryDto ToSummary(SyncBatch batch)
