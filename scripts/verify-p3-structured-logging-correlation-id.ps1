@@ -13,18 +13,6 @@ function Assert-FileExists {
     }
 }
 
-function Assert-NotContains {
-    param(
-        [string]$Content,
-        [string]$Token,
-        [string]$Label
-    )
-
-    if ($Content.Contains($Token)) {
-        throw "$Label contains forbidden token: $Token"
-    }
-}
-
 function Assert-Contains {
     param(
         [string]$Content,
@@ -34,6 +22,18 @@ function Assert-Contains {
 
     if (-not $Content.Contains($Token)) {
         throw "$Label does not contain required token: $Token"
+    }
+}
+
+function Assert-NotContains {
+    param(
+        [string]$Content,
+        [string]$Token,
+        [string]$Label
+    )
+
+    if ($Content.Contains($Token)) {
+        throw "$Label contains forbidden token: $Token"
     }
 }
 
@@ -70,6 +70,7 @@ $RequiredBaselineTokens = @(
     "StatusCode",
     "ElapsedMilliseconds",
     "/api/v1/[sensitive-resource]",
+    "raw PayloadJson",
     "Information for successful responses below 400",
     "Warning for responses from 400 to 499",
     "Error for responses 500 or greater",
@@ -113,8 +114,7 @@ $RequiredTelemetryTokens = @(
     "LogWarning",
     "LogError",
     "/api/v1/[sensitive-resource]",
-    "sync-batches",
-    "PayloadJson"
+    "sync-batches"
 )
 
 foreach ($Token in $RequiredTelemetryTokens) {
