@@ -4,6 +4,7 @@ $RepoRoot = Split-Path -Parent $PSScriptRoot
 $DocPath = Join-Path $RepoRoot "docs/backend/P3_ZERO_TECHNICAL_DEBT_SYNC_PROCESSOR_BASELINE.md"
 $ProcessorPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncBatchProcessor.cs"
 $ServiceHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/ServiceEncounterSyncEventHandler.cs"
+$FormHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/FormResponseSyncEventHandler.cs"
 
 function Assert-FileExists {
     param([string]$Path)
@@ -28,11 +29,13 @@ function Assert-Contains {
 Assert-FileExists $DocPath
 Assert-FileExists $ProcessorPath
 Assert-FileExists $ServiceHandlerPath
+Assert-FileExists $FormHandlerPath
 
 $Doc = Get-Content $DocPath -Raw -Encoding UTF8
 $Processor = Get-Content $ProcessorPath -Raw -Encoding UTF8
 $ServiceHandler = Get-Content $ServiceHandlerPath -Raw -Encoding UTF8
-$ProcessorAndServiceHandler = $Processor + $ServiceHandler
+$FormHandler = Get-Content $FormHandlerPath -Raw -Encoding UTF8
+$ProcessorAndServiceHandler = $Processor + $ServiceHandler + $FormHandler
 
 $RequiredDocTokens = @(
     "P3 Zero Technical Debt Sync Processor Baseline",
