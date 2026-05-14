@@ -31,15 +31,15 @@ $Script = Get-Content $ScriptPath -Raw -Encoding UTF8
 $Doc = Get-Content $DocPath -Raw -Encoding UTF8
 
 $RequiredScriptTokens = @(
-    "function Invoke-DependencyReviewApiWithRetry",
-    "DEPENDENCY_REVIEW_MAX_ATTEMPTS",
-    "DEPENDENCY_REVIEW_INITIAL_DELAY_SECONDS",
-    "Start-Sleep -Seconds $DelaySeconds",
-    "GitHub Dependency Review API request failed after $MaxAttempts attempts.",
-    "Dependency Review REST API check found blocking vulnerabilities.",
-    "BlockingFindings.Count -gt 0",
-    "ConvertFrom-Json -ErrorAction Stop",
-    "Retrying Dependency Review API"
+    'function Invoke-DependencyReviewApiWithRetry',
+    'DEPENDENCY_REVIEW_MAX_ATTEMPTS',
+    'DEPENDENCY_REVIEW_INITIAL_DELAY_SECONDS',
+    'Start-Sleep -Seconds $DelaySeconds',
+    'GitHub Dependency Review API request failed after $MaxAttempts attempts.',
+    'Dependency Review REST API check found blocking vulnerabilities.',
+    'BlockingFindings.Count -gt 0',
+    'ConvertFrom-Json -ErrorAction Stop',
+    'Retrying Dependency Review API'
 )
 
 foreach ($Token in $RequiredScriptTokens) {
@@ -57,12 +57,12 @@ foreach ($Token in $ForbiddenScriptTokens) {
 }
 
 $RequiredDocTokens = @(
-    "Repository Security Dependency Review Retry Baseline",
-    "retry transient API failures",
-    "use exponential backoff between attempts",
-    "fail closed after all retry attempts fail",
-    "Retry hardening must never downgrade real vulnerability findings",
-    "Acceptance criteria"
+    'Repository Security Dependency Review Retry Baseline',
+    'retry transient API failures',
+    'use exponential backoff between attempts',
+    'fail closed after all retry attempts fail',
+    'Retry hardening must never downgrade real vulnerability findings',
+    'Acceptance criteria'
 )
 
 foreach ($Token in $RequiredDocTokens) {
