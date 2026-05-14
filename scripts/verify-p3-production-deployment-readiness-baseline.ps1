@@ -41,7 +41,7 @@ Assert-FileExists $WorkflowPath "verify workflow"
 
 $ProductionReadiness = Get-Content $ProductionReadinessPath -Raw -Encoding UTF8
 $SyncReadiness = Get-Content $SyncReadinessPath -Raw -Encoding UTF8
-$DeploymentBaseline = Get-Content $DeploymentBaselinePath -Raw -Encoding UTF8 -Encoding UTF8
+$DeploymentBaseline = Get-Content $DeploymentBaselinePath -Raw -Encoding UTF8
 $DatabaseDeploymentValidator = Get-Content $DatabaseDeploymentValidatorPath -Raw -Encoding UTF8
 $GovernanceValidator = Get-Content $GovernanceValidatorPath -Raw -Encoding UTF8
 $Workflow = Get-Content $WorkflowPath -Raw -Encoding UTF8
