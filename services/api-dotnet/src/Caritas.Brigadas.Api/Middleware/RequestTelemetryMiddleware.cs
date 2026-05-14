@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Caritas.Brigadas.Api.Extensions;
 
 namespace Caritas.Brigadas.Api.Middleware;
 
@@ -30,24 +31,80 @@ public sealed class RequestTelemetryMiddleware
         ArgumentNullException.ThrowIfNull(context);
 
         var stopwatch = Stopwatch.StartNew();
+        var httpMethod = context.Request.Method;
+        var sanitizedPath = SanitizePath(context.Request.Path);
+        Exception? capturedException = null;
 
         try
         {
             await _next(context);
         }
+        catch (Exception exception)
+        {
+            capturedException = exception;
+            throw;
+        }
         finally
         {
             stopwatch.Stop();
+
+            var elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
+            var statusCode = context.Response.StatusCode;
+            var correlationId = context.GetCorrelationId();
+
             using var scope = _logger.BeginScope(new Dictionary<string, object?>
             {
-                ["TraceId"] = context.TraceIdentifier,
-                ["StatusCode"] = context.Response.StatusCode,
-                ["ElapsedMilliseconds"] = stopwatch.ElapsedMilliseconds
+                ["CorrelationId"] = correlationId,
+                ["RequestId"] = context.TraceIdentifier,
+                ["HttpMethod"] = httpMethod,
+                ["EndpointRoute"] = sanitizedPath,
+                ["StatusCode"] = statusCode,
+                ["ElapsedMilliseconds"] = elapsedMilliseconds
             });
+
+            if (capturedException is not null)
+            {
+                _logger.LogError(
+                    capturedException,
+                    "HTTP request failed {HttpMethod} {EndpointRoute} with {StatusCode} in {ElapsedMilliseconds} ms.",
+                    httpMethod,
+                    sanitizedPath,
+                    statusCode,
+                    elapsedMilliseconds);
+
+                return;
+            }
+
+            if (statusCode >= StatusCodes.Status500InternalServerError)
+            {
+                _logger.LogError(
+                    "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
+                    statusCode,
+                    httpMethod,
+                    sanitizedPath,
+                    elapsedMilliseconds);
+
+                return;
+            }
+
+            if (statusCode >= StatusCodes.Status400BadRequest)
+            {
+                _logger.LogWarning(
+                    "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
+                    statusCode,
+                    httpMethod,
+                    sanitizedPath,
+                    elapsedMilliseconds);
+
+                return;
+            }
+
             _logger.LogInformation(
-                "HTTP request responded {StatusCode} in {ElapsedMilliseconds} ms.",
-                context.Response.StatusCode,
-                stopwatch.ElapsedMilliseconds);
+                "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
+                statusCode,
+                httpMethod,
+                sanitizedPath,
+                elapsedMilliseconds);
         }
     }
 
