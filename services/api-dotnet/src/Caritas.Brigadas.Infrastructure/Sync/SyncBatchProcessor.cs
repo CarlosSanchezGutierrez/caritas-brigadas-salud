@@ -1024,8 +1024,10 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 createdOffline: true,
                 deviceId: request.DeviceId ?? batch.DeviceId);
 
-            // Pending-batch encounter folio and visit-service keys are reserved only after successful ServiceEncounter construction.
-            if (!acceptedEncounterFoliosInBatch.Add(normalizedEncounterFolio))
+                        // Pending-batch encounter folio and visit-service keys are reserved only after successful ServiceEncounter construction and reserved atomically.
+            var encounterFolioReserved = acceptedEncounterFoliosInBatch.Add(normalizedEncounterFolio);
+
+            if (!encounterFolioReserved)
             {
                 syncEvent.MarkConflict(
                     processedAt,
@@ -1034,8 +1036,12 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 return;
             }
 
-            if (!acceptedEncounterVisitServiceKeysInBatch.Add(visitServiceKey))
+            var encounterVisitServiceKeyReserved = acceptedEncounterVisitServiceKeysInBatch.Add(visitServiceKey);
+
+            if (!encounterVisitServiceKeyReserved)
             {
+                acceptedEncounterFoliosInBatch.Remove(normalizedEncounterFolio);
+
                 syncEvent.MarkConflict(
                     processedAt,
                     "service_encounter_duplicate_visit_service_in_pending_batch");
@@ -1589,8 +1595,10 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                     submittedAt);
             }
 
-            // Pending-batch form response id and encounter-template keys are reserved only after successful FormResponse construction.
-            if (!acceptedFormResponseIdsInBatch.Add(formResponseId))
+                        // Pending-batch form response id and encounter-template keys are reserved only after successful FormResponse construction and reserved atomically.
+            var formResponseIdReserved = acceptedFormResponseIdsInBatch.Add(formResponseId);
+
+            if (!formResponseIdReserved)
             {
                 syncEvent.MarkConflict(
                     processedAt,
@@ -1599,8 +1607,12 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
                 return;
             }
 
-            if (!acceptedFormResponseEncounterTemplateKeysInBatch.Add(encounterTemplateKey))
+            var formResponseEncounterTemplateKeyReserved = acceptedFormResponseEncounterTemplateKeysInBatch.Add(encounterTemplateKey);
+
+            if (!formResponseEncounterTemplateKeyReserved)
             {
+                acceptedFormResponseIdsInBatch.Remove(formResponseId);
+
                 syncEvent.MarkConflict(
                     processedAt,
                     "form_response_duplicate_encounter_template_in_pending_batch");
