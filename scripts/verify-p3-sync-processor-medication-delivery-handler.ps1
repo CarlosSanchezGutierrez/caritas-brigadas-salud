@@ -5,6 +5,7 @@ $DocPath = Join-Path $RepoRoot "docs/backend/P3_SYNC_PROCESSOR_MEDICATION_DELIVE
 $RequestPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Contracts/MedicationDeliveries/CreateMedicationDeliveryRequest.cs"
 $ProcessorPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncBatchProcessor.cs"
 $OrderPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncProcessingOrder.cs"
+$MedicationHandlerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/MedicationDeliverySyncEventHandler.cs"
 
 function Assert-FileExists {
     param([string]$Path)
@@ -30,12 +31,14 @@ Assert-FileExists $DocPath
 Assert-FileExists $RequestPath
 Assert-FileExists $ProcessorPath
 Assert-FileExists $OrderPath
+Assert-FileExists $MedicationHandlerPath
 
 $Doc = Get-Content $DocPath -Raw -Encoding UTF8
 $Request = Get-Content $RequestPath -Raw -Encoding UTF8
 $Processor = Get-Content $ProcessorPath -Raw -Encoding UTF8
 $Order = Get-Content $OrderPath -Raw -Encoding UTF8
-$ProcessorAndOrder = $Processor + $Order
+$MedicationHandler = Get-Content $MedicationHandlerPath -Raw -Encoding UTF8
+$ProcessorAndOrder = $Processor + $Order + $MedicationHandler
 
 $RequiredDocTokens = @(
     "P3 Sync Processor Medication Delivery Handler Baseline",
@@ -106,7 +109,7 @@ foreach ($Token in $RequiredProcessorTokens) {
     Assert-Contains $ProcessorAndOrder $Token "SyncBatchProcessor medication delivery handler"
 }
 
-if ($Processor -match "delivery\.Id == medicationDeliveryId[\s\S]{0,120}delivery\.OrganizationId == organizationId") {
+if ($MedicationHandler -match "delivery\.Id == medicationDeliveryId[\s\S]{0,120}delivery\.OrganizationId == organizationId") {
     throw "MedicationDelivery duplicate id check must not be tenant-scoped because primary key uniqueness is global."
 }
 

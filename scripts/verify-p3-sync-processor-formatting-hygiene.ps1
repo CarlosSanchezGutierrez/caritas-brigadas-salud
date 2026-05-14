@@ -4,6 +4,17 @@ $RepoRoot = Split-Path -Parent $PSScriptRoot
 $DocPath = Join-Path $RepoRoot "docs/backend/P3_SYNC_PROCESSOR_FORMATTING_HYGIENE_BASELINE.md"
 $ProcessorPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/SyncBatchProcessor.cs"
 
+$HandlerPaths = @(
+    "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/PatientSyncEventHandler.cs",
+    "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/PatientVisitSyncEventHandler.cs",
+    "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/ServiceEncounterSyncEventHandler.cs",
+    "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/VitalSignsSyncEventHandler.cs",
+    "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/FormResponseSyncEventHandler.cs",
+    "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/ConsentDocumentSyncEventHandler.cs",
+    "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/MedicalReferralSyncEventHandler.cs",
+    "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Sync/MedicationDeliverySyncEventHandler.cs"
+)
+
 function Assert-FileExists {
     param([string]$Path)
 
@@ -29,6 +40,15 @@ Assert-FileExists $ProcessorPath
 
 $Doc = Get-Content $DocPath -Raw -Encoding UTF8
 $Processor = Get-Content $ProcessorPath -Raw -Encoding UTF8
+$Handlers = ""
+
+foreach ($RelativePath in $HandlerPaths) {
+    $Path = Join-Path $RepoRoot $RelativePath
+    Assert-FileExists $Path
+    $Handlers += Get-Content $Path -Raw -Encoding UTF8
+}
+
+$ProcessorAndHandlers = $Processor + $Handlers
 
 $RequiredDocTokens = @(
     "P3 Sync Processor Formatting Hygiene Baseline",
@@ -69,13 +89,28 @@ $RequiredProcessorTokens = @(
     "    private async Task HandleConsentDocumentEventAsync",
     "    private async Task HandleMedicalReferralEventAsync",
     "    private async Task HandleMedicationDeliveryEventAsync",
-    "SyncPayloadReader.TryReadObject",
     ".OrderBy(SyncProcessingOrder.GetOrder)",
     "var reservationState = new PendingBatchReservationState();"
 )
 
 foreach ($Token in $RequiredProcessorTokens) {
     Assert-Contains $Processor $Token "SyncBatchProcessor formatting hygiene"
+}
+
+$RequiredHandlerTokens = @(
+    "SyncPayloadReader.TryReadObject",
+    "PatientSyncEventHandler",
+    "PatientVisitSyncEventHandler",
+    "ServiceEncounterSyncEventHandler",
+    "VitalSignsSyncEventHandler",
+    "FormResponseSyncEventHandler",
+    "ConsentDocumentSyncEventHandler",
+    "MedicalReferralSyncEventHandler",
+    "MedicationDeliverySyncEventHandler"
+)
+
+foreach ($Token in $RequiredHandlerTokens) {
+    Assert-Contains $ProcessorAndHandlers $Token "P3 sync handler formatting hygiene"
 }
 
 Write-Host "P3 sync processor formatting hygiene verification passed." -ForegroundColor Green

@@ -59,3 +59,10 @@ P3-22D is complete when:
 ## 5. P3-22E pending event dispatch extraction note
 
 P3-22E extracts per-event dispatch from ProcessAsync into ProcessPendingEventAsync while preserving existing handler behavior.
+---
+
+## P3-22M handler extraction note
+
+After P3-22M, SyncPayloadReader.TryReadObject is expected to live in extracted sync event handlers, not directly in SyncBatchProcessor.
+
+The formatting hygiene gate must still validate SyncBatchProcessor formatting, but payload reader usage must be validated across extracted handlers.

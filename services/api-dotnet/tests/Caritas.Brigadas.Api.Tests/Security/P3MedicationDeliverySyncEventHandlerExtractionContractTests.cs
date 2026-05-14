@@ -2,29 +2,25 @@ using Xunit;
 
 namespace Caritas.Brigadas.Api.Tests.Security;
 
-public sealed class P3SyncProcessorMedicationDeliveryHandlerContractTests
+public sealed class P3MedicationDeliverySyncEventHandlerExtractionContractTests
 {
     [Fact]
-    public void SyncBatchProcessor_HandlesMedicationDeliveryCreateOnly()
+    public void MedicationDeliverySyncEventHandler_OwnsMedicationDeliveryCreateBehavior()
     {
-        var source =
-            File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs")) +
-            File.ReadAllText(GetInfrastructurePath("Sync", "SyncProcessingOrder.cs")) +
-            File.ReadAllText(GetInfrastructurePath("Sync", "MedicationDeliverySyncEventHandler.cs"));
+        var source = File.ReadAllText(GetInfrastructurePath("Sync", "MedicationDeliverySyncEventHandler.cs"));
 
         var requiredTokens = new[]
         {
-            "HandleMedicationDeliveryEventAsync",
-            "MedicationDeliverySyncEventHandler",
-            "syncEvent.EntityType == SyncEntityType.MedicationDelivery",
-            "syncEvent.Operation != SyncOperation.Create",
-            "medication_delivery_operation_not_implemented",
+            "internal sealed class MedicationDeliverySyncEventHandler",
+            "public async Task HandleAsync",
+            "SyncPayloadReader.TryReadObject",
             "out CreateMedicationDeliveryRequest? request",
             "new MedicationDelivery(",
             "medicationDelivery.MarkDelivered(",
             "_dbContext.Set<MedicationDelivery>().Add(medicationDelivery)",
             "syncEvent.Accept(",
             "medicationDelivery.Id",
+            "medication_delivery_operation_not_implemented",
             "medication_delivery_encounter_not_found",
             "medication_delivery_brigade_mismatch",
             "medication_delivery_patient_not_found",
@@ -37,16 +33,14 @@ public sealed class P3SyncProcessorMedicationDeliveryHandlerContractTests
             "Medication delivery id duplicate checks include globally duplicated ids because primary key uniqueness is not tenant-scoped",
             "Non-delivered medication receipt metadata is preserved through constructor fields instead of silently dropped",
             "request.MarkAsDelivered ? null : request.DeliveredByUserId",
-            "request.MarkAsDelivered ? null : request.ReceivedByName",
-            "return 7;",
-            "return 8;"
+            "request.MarkAsDelivered ? null : request.ReceivedByName"
         };
 
-        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor medication delivery handler");
+        AssertRequiredTokens(source, requiredTokens, "MedicationDeliverySyncEventHandler");
     }
 
     [Fact]
-    public void SyncBatchProcessor_DoesNotContainDirectMedicationDeliveryLogicAfterExtraction()
+    public void SyncBatchProcessor_DelegatesMedicationDeliveryCreateToMedicationDeliverySyncEventHandler()
     {
         var source = File.ReadAllText(GetInfrastructurePath("Sync", "SyncBatchProcessor.cs"));
 
@@ -58,7 +52,7 @@ public sealed class P3SyncProcessorMedicationDeliveryHandlerContractTests
             "await _medicationDeliverySyncEventHandler.HandleAsync("
         };
 
-        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor medication delivery wrapper");
+        AssertRequiredTokens(source, requiredTokens, "SyncBatchProcessor medication delivery handler extraction");
 
         var forbiddenTokens = new[]
         {
@@ -85,24 +79,21 @@ public sealed class P3SyncProcessorMedicationDeliveryHandlerContractTests
     }
 
     [Fact]
-    public void MedicationDeliveryHandlerBaseline_DefinesMedicationDeliveryOnlyScope()
+    public void MedicationDeliveryHandlerExtractionBaseline_DefinesFinalHandlerExtraction()
     {
-        var source = File.ReadAllText(GetDocPath("P3_SYNC_PROCESSOR_MEDICATION_DELIVERY_HANDLER_BASELINE.md"));
+        var source = File.ReadAllText(GetDocPath("P3_MEDICATION_DELIVERY_SYNC_EVENT_HANDLER_EXTRACTION_BASELINE.md"));
 
         var requiredTokens = new[]
         {
-            "P3 Sync Processor Medication Delivery Handler Baseline",
-            "EntityType: medication_delivery",
-            "Operation: create",
-            "parse PayloadJson as CreateMedicationDeliveryRequest",
-            "derive PatientId from ServiceEncounter.PatientId, not from payload trust",
-            "reject SignatureId until the document_signature handler exists",
-            "support optional delivered transition only when MarkAsDelivered is true and DeliveredByUserId is provided",
-            "reserve pending-batch medication delivery id only after successful MedicationDelivery construction and optional delivered transition",
+            "P3 Medication Delivery Sync Event Handler Extraction Baseline",
+            "MedicationDeliverySyncEventHandler must own medication_delivery/create payload parsing",
+            "SyncBatchProcessor must not directly construct MedicationDelivery",
+            "SyncBatchProcessor must not directly parse CreateMedicationDeliveryRequest",
+            "Traceability requirement",
             "Acceptance criteria"
         };
 
-        AssertRequiredTokens(source, requiredTokens, "P3 sync processor medication delivery handler baseline");
+        AssertRequiredTokens(source, requiredTokens, "P3 medication delivery sync event handler extraction baseline");
     }
 
     private static void AssertRequiredTokens(

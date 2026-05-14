@@ -129,3 +129,8 @@ P3-22K continues real domain handler extraction by moving consent_document/creat
 ## 17. P3-22L medical referral sync event handler extraction note
 
 P3-22L continues real domain handler extraction by moving medical_referral/create behavior into MedicalReferralSyncEventHandler.
+---
+
+## 18. P3-22M medication delivery sync event handler extraction note
+
+P3-22M completes primary domain handler extraction by moving medication_delivery/create behavior into MedicationDeliverySyncEventHandler.

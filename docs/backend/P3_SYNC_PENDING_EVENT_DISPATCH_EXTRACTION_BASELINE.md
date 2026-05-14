@@ -112,3 +112,8 @@ P3-22K extracts consent_document/create behavior into ConsentDocumentSyncEventHa
 ## 12. P3-22L medical referral sync event handler extraction note
 
 P3-22L extracts medical_referral/create behavior into MedicalReferralSyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
+---
+
+## 13. P3-22M medication delivery sync event handler extraction note
+
+P3-22M extracts medication_delivery/create behavior into MedicationDeliverySyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
