@@ -104,3 +104,8 @@ P3-17 is complete when:
 - SyncBatchProcessor processes service_encounter before form_response;
 - contract tests protect the form_response-only scope;
 - repository governance and database deployment gates remain green.
+---
+
+## 7. P3-21 integration hardening note
+
+P3-21 requires FormResponse pending-batch id and encounter-template key reservations to be atomic with rollback when the second reservation fails.

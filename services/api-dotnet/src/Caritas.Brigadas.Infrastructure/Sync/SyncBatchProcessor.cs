@@ -327,7 +327,8 @@ public sealed class SyncBatchProcessor : ISyncBatchProcessor
 
         return 8;
     }
-private async Task HandlePatientEventAsync(
+
+    private async Task HandlePatientEventAsync(
         Guid organizationId,
         SyncEvent syncEvent,
         DateTimeOffset processedAt,
@@ -1055,6 +1056,7 @@ private async Task HandlePatientEventAsync(
                 exception.Message);
         }
     }
+
     private async Task HandleVitalSignsEventAsync(
         Guid organizationId,
         SyncBatch batch,

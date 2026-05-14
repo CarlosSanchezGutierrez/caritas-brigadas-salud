@@ -138,3 +138,8 @@ P3-19 supersedes the skeleton for medical_referral create only. After P3-19, Syn
 ## 13. P3-20 medication delivery handler note
 
 P3-20 supersedes the skeleton for medication_delivery create only. After P3-20, SyncBatchProcessor may accept SyncEntityType.MedicationDelivery with SyncOperation.Create and may create MedicationDelivery records. Standalone document signatures, inventory decrement, medication cancellation, and medication update remain conflict-staged until their handlers are implemented.
+---
+
+## 14. P3-21 integration hardening note
+
+P3-21 hardens cross-handler sync processor behavior after patient, visit, service encounter, vital signs, form response, consent document, medical referral, and medication delivery create handlers. New handlers should not be added until P3-21 gates remain green.
