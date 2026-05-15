@@ -253,3 +253,10 @@ Allowed telemetry:
 ## 12. P3-30C emergency contact and insurance fields
 
 P3-30C defines the emergency contact, social security, and insurance fields that complete the patient details contract before OpenAPI/frontend contract freeze.
+---
+
+## 13. P3-30D OpenAPI/frontend contract freeze
+
+P3-30D freezes the frontend API contract for consent and signature capture after patient details contracts are complete.
+
+After P3-30D, frontend consent/signature scaffolding is allowed in mock API mode.
