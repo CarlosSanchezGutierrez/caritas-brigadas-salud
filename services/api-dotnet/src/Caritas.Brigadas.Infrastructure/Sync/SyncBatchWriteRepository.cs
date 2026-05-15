@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using Caritas.Brigadas.Application.Sync;
 using Caritas.Brigadas.Contracts.Sync;
@@ -11,6 +13,7 @@ namespace Caritas.Brigadas.Infrastructure.Sync;
 public sealed class SyncBatchWriteRepository : ISyncBatchWriteRepository
 {
     private const int MaxClientInstanceIdLength = 150;
+    private const int MaxIdempotencyKeyLength = 250;
 
     private readonly CaritasDbContext _dbContext;
 
@@ -309,10 +312,30 @@ var organizationExists = await _dbContext.Organizations
     {
         if (deviceId.HasValue)
         {
-            return $"org:{organizationId:N}:device:{deviceId.Value:N}:event:{localEventId}";
+            var deviceKey = $"org:{organizationId:N}:device:{deviceId.Value:N}:event:{localEventId}";
+            return EnsureIdempotencyKeyLength(deviceKey);
         }
 
-        return $"org:{organizationId:N}:user:{userId:N}:brigade:{brigadeId:N}:client:{clientInstanceId}:event:{localEventId}";
+        var rawKey = $"org:{organizationId:N}:user:{userId:N}:brigade:{brigadeId:N}:client:{clientInstanceId}:event:{localEventId}";
+        return BuildHashedIdempotencyKey(organizationId, rawKey);
+    }
+
+    private static string BuildHashedIdempotencyKey(Guid organizationId, string rawKey)
+    {
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(rawKey))).ToLowerInvariant();
+        var idempotencyKey = $"org:{organizationId:N}:sync:{hash}";
+
+        return EnsureIdempotencyKeyLength(idempotencyKey);
+    }
+
+    private static string EnsureIdempotencyKeyLength(string idempotencyKey)
+    {
+        if (idempotencyKey.Length > MaxIdempotencyKeyLength)
+        {
+            throw new DomainException($"Idempotency key cannot exceed {MaxIdempotencyKeyLength} characters.");
+        }
+
+        return idempotencyKey;
     }
 
     private static string? NormalizeClientInstanceId(string? clientInstanceId)
