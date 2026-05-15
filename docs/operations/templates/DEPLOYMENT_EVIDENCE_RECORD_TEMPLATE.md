@@ -147,3 +147,15 @@ Required values:
 - ROLLBACK.
 
 Decision rationale: PENDING
+---
+
+## 11. Incident response escalation
+
+| Field | Value |
+|---|---|
+| Incident owner | PENDING |
+| Escalation contact | PENDING |
+| Incident response record required | PENDING |
+| Incident response record link | PENDING |
+| Rollback escalation owner | PENDING |
+| Privacy/legal escalation owner | PENDING |
