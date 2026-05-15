@@ -31,7 +31,7 @@ public sealed class RequestTelemetryMiddleware
         ArgumentNullException.ThrowIfNull(context);
 
         var stopwatch = Stopwatch.StartNew();
-        var httpMethod = SanitizeForLog(context.Request.Method);
+        var httpMethod = NormalizeHttpMethodForLog(context.Request.Method);
         var sanitizedPath = SanitizePath(context.Request.Path);
         var correlationId = context.GetCorrelationId();
 
@@ -108,6 +108,27 @@ public sealed class RequestTelemetryMiddleware
         }
     }
 
+    private static string NormalizeHttpMethodForLog(string? method)
+    {
+        if (string.IsNullOrWhiteSpace(method))
+        {
+            return "UNKNOWN";
+        }
+
+        var normalizedMethod = method.Trim().ToUpperInvariant();
+
+        return normalizedMethod is "GET"
+            or "POST"
+            or "PUT"
+            or "PATCH"
+            or "DELETE"
+            or "HEAD"
+            or "OPTIONS"
+            or "TRACE"
+            or "CONNECT"
+            ? normalizedMethod
+            : "UNKNOWN";
+    }
     private static string SanitizeForLog(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))

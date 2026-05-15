@@ -55,8 +55,10 @@ $DbContext = Get-Content $DbContextPath -Raw -Encoding UTF8
 $AuditLogConfiguration = Get-Content $AuditLogConfigurationPath -Raw -Encoding UTF8
 $Governance = Get-Content $GovernancePath -Raw -Encoding UTF8
 
-Assert-Contains $RequestTelemetry "SanitizeForLog(context.Request.Method)" "RequestTelemetryMiddleware"
+Assert-Contains $RequestTelemetry "NormalizeHttpMethodForLog(context.Request.Method)" "RequestTelemetryMiddleware"
+Assert-Contains $RequestTelemetry "private static string NormalizeHttpMethodForLog(string? method)" "RequestTelemetryMiddleware"
 Assert-Contains $RequestTelemetry "private static string SanitizeForLog(string? value)" "RequestTelemetryMiddleware"
+Assert-Contains $RequestTelemetry "normalizedMethod is `"GET`"" "RequestTelemetryMiddleware"
 Assert-Contains $RequestTelemetry "char.IsControl" "RequestTelemetryMiddleware"
 Assert-Contains $RequestTelemetry "return SanitizeForLog(rawPath);" "RequestTelemetryMiddleware"
 Assert-DoesNotContain $RequestTelemetry "var httpMethod = context.Request.Method;" "RequestTelemetryMiddleware"
@@ -68,10 +70,22 @@ Assert-DoesNotContain $HttpAuditLogger "CorrelationId = httpContext?.TraceIdenti
 Assert-Contains $DbContext "using Caritas.Brigadas.Infrastructure.Persistence.Configurations;" "CaritasDbContext"
 Assert-Contains $DbContext "modelBuilder.ApplyConfiguration(new AuditLogConfiguration());" "CaritasDbContext"
 
-Assert-Contains $AuditLogConfiguration "HasMaxLength(100)" "AuditLogConfiguration"
+Assert-Contains $AuditLogConfiguration "HasMaxLength(128)" "AuditLogConfiguration"
 Assert-Contains $AuditLogConfiguration "auditLog.OrganizationId" "AuditLogConfiguration"
 Assert-Contains $AuditLogConfiguration "auditLog.OccurredAtUtc" "AuditLogConfiguration"
 
 Assert-Contains $Governance "verify-p3-pre-main-security-review-findings.ps1" "repository governance baseline"
 
 Write-Host "P3 pre-main security review findings verification passed." -ForegroundColor Green
+$MigrationRoot = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Persistence/Migrations"
+
+$OriginalAuditMigration = Get-ChildItem -Path $MigrationRoot -Filter "20260515055019_ApplyAuditLogConfiguration.cs" -ErrorAction SilentlyContinue
+$WidenAuditMigration = Get-ChildItem -Path $MigrationRoot -Filter "*WidenAuditLogCorrelationIdTo128.cs" -ErrorAction SilentlyContinue
+
+if (-not $OriginalAuditMigration) {
+    throw "Original ApplyAuditLogConfiguration migration must be preserved."
+}
+
+if (-not $WidenAuditMigration) {
+    throw "WidenAuditLogCorrelationIdTo128 migration is required."
+}
