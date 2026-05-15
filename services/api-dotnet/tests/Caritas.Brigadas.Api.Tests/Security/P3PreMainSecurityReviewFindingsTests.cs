@@ -1,0 +1,105 @@
+using Xunit;
+
+namespace Caritas.Brigadas.Api.Tests.Security;
+
+public sealed class P3PreMainSecurityReviewFindingsTests
+{
+    [Fact]
+    public void RequestTelemetryMiddleware_SanitizesRequestControlledLogValues()
+    {
+        var source = File.ReadAllText(GetApiSourcePath("Middleware", "RequestTelemetryMiddleware.cs"));
+
+        Assert.Contains("SanitizeForLog(context.Request.Method)", source, StringComparison.Ordinal);
+        Assert.Contains("private static string SanitizeForLog(string? value)", source, StringComparison.Ordinal);
+        Assert.Contains("char.IsControl", source, StringComparison.Ordinal);
+        Assert.Contains("return SanitizeForLog(rawPath);", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("var httpMethod = context.Request.Method;", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void HttpAuditLogger_UsesSharedCorrelationId()
+    {
+        var source = File.ReadAllText(GetApiSourcePath("Audit", "HttpAuditLogger.cs"));
+
+        Assert.Contains("using Caritas.Brigadas.Api.Extensions;", source, StringComparison.Ordinal);
+        Assert.Contains("CorrelationId = httpContext?.GetCorrelationId(),", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("CorrelationId = httpContext?.TraceIdentifier,", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CaritasDbContext_AppliesAuditLogConfiguration()
+    {
+        var source = File.ReadAllText(GetInfrastructureSourcePath("Persistence", "CaritasDbContext.cs"));
+
+        Assert.Contains(
+            "using Caritas.Brigadas.Infrastructure.Persistence.Configurations;",
+            source,
+            StringComparison.Ordinal);
+
+        Assert.Contains(
+            "modelBuilder.ApplyConfiguration(new AuditLogConfiguration());",
+            source,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SecurityReviewVerifier_IsWiredIntoGovernance()
+    {
+        var verifier = File.ReadAllText(GetScriptPath("verify-p3-pre-main-security-review-findings.ps1"));
+        var governance = File.ReadAllText(GetScriptPath("validate-repo-governance-baseline.ps1"));
+
+        Assert.Contains("P3 pre-main security review findings verification passed.", verifier, StringComparison.Ordinal);
+        Assert.Contains("verify-p3-pre-main-security-review-findings.ps1", governance, StringComparison.Ordinal);
+    }
+
+    private static string GetApiSourcePath(params string[] parts)
+    {
+        return Path.Combine(
+            new[]
+            {
+                FindRepositoryRoot(),
+                "services",
+                "api-dotnet",
+                "src",
+                "Caritas.Brigadas.Api"
+            }.Concat(parts).ToArray());
+    }
+
+    private static string GetInfrastructureSourcePath(params string[] parts)
+    {
+        return Path.Combine(
+            new[]
+            {
+                FindRepositoryRoot(),
+                "services",
+                "api-dotnet",
+                "src",
+                "Caritas.Brigadas.Infrastructure"
+            }.Concat(parts).ToArray());
+    }
+
+    private static string GetScriptPath(string fileName)
+    {
+        return Path.Combine(
+            FindRepositoryRoot(),
+            "scripts",
+            fileName);
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (directory is not null)
+        {
+            if (Directory.Exists(Path.Combine(directory.FullName, ".git")))
+            {
+                return directory.FullName;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Repository root with .git directory was not found.");
+    }
+}

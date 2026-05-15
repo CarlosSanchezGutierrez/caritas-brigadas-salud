@@ -4,6 +4,7 @@ using Caritas.Brigadas.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CaritasDbContext))]
-    partial class CaritasDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260515055019_ApplyAuditLogConfiguration")]
+    partial class ApplyAuditLogConfiguration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -31,7 +31,7 @@ public sealed class RequestTelemetryMiddleware
         ArgumentNullException.ThrowIfNull(context);
 
         var stopwatch = Stopwatch.StartNew();
-        var httpMethod = context.Request.Method;
+        var httpMethod = SanitizeForLog(context.Request.Method);
         var sanitizedPath = SanitizePath(context.Request.Path);
         var correlationId = context.GetCorrelationId();
 
@@ -108,6 +108,19 @@ public sealed class RequestTelemetryMiddleware
         }
     }
 
+    private static string SanitizeForLog(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "UNKNOWN";
+        }
+
+        var sanitized = string.Concat(value.Where(static character => !char.IsControl(character)));
+
+        return string.IsNullOrWhiteSpace(sanitized)
+            ? "UNKNOWN"
+            : sanitized;
+    }
     private static string SanitizePath(PathString path)
     {
         var rawPath = path.Value;
@@ -125,6 +138,6 @@ public sealed class RequestTelemetryMiddleware
             }
         }
 
-        return rawPath;
+        return SanitizeForLog(rawPath);
     }
 }
