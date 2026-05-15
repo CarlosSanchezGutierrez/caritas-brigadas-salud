@@ -203,3 +203,10 @@ Production go-live remains blocked until the SQL Server smoke script is executed
 P3-26H defines the mandatory deployment evidence record for production releases.
 
 Production go-live remains blocked until every production deployment captures release identity, pre-deployment gates, database evidence, smoke evidence, security evidence, observability evidence, rollback evidence, approval evidence, and an explicit go/no-go decision.
+---
+
+## 17. P3-26I operational incident response runbook
+
+P3-26I defines the mandatory operational incident response runbook for production incidents.
+
+Production go-live remains blocked until incidents can be classified by severity, assigned to owners, triaged, mitigated, rolled back when needed, communicated, and reviewed through postmortem evidence.
