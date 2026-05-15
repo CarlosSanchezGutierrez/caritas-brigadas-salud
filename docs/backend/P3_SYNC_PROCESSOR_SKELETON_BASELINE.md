@@ -1,0 +1,145 @@
+# P3 Sync Processor Skeleton Baseline
+
+Status: active  
+Scope: sync processor skeleton, safe processing transition, pending event validation, conflict staging, and no clinical domain writes  
+Target phase: P3-12  
+Depends on: P3 sync batch event intake, P3 sync event read model, P3 sync payload governance, P3 sync idempotency guardrails
+
+---
+
+## 1. Purpose
+
+P3-12 introduces the first sync processor skeleton.
+
+The processor exists to move received batches and pending events through safe status transitions without applying clinical domain writes yet.
+
+---
+
+## 2. Processor endpoint
+
+Required endpoint:
+
+POST /api/v1/organizations/{organizationId}/sync-batches/{syncBatchId}/process
+
+Rules:
+
+- endpoint must be tenant-scoped;
+- endpoint must require SyncBatchesWrite permission;
+- endpoint must call ISyncBatchProcessor;
+- endpoint must not accept raw payload in the process request;
+- endpoint must not expose PayloadJson in the response.
+
+---
+
+## 3. Skeleton behavior
+
+The skeleton processor may:
+
+- load SyncBatch by OrganizationId and SyncBatchId;
+- reject missing batch;
+- reject failed batch processing;
+- return safely when the batch is already completed;
+- mark received batch as processing;
+- load pending SyncEvent rows;
+- mark pending events as processing;
+- validate EntityType allowlist;
+- validate Operation allowlist;
+- validate PayloadJson syntax;
+- reject invalid pending events;
+- mark valid pending events as conflict because domain handlers are not implemented yet;
+- complete the batch with counters.
+- processor must not complete against client-supplied event totals; intake must persist SyncBatch.EventsCount from server-parsed event count.
+
+The skeleton processor must not:
+
+- create Patient records;
+- create PatientVisit records;
+- create ServiceEncounter records;
+- create VitalSignsRecord records;
+- create FormResponse records;
+- create ConsentDocument records;
+- create MedicalReferral records;
+- create MedicationDelivery records;
+- accept events as applied clinical writes;
+- log raw PayloadJson;
+- send raw PayloadJson to analytics or AI.
+
+---
+
+## 4. Future processor handoff
+
+Future packages must replace the skeleton conflict behavior with entity-specific handlers.
+
+Required future handlers:
+
+- patient create/update/void;
+- patient_visit create/update/void;
+- service_encounter create/update/void;
+- vital_signs create/update/void;
+- form_response create/update/void;
+- consent_document create/sign/void;
+- medical_referral create/update/void;
+- medication_delivery create/update/void.
+
+---
+
+## 5. Acceptance criteria
+
+P3-12 is complete when:
+
+- ISyncBatchProcessor exists;
+- SyncBatchProcessor exists;
+- SyncBatchProcessor processes only tenant-scoped batches;
+- SyncBatchProcessor marks received batches as processing;
+- SyncBatchProcessor validates pending events;
+- SyncBatchProcessor rejects invalid events;
+- SyncBatchProcessor marks valid events as conflict while domain handlers are not implemented;
+- SyncBatchProcessor completes the batch with counters;
+- SyncBatchesController exposes process endpoint;
+- processor response does not expose PayloadJson;
+- repository governance and database deployment gates remain green.
+---
+
+## 6. P3-13 patient handler note
+
+P3-13 supersedes the skeleton for patient create only. After P3-13, SyncBatchProcessor may accept SyncEntityType.Patient with SyncOperation.Create and may create Patient records. All other entity types remain conflict-staged until their handlers are implemented.
+---
+
+## 7. P3-14 patient visit handler note
+
+P3-14 supersedes the skeleton for patient_visit create only. After P3-14, SyncBatchProcessor may accept SyncEntityType.PatientVisit with SyncOperation.Create and may create PatientVisit records. Service encounters, vital signs, forms, documents, referrals, and medication deliveries remain conflict-staged until their handlers are implemented.
+---
+
+## 8. P3-15 vital signs handler note
+
+P3-15 supersedes the skeleton for vital_signs create only. After P3-15, SyncBatchProcessor may accept SyncEntityType.VitalSigns with SyncOperation.Create and may create VitalSignsRecord records. Service encounters, forms, documents, referrals, and medication deliveries remain conflict-staged until their handlers are implemented.
+---
+
+## 9. P3-16 service encounter handler note
+
+P3-16 supersedes the skeleton for service_encounter create only. After P3-16, SyncBatchProcessor may accept SyncEntityType.ServiceEncounter with SyncOperation.Create and may create ServiceEncounter records. Forms, documents, referrals, and medication deliveries remain conflict-staged until their handlers are implemented.
+---
+
+## 10. P3-17 form response handler note
+
+P3-17 supersedes the skeleton for form_response create only. After P3-17, SyncBatchProcessor may accept SyncEntityType.FormResponse with SyncOperation.Create and may create FormResponse records. Consent documents, referrals, medication deliveries, and external pass records remain conflict-staged until their handlers are implemented.
+---
+
+## 11. P3-18 consent document handler note
+
+P3-18 supersedes the skeleton for consent_document create only. After P3-18, SyncBatchProcessor may accept SyncEntityType.ConsentDocument with SyncOperation.Create and may create ConsentDocument records. Standalone document signatures, referrals, medication deliveries, and external pass records remain conflict-staged until their handlers are implemented.
+---
+
+## 12. P3-19 medical referral handler note
+
+P3-19 supersedes the skeleton for medical_referral create only. After P3-19, SyncBatchProcessor may accept SyncEntityType.MedicalReferral with SyncOperation.Create and may create MedicalReferral records. Medication deliveries, standalone document signatures, referral lifecycle transitions, and external outcome updates remain conflict-staged until their handlers are implemented.
+---
+
+## 13. P3-20 medication delivery handler note
+
+P3-20 supersedes the skeleton for medication_delivery create only. After P3-20, SyncBatchProcessor may accept SyncEntityType.MedicationDelivery with SyncOperation.Create and may create MedicationDelivery records. Standalone document signatures, inventory decrement, medication cancellation, and medication update remain conflict-staged until their handlers are implemented.
+---
+
+## 14. P3-21 integration hardening note
+
+P3-21 hardens cross-handler sync processor behavior after patient, visit, service encounter, vital signs, form response, consent document, medical referral, and medication delivery create handlers. New handlers should not be added until P3-21 gates remain green.

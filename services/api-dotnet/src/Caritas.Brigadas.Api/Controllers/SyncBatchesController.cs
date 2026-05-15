@@ -102,6 +102,52 @@ public sealed class SyncBatchesController : ControllerBase
             HttpContext.GetCorrelationId()));
     }
 
+
+    /// <summary>
+    /// Lista eventos de sincronización de un lote sin exponer PayloadJson.
+    /// </summary>
+    [HttpGet("api/v1/organizations/{organizationId:guid}/sync-batches/{syncBatchId:guid}/events")]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<SyncEventSummaryDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.SyncBatchesRead)]
+    public async Task<IActionResult> ListEventsByBatchAsync(
+        Guid organizationId,
+        Guid syncBatchId,
+        [FromQuery] PaginationRequest pagination,
+        CancellationToken cancellationToken)
+    {
+        var repository = _serviceProvider.GetService<ISyncBatchReadRepository>();
+
+        if (repository is null)
+        {
+            return DatabaseNotConfigured();
+        }
+
+        var batch = await repository.GetByIdAsync(
+            syncBatchId,
+            cancellationToken);
+
+        if (batch is null || batch.OrganizationId != organizationId)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.NotFound,
+                "Sync batch was not found.",
+                HttpContext.GetCorrelationId());
+
+            return NotFound(error);
+        }
+
+        var events = await repository.ListEventsByBatchAsync(
+            organizationId,
+            syncBatchId,
+            pagination,
+            cancellationToken);
+
+        return Ok(ApiResponse<PaginatedResponse<SyncEventSummaryDto>>.Ok(
+            events,
+            HttpContext.GetCorrelationId()));
+    }
     /// <summary>
     /// Recibe un lote de sincronización offline.
     /// </summary>
@@ -168,6 +214,69 @@ public sealed class SyncBatchesController : ControllerBase
         }
     }
 
+
+    /// <summary>
+    /// Procesa de forma segura un lote de sincronización offline.
+    /// </summary>
+    [HttpPost("api/v1/organizations/{organizationId:guid}/sync-batches/{syncBatchId:guid}/process")]
+    [ProducesResponseType(typeof(ApiResponse<ProcessSyncBatchResultDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    [Authorize(Policy = PermissionCodes.SyncBatchesWrite)]
+    public async Task<IActionResult> ProcessAsync(
+        Guid organizationId,
+        Guid syncBatchId,
+        CancellationToken cancellationToken)
+    {
+        var processor = _serviceProvider.GetService<ISyncBatchProcessor>();
+
+        if (processor is null)
+        {
+            return DatabaseNotConfigured();
+        }
+
+        try
+        {
+            var result = await processor.ProcessAsync(
+                organizationId,
+                syncBatchId,
+                cancellationToken);
+
+            return Ok(ApiResponse<ProcessSyncBatchResultDto>.Ok(
+                result,
+                HttpContext.GetCorrelationId(),
+                "Sync batch processed successfully."));
+        }
+        catch (KeyNotFoundException exception)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.NotFound,
+                exception.Message,
+                HttpContext.GetCorrelationId());
+
+            return NotFound(error);
+        }
+        catch (InvalidOperationException exception)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.Conflict,
+                exception.Message,
+                HttpContext.GetCorrelationId());
+
+            return Conflict(error);
+        }
+        catch (DomainException exception)
+        {
+            var error = ApiErrorResponse.Create(
+                ApiErrorCodes.ValidationError,
+                exception.Message,
+                HttpContext.GetCorrelationId());
+
+            return BadRequest(error);
+        }
+    }
     private ObjectResult DatabaseNotConfigured()
     {
         var error = ApiErrorResponse.Create(

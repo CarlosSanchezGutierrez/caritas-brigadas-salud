@@ -150,10 +150,12 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Action")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("CorrelationId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("datetimeoffset");
@@ -166,10 +168,12 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("EntityName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("IpAddress")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTimeOffset>("OccurredAtUtc")
                         .HasColumnType("datetimeoffset");
@@ -178,14 +182,23 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("UserAgent")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.ToTable("AuditLogs");
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("EntityName", "EntityId");
+
+                    b.HasIndex("OrganizationId", "OccurredAtUtc");
+
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("Caritas.Brigadas.Domain.Entities.Brigade", b =>
@@ -2020,6 +2033,11 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
                     b.Property<string>("ErrorMessage")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
                     b.Property<string>("LocalEventId")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -2053,7 +2071,8 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrganizationId");
+                    b.HasIndex("OrganizationId", "IdempotencyKey")
+                        .IsUnique();
 
                     b.HasIndex("SyncBatchId", "LocalEventId")
                         .IsUnique();
@@ -2165,6 +2184,115 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
                     b.HasIndex("OrganizationId", "UserId", "RoleId");
 
                     b.ToTable("user_roles", "core");
+                });
+
+            modelBuilder.Entity("Caritas.Brigadas.Domain.Entities.VitalSignsRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("CreatedOffline")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("DeletedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("DeviceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("DiastolicBloodPressureMmHg")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("EncounterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("GlucoseMgDl")
+                        .HasColumnType("decimal(7,2)");
+
+                    b.Property<int?>("HeartRateBpm")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("HeightCm")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("MeasuredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("MeasuredByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("OxygenSaturationPercent")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("RespiratoryRatePerMinute")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Source")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SyncStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("SystolicBloodPressureMmHg")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("TemperatureCelsius")
+                        .HasColumnType("decimal(4,1)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("VisitId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("WeightKg")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EncounterId");
+
+                    b.HasIndex("IsDeleted");
+
+                    b.HasIndex("MeasuredByUserId");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("VisitId");
+
+                    b.HasIndex("OrganizationId", "SyncStatus");
+
+                    b.HasIndex("OrganizationId", "PatientId", "MeasuredAt");
+
+                    b.ToTable("vital_signs", "clinical");
                 });
 
             modelBuilder.Entity("Caritas.Brigadas.Domain.Entities.Brigade", b =>
@@ -2521,6 +2649,37 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
                     b.HasOne("Caritas.Brigadas.Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Caritas.Brigadas.Domain.Entities.VitalSignsRecord", b =>
+                {
+                    b.HasOne("Caritas.Brigadas.Domain.Entities.ServiceEncounter", null)
+                        .WithMany()
+                        .HasForeignKey("EncounterId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Caritas.Brigadas.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("MeasuredByUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Caritas.Brigadas.Domain.Entities.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Caritas.Brigadas.Domain.Entities.Patient", null)
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Caritas.Brigadas.Domain.Entities.PatientVisit", null)
+                        .WithMany()
+                        .HasForeignKey("VisitId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });

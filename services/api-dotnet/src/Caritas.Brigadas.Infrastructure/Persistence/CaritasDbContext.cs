@@ -1,5 +1,6 @@
 using Caritas.Brigadas.Domain.Common;
 using Caritas.Brigadas.Domain.Entities;
+using Caritas.Brigadas.Infrastructure.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -36,6 +37,7 @@ public sealed class CaritasDbContext : DbContext
     public DbSet<ServiceEncounter> ServiceEncounters => Set<ServiceEncounter>();
     public DbSet<MedicalReferral> MedicalReferrals => Set<MedicalReferral>();
     public DbSet<MedicationDelivery> MedicationDeliveries => Set<MedicationDelivery>();
+    public DbSet<VitalSignsRecord> VitalSignsRecords => Set<VitalSignsRecord>();
 
     public DbSet<FormTemplate> FormTemplates => Set<FormTemplate>();
     public DbSet<FormResponse> FormResponses => Set<FormResponse>();
@@ -54,6 +56,8 @@ public sealed class CaritasDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.ApplyConfiguration(new AuditLogConfiguration());
 
         ConfigureCore(modelBuilder);
         ConfigureBrigades(modelBuilder);
@@ -416,6 +420,53 @@ public sealed class CaritasDbContext : DbContext
                 .HasForeignKey(x => x.EncounterId)
                 .OnDelete(DeleteBehavior.NoAction);
         });
+
+        modelBuilder.Entity<VitalSignsRecord>(entity =>
+        {
+            ConfigureAuditable(entity);
+            entity.ToTable("vital_signs", "clinical");
+            entity.Property(x => x.SystolicBloodPressureMmHg);
+            entity.Property(x => x.DiastolicBloodPressureMmHg);
+            entity.Property(x => x.HeartRateBpm);
+            entity.Property(x => x.RespiratoryRatePerMinute);
+            entity.Property(x => x.TemperatureCelsius).HasColumnType("decimal(4,1)");
+            entity.Property(x => x.OxygenSaturationPercent);
+            entity.Property(x => x.WeightKg).HasColumnType("decimal(6,2)");
+            entity.Property(x => x.HeightCm).HasColumnType("decimal(5,2)");
+            entity.Property(x => x.GlucoseMgDl).HasColumnType("decimal(7,2)");
+            entity.Property(x => x.Source).HasMaxLength(100);
+            entity.Property(x => x.Notes).HasMaxLength(1000);
+            entity.Property(x => x.SyncStatus).HasConversion<string>().HasMaxLength(50).IsRequired();
+            entity.HasIndex(x => new { x.OrganizationId, x.PatientId, x.MeasuredAt });
+            entity.HasIndex(x => x.VisitId);
+            entity.HasIndex(x => x.EncounterId);
+            entity.HasIndex(x => new { x.OrganizationId, x.SyncStatus });
+
+            entity.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<Patient>()
+                .WithMany()
+                .HasForeignKey(x => x.PatientId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<PatientVisit>()
+                .WithMany()
+                .HasForeignKey(x => x.VisitId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<ServiceEncounter>()
+                .WithMany()
+                .HasForeignKey(x => x.EncounterId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.MeasuredByUserId)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
     }
 
     private static void ConfigureFormsAndDocuments(ModelBuilder modelBuilder)
@@ -574,11 +625,13 @@ public sealed class CaritasDbContext : DbContext
             ConfigureEntity(entity);
             entity.ToTable("sync_events", "sync");
             entity.Property(x => x.LocalEventId).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(250).IsRequired();
             entity.Property(x => x.EntityType).HasMaxLength(100).IsRequired();
             entity.Property(x => x.Operation).HasMaxLength(50).IsRequired();
             entity.Property(x => x.PayloadJson).HasColumnType("nvarchar(max)").IsRequired();
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
             entity.HasIndex(x => new { x.SyncBatchId, x.LocalEventId }).IsUnique();
+            entity.HasIndex(x => new { x.OrganizationId, x.IdempotencyKey }).IsUnique();
 
             entity.HasOne<Organization>()
                 .WithMany()

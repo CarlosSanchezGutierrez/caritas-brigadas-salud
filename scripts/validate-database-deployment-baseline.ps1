@@ -79,3 +79,5 @@ Write-Host ""
 Write-Host "============================================================" -ForegroundColor Green
 Write-Host "DATABASE DEPLOYMENT BASELINE VALIDATION PASO CORRECTAMENTE" -ForegroundColor Green
 Write-Host "============================================================" -ForegroundColor Green
+
+& (Join-Path $RepoRoot "scripts\verify-p3-sync-idempotency-guardrails.ps1")

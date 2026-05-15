@@ -1,4 +1,4 @@
-﻿using Caritas.Brigadas.Api.Security;
+using Caritas.Brigadas.Api.Security;
 using Caritas.Brigadas.Application.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

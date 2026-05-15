@@ -1,4 +1,4 @@
-﻿using Caritas.Brigadas.Application.Audit;
+using Caritas.Brigadas.Application.Audit;
 using Caritas.Brigadas.Application.Brigades;
 using Caritas.Brigadas.Application.Communities;
 using Caritas.Brigadas.Application.ConsentDocuments;
@@ -107,6 +107,7 @@ public static class DependencyInjection
 
             services.AddScoped<ISyncBatchReadRepository, SyncBatchReadRepository>();
             services.AddScoped<ISyncBatchWriteRepository, SyncBatchWriteRepository>();
+            services.AddScoped<ISyncBatchProcessor, SyncBatchProcessor>();
 
             services.AddScoped<IAuditLogReadRepository, AuditLogReadRepository>();
             services.AddScoped<IAuditLogWriteRepository, AuditLogWriteRepository>();

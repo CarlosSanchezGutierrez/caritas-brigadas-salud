@@ -85,7 +85,7 @@ public sealed class EfDeleteBehaviorContractTests
     }
 
     [Fact]
-    public void EfModel_CurrentForeignKeysAreLimitedToReviewedP205ToP208Packages()
+    public void EfModel_CurrentForeignKeysAreLimitedToReviewedP205ToP208AndP305Packages()
     {
         var model = CreateModel();
 
@@ -121,6 +121,11 @@ public sealed class EfDeleteBehaviorContractTests
             "clinical.service_encounters(PatientId) -> clinical.patients(Id) DeleteBehavior=NoAction",
             "clinical.service_encounters(ServiceId) -> core.services(Id) DeleteBehavior=NoAction",
             "clinical.service_encounters(VisitId) -> clinical.patient_visits(Id) DeleteBehavior=NoAction",
+            "clinical.vital_signs(EncounterId) -> clinical.service_encounters(Id) DeleteBehavior=NoAction",
+            "clinical.vital_signs(MeasuredByUserId) -> core.users(Id) DeleteBehavior=NoAction",
+            "clinical.vital_signs(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",
+            "clinical.vital_signs(PatientId) -> clinical.patients(Id) DeleteBehavior=NoAction",
+            "clinical.vital_signs(VisitId) -> clinical.patient_visits(Id) DeleteBehavior=NoAction",
             "core.role_permissions(PermissionId) -> core.permissions(Id) DeleteBehavior=NoAction",
             "core.role_permissions(RoleId) -> core.roles(Id) DeleteBehavior=NoAction",
             "core.roles(OrganizationId) -> core.organizations(Id) DeleteBehavior=NoAction",

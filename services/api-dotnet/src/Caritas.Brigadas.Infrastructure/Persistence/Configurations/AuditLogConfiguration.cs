@@ -1,4 +1,4 @@
-﻿using Caritas.Brigadas.Domain.Entities;
+using Caritas.Brigadas.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -31,7 +31,7 @@ public sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
             .HasColumnType("nvarchar(max)");
 
         builder.Property(auditLog => auditLog.CorrelationId)
-            .HasMaxLength(100);
+            .HasMaxLength(128);
 
         builder.Property(auditLog => auditLog.IpAddress)
             .HasMaxLength(100);

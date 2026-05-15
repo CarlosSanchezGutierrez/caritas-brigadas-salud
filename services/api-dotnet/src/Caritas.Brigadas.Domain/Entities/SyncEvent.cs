@@ -1,10 +1,11 @@
-﻿using Caritas.Brigadas.Domain.Common;
+using Caritas.Brigadas.Domain.Common;
 
 namespace Caritas.Brigadas.Domain.Entities;
 
 public sealed class SyncEvent : Entity
 {
     private const int MaxLocalEventIdLength = 150;
+    private const int MaxIdempotencyKeyLength = 250;
     private const int MaxEntityTypeLength = 100;
     private const int MaxOperationLength = 50;
     private const int MaxErrorMessageLength = 4000;
@@ -13,7 +14,8 @@ public sealed class SyncEvent : Entity
     private SyncEvent()
     {
         LocalEventId = string.Empty;
-        EntityType = string.Empty;
+        IdempotencyKey = string.Empty;
+        EntityType = SyncEntityType.Patient;
         Operation = SyncOperation.Create;
         PayloadJson = string.Empty;
         Status = SyncEventStatus.Pending;
@@ -30,15 +32,33 @@ public sealed class SyncEvent : Entity
         string payloadJson,
         Guid? entityId = null,
         DateTimeOffset? createdAtDevice = null,
-        DateTimeOffset? receivedAtServer = null)
+        DateTimeOffset? receivedAtServer = null,
+        string? idempotencyKey = null)
         : base(id)
     {
         SyncBatchId = RequireGuid(syncBatchId, nameof(syncBatchId));
         OrganizationId = RequireGuid(organizationId, nameof(organizationId));
         LocalEventId = NormalizeRequired(localEventId, nameof(localEventId), MaxLocalEventIdLength);
-        EntityType = NormalizeRequired(entityType, nameof(entityType), MaxEntityTypeLength).ToLowerInvariant();
+        IdempotencyKey = NormalizeIdempotencyKey(idempotencyKey, LocalEventId);
+
+        EntityType = NormalizeRequired(entityType, nameof(entityType), MaxEntityTypeLength)
+            .ToLowerInvariant();
+
+        if (!SyncEntityType.IsAllowed(EntityType))
+        {
+            throw new DomainException($"{nameof(entityType)} is not allowed.");
+        }
+
         EntityId = entityId;
-        Operation = NormalizeRequired(operation, nameof(operation), MaxOperationLength).ToLowerInvariant();
+
+        Operation = NormalizeRequired(operation, nameof(operation), MaxOperationLength)
+            .ToLowerInvariant();
+
+        if (!SyncOperation.IsAllowed(Operation))
+        {
+            throw new DomainException($"{nameof(operation)} is not allowed.");
+        }
+
         PayloadJson = NormalizeJson(payloadJson, nameof(payloadJson));
         Status = SyncEventStatus.Pending;
         CreatedAtDevice = createdAtDevice;
@@ -50,6 +70,8 @@ public sealed class SyncEvent : Entity
     public Guid OrganizationId { get; private set; }
 
     public string LocalEventId { get; private set; }
+
+    public string IdempotencyKey { get; private set; }
 
     public string EntityType { get; private set; }
 
@@ -161,6 +183,15 @@ public sealed class SyncEvent : Entity
         return normalized;
     }
 
+    private static string NormalizeIdempotencyKey(string? value, string fallbackLocalEventId)
+    {
+        var candidate = string.IsNullOrWhiteSpace(value)
+            ? fallbackLocalEventId
+            : value;
+
+        return NormalizeRequired(candidate, nameof(IdempotencyKey), MaxIdempotencyKeyLength);
+    }
+
     private static string NormalizeJson(string value, string fieldName)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -188,4 +219,51 @@ public static class SyncOperation
     public const string Void = "void";
     public const string Sign = "sign";
     public const string Sync = "sync";
+
+    public static readonly IReadOnlySet<string> Allowed = new HashSet<string>(StringComparer.Ordinal)
+    {
+        Create,
+        Update,
+        Void,
+        Sign,
+        Sync
+    };
+
+    public static bool IsAllowed(string operation)
+    {
+        return Allowed.Contains(operation);
+    }
+}
+
+public static class SyncEntityType
+{
+    public const string Patient = "patient";
+    public const string PatientVisit = "patient_visit";
+    public const string ServiceEncounter = "service_encounter";
+    public const string VitalSigns = "vital_signs";
+    public const string FormResponse = "form_response";
+    public const string ConsentDocument = "consent_document";
+    public const string DocumentSignature = "document_signature";
+    public const string MedicalReferral = "medical_referral";
+    public const string MedicationDelivery = "medication_delivery";
+    public const string MediaRelease = "media_release";
+
+    public static readonly IReadOnlySet<string> Allowed = new HashSet<string>(StringComparer.Ordinal)
+    {
+        Patient,
+        PatientVisit,
+        ServiceEncounter,
+        VitalSigns,
+        FormResponse,
+        ConsentDocument,
+        DocumentSignature,
+        MedicalReferral,
+        MedicationDelivery,
+        MediaRelease
+    };
+
+    public static bool IsAllowed(string entityType)
+    {
+        return Allowed.Contains(entityType);
+    }
 }

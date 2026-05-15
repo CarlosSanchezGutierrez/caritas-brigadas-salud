@@ -1,0 +1,800 @@
+using System.Collections.Generic;
+using System.Text.Json;
+using Caritas.Brigadas.Contracts.ConsentDocuments;
+using Caritas.Brigadas.Contracts.FormResponses;
+using Caritas.Brigadas.Contracts.MedicalReferrals;
+using Caritas.Brigadas.Contracts.MedicationDeliveries;
+using Caritas.Brigadas.Contracts.Patients;
+using Caritas.Brigadas.Contracts.PatientVisits;
+using Caritas.Brigadas.Contracts.ServiceEncounters;
+using Caritas.Brigadas.Contracts.Sync;
+using Caritas.Brigadas.Contracts.VitalSigns;
+using Caritas.Brigadas.Domain.Entities;
+using Caritas.Brigadas.Infrastructure.Persistence;
+using Caritas.Brigadas.Infrastructure.Sync;
+using Microsoft.EntityFrameworkCore;
+using Xunit;
+
+namespace Caritas.Brigadas.Api.Tests.Integration;
+
+public sealed class P3ClinicalSyncEndToEndIntegrationTests
+{
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
+    [Fact]
+    public async Task SyncBatchProcessor_ProcessesCompleteClinicalOfflineBatchEndToEnd()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var dbContext = CreateDbContext();
+
+        var seed = await SeedCompleteClinicalBatchAsync(
+            dbContext,
+            reverseEventInsertionOrder: false,
+            cancellationToken);
+
+        var processor = new SyncBatchProcessor(dbContext);
+
+        var result = await processor.ProcessAsync(
+            seed.OrganizationId,
+            seed.SyncBatchId,
+            cancellationToken);
+
+        await AssertCompletedClinicalBatchAsync(
+            dbContext,
+            result,
+            cancellationToken);
+    }
+
+    [Fact]
+    public async Task SyncBatchProcessor_ProcessesOutOfOrderClinicalOfflineBatchUsingSyncProcessingOrder()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var dbContext = CreateDbContext();
+
+        var seed = await SeedCompleteClinicalBatchAsync(
+            dbContext,
+            reverseEventInsertionOrder: true,
+            cancellationToken);
+
+        var processor = new SyncBatchProcessor(dbContext);
+
+        var result = await processor.ProcessAsync(
+            seed.OrganizationId,
+            seed.SyncBatchId,
+            cancellationToken);
+
+        await AssertCompletedClinicalBatchAsync(
+            dbContext,
+            result,
+            cancellationToken);
+    }
+
+    private static async Task<ClinicalSyncSeed> SeedCompleteClinicalBatchAsync(
+        CaritasDbContext dbContext,
+        bool reverseEventInsertionOrder,
+        CancellationToken cancellationToken)
+    {
+        var organizationId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var brigadeId = Guid.NewGuid();
+        var serviceId = Guid.NewGuid();
+        var formTemplateId = Guid.NewGuid();
+        var syncBatchId = Guid.NewGuid();
+        var deviceId = Guid.NewGuid();
+
+        var patientId = Guid.NewGuid();
+        var visitId = Guid.NewGuid();
+        var encounterId = Guid.NewGuid();
+        var vitalSignsId = Guid.NewGuid();
+        var formResponseId = Guid.NewGuid();
+        var consentDocumentId = Guid.NewGuid();
+        var medicalReferralId = Guid.NewGuid();
+        var medicationDeliveryId = Guid.NewGuid();
+
+        var now = DateTimeOffset.UtcNow;
+
+        dbContext.Organizations.Add(new Organization(
+            organizationId,
+            "Caritas Monterrey P3 Sync E2E"));
+
+        dbContext.Users.Add(new User(
+            userId,
+            organizationId,
+            "Medico Sync E2E",
+            "medico.sync.e2e@caritas.local"));
+
+        dbContext.Brigades.Add(new Brigade(
+            brigadeId,
+            organizationId,
+            "Brigada P3 Sync E2E",
+            "medical",
+            DateOnly.FromDateTime(now.UtcDateTime),
+            municipality: "Monterrey",
+            colony: "Centro",
+            locationText: "Caritas Monterrey"));
+
+        dbContext.Services.Add(new Service(
+            serviceId,
+            organizationId,
+            ServiceCode.GeneralMedicine,
+            "Medicina general",
+            "clinical",
+            requiresConsent: true,
+            requiresClinicalNotes: true,
+            requiresFollowUpOption: true,
+            requiresReferralOption: true));
+
+        dbContext.BrigadeServices.Add(new BrigadeService(
+            Guid.NewGuid(),
+            brigadeId,
+            serviceId,
+            capacityEstimate: 100,
+            assignedLeadUserId: userId));
+
+        dbContext.FormTemplates.Add(new FormTemplate(
+            formTemplateId,
+            organizationId,
+            serviceId,
+            "GENERAL_MEDICINE_INTAKE",
+            "Consulta general inicial",
+            "1.0.0",
+            """{"type":"object","properties":{"chiefComplaint":{"type":"string"}}}"""));
+
+        var syncBatch = new SyncBatch(
+            syncBatchId,
+            organizationId,
+            deviceId,
+            userId,
+            now,
+            brigadeId,
+            eventsCount: 8);
+
+        dbContext.SyncBatches.Add(syncBatch);
+
+        var events = new List<SyncEvent>
+        {
+            CreateEvent(
+                syncBatchId,
+                organizationId,
+                "001-patient",
+                SyncEntityType.Patient,
+                patientId,
+                new CreatePatientRequest
+                {
+                    PatientFolio = "PAT-E2E-001",
+                    FirstName = "Maria",
+                    PaternalLastName = "Lopez",
+                    MaternalLastName = "Garcia",
+                    ApproximateAge = 42,
+                    Sex = "female",
+                    Phone = "8180000000",
+                    Municipality = "Monterrey",
+                    Colony = "Centro",
+                    IsPartialRecord = false
+                },
+                now.AddSeconds(1)),
+            CreateEvent(
+                syncBatchId,
+                organizationId,
+                "002-visit",
+                SyncEntityType.PatientVisit,
+                visitId,
+                new CreatePatientVisitRequest
+                {
+                    VisitFolio = "VIS-E2E-001",
+                    PatientId = patientId,
+                    BrigadeId = brigadeId,
+                    ArrivalTime = now.AddMinutes(1),
+                    RegisteredByUserId = userId,
+                    CreatedOffline = true,
+                    DeviceId = deviceId
+                },
+                now.AddSeconds(2)),
+            CreateEvent(
+                syncBatchId,
+                organizationId,
+                "003-encounter",
+                SyncEntityType.ServiceEncounter,
+                encounterId,
+                new CreateServiceEncounterRequest
+                {
+                    EncounterFolio = "ENC-E2E-001",
+                    VisitId = visitId,
+                    ServiceCode = ServiceCode.GeneralMedicine,
+                    ProviderUserId = userId,
+                    StartedAt = now.AddMinutes(2),
+                    CreatedOffline = true,
+                    DeviceId = deviceId
+                },
+                now.AddSeconds(3)),
+            CreateEvent(
+                syncBatchId,
+                organizationId,
+                "004-vital-signs",
+                SyncEntityType.VitalSigns,
+                vitalSignsId,
+                new CreateVitalSignsRecordRequest
+                {
+                    PatientId = patientId,
+                    VisitId = visitId,
+                    EncounterId = encounterId,
+                    MeasuredByUserId = userId,
+                    MeasuredAt = now.AddMinutes(3),
+                    SystolicBloodPressureMmHg = 120,
+                    DiastolicBloodPressureMmHg = 80,
+                    HeartRateBpm = 72,
+                    RespiratoryRatePerMinute = 16,
+                    TemperatureCelsius = 36.7m,
+                    OxygenSaturationPercent = 98,
+                    WeightKg = 68.5m,
+                    HeightCm = 165.0m,
+                    Source = "offline-ipad",
+                    Notes = "Paciente estable",
+                    DeviceId = deviceId
+                },
+                now.AddSeconds(4)),
+            CreateEvent(
+                syncBatchId,
+                organizationId,
+                "005-form-response",
+                SyncEntityType.FormResponse,
+                formResponseId,
+                new CreateFormResponseRequest
+                {
+                    EncounterId = encounterId,
+                    FormTemplateId = formTemplateId,
+                    ResponseJson = """{"chiefComplaint":"dolor de cabeza","durationDays":2}""",
+                    SubmittedByUserId = userId,
+                    SubmittedAt = now.AddMinutes(4),
+                    CreatedOffline = true,
+                    DeviceId = deviceId
+                },
+                now.AddSeconds(5)),
+            CreateEvent(
+                syncBatchId,
+                organizationId,
+                "006-consent",
+                SyncEntityType.ConsentDocument,
+                consentDocumentId,
+                new CreateConsentDocumentRequest
+                {
+                    PatientId = patientId,
+                    VisitId = visitId,
+                    ConsentType = "privacy_notice",
+                    DocumentVersion = "1.0.0",
+                    DocumentTextSnapshot = "Aviso de privacidad firmado para atencion medica de brigada.",
+                    SignatureDataUrl = "data:image/png;base64,UElORy1TSUdOQVRVUkU=",
+                    GuardianFullName = "Tutor Responsable",
+                    GuardianRelationship = "Familiar",
+                    SignedByUserId = userId,
+                    SignedAt = now.AddMinutes(5),
+                    CreatedOffline = true,
+                    DeviceId = deviceId
+                },
+                now.AddSeconds(6)),
+            CreateEvent(
+                syncBatchId,
+                organizationId,
+                "007-referral",
+                SyncEntityType.MedicalReferral,
+                medicalReferralId,
+                new CreateMedicalReferralRequest
+                {
+                    EncounterId = encounterId,
+                    ReferralFolio = "REF-E2E-001",
+                    DestinationInstitution = "Hospital General",
+                    ReferralReason = "Valoracion por especialidad",
+                    Priority = "normal",
+                    ReferredByUserId = userId,
+                    CreatedOffline = true,
+                    DeviceId = deviceId
+                },
+                now.AddSeconds(7)),
+            CreateEvent(
+                syncBatchId,
+                organizationId,
+                "008-medication",
+                SyncEntityType.MedicationDelivery,
+                medicationDeliveryId,
+                new CreateMedicationDeliveryRequest
+                {
+                    EncounterId = encounterId,
+                    MedicationName = "Paracetamol",
+                    Presentation = "Tabletas 500mg",
+                    Quantity = "1 caja",
+                    LotNumber = "LOT-E2E-001",
+                    ExpirationDate = DateOnly.FromDateTime(now.AddYears(1).UtcDateTime),
+                    Instructions = "Tomar cada 8 horas por dolor.",
+                    DeliveredByUserId = userId,
+                    ReceivedByName = "Maria Lopez Garcia",
+                    MarkAsDelivered = true,
+                    CreatedOffline = true,
+                    DeviceId = deviceId
+                },
+                now.AddSeconds(8))
+        };
+
+        if (reverseEventInsertionOrder)
+        {
+            events.Reverse();
+        }
+
+        dbContext.SyncEvents.AddRange(events);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new ClinicalSyncSeed(
+            organizationId,
+            syncBatchId);
+    }
+
+    private static async Task AssertCompletedClinicalBatchAsync(
+        CaritasDbContext dbContext,
+        ProcessSyncBatchResultDto result,
+        CancellationToken cancellationToken)
+    {
+        Assert.True(result.Completed);
+        Assert.Equal(8, result.PendingEventsProcessed);
+        Assert.Equal(8, result.AcceptedCount);
+        Assert.Equal(0, result.RejectedCount);
+        Assert.Equal(0, result.ConflictCount);
+
+        Assert.Equal(1, await dbContext.Patients.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.PatientVisits.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.ServiceEncounters.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.VitalSignsRecords.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.FormResponses.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.ConsentDocuments.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.MedicalReferrals.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.MedicationDeliveries.CountAsync(cancellationToken));
+
+        var processedEvents = await dbContext.SyncEvents
+            .OrderBy(syncEvent => syncEvent.LocalEventId)
+            .ToArrayAsync(cancellationToken);
+
+        Assert.All(
+            processedEvents,
+            syncEvent => Assert.Equal(SyncEventStatus.Accepted, syncEvent.Status));
+
+        var completedBatch = await dbContext.SyncBatches.SingleAsync(cancellationToken);
+
+        Assert.Equal(SyncBatchStatus.Completed, completedBatch.Status);
+        Assert.Equal(8, completedBatch.AcceptedCount);
+        Assert.Equal(0, completedBatch.RejectedCount);
+        Assert.Equal(0, completedBatch.ConflictCount);
+    }
+
+    [Fact]
+    public async Task SyncBatchProcessor_CompletesBatchWhenDuplicatePatientFolioCreatesConflict()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var dbContext = CreateDbContext();
+
+        var organizationId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var brigadeId = Guid.NewGuid();
+        var syncBatchId = Guid.NewGuid();
+        var deviceId = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+
+        dbContext.Organizations.Add(new Organization(
+            organizationId,
+            "Caritas Monterrey P3 Conflict Regression"));
+
+        dbContext.Users.Add(new User(
+            userId,
+            organizationId,
+            "Medico Conflict Regression",
+            "medico.conflict.regression@caritas.local"));
+
+        dbContext.Brigades.Add(new Brigade(
+            brigadeId,
+            organizationId,
+            "Brigada P3 Conflict Regression",
+            "medical",
+            DateOnly.FromDateTime(now.UtcDateTime),
+            municipality: "Monterrey",
+            colony: "Centro",
+            locationText: "Caritas Monterrey"));
+
+        var syncBatch = new SyncBatch(
+            syncBatchId,
+            organizationId,
+            deviceId,
+            userId,
+            now,
+            brigadeId,
+            eventsCount: 2);
+
+        dbContext.SyncBatches.Add(syncBatch);
+
+        dbContext.SyncEvents.AddRange(
+            CreateEvent(
+                syncBatchId,
+                organizationId,
+                "001-patient-original",
+                SyncEntityType.Patient,
+                Guid.NewGuid(),
+                new CreatePatientRequest
+                {
+                    PatientFolio = "PAT-CONFLICT-001",
+                    FirstName = "Maria",
+                    PaternalLastName = "Lopez",
+                    MaternalLastName = "Garcia",
+                    ApproximateAge = 42,
+                    Sex = "female",
+                    Phone = "8180000000",
+                    Municipality = "Monterrey",
+                    Colony = "Centro",
+                    IsPartialRecord = false
+                },
+                now.AddSeconds(1)),
+            CreateEvent(
+                syncBatchId,
+                organizationId,
+                "002-patient-duplicate",
+                SyncEntityType.Patient,
+                Guid.NewGuid(),
+                new CreatePatientRequest
+                {
+                    PatientFolio = "PAT-CONFLICT-001",
+                    FirstName = "Duplicada",
+                    PaternalLastName = "Lopez",
+                    MaternalLastName = "Garcia",
+                    ApproximateAge = 43,
+                    Sex = "female",
+                    Phone = "8180000001",
+                    Municipality = "Monterrey",
+                    Colony = "Centro",
+                    IsPartialRecord = false
+                },
+                now.AddSeconds(2)));
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var processor = new SyncBatchProcessor(dbContext);
+
+        var result = await processor.ProcessAsync(
+            organizationId,
+            syncBatchId,
+            cancellationToken);
+
+        Assert.True(result.Completed);
+        Assert.Equal(2, result.PendingEventsProcessed);
+        Assert.Equal(1, result.AcceptedCount);
+        Assert.Equal(0, result.RejectedCount);
+        Assert.Equal(1, result.ConflictCount);
+
+        Assert.Equal(1, await dbContext.Patients.CountAsync(cancellationToken));
+
+        var acceptedEvent = await dbContext.SyncEvents
+            .SingleAsync(
+                syncEvent => syncEvent.Status == SyncEventStatus.Accepted,
+                cancellationToken);
+
+        var conflictEvent = await dbContext.SyncEvents
+            .SingleAsync(
+                syncEvent => syncEvent.Status == SyncEventStatus.Conflict,
+                cancellationToken);
+
+        Assert.Equal("001-patient-original", acceptedEvent.LocalEventId);
+        Assert.Equal("002-patient-duplicate", conflictEvent.LocalEventId);
+        Assert.Contains(
+            "patient_folio_duplicate_in_pending_batch",
+            conflictEvent.ConflictReason,
+            StringComparison.Ordinal);
+
+        var completedBatch = await dbContext.SyncBatches.SingleAsync(cancellationToken);
+
+        Assert.Equal(SyncBatchStatus.CompletedWithErrors, completedBatch.Status);
+        Assert.Equal(1, completedBatch.AcceptedCount);
+        Assert.Equal(0, completedBatch.RejectedCount);
+        Assert.Equal(1, completedBatch.ConflictCount);
+    }
+
+    [Fact]
+    public async Task SyncBatchProcessor_CompletesBatchWhenInvalidPayloadIsRejected()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var dbContext = CreateDbContext();
+
+        var organizationId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var brigadeId = Guid.NewGuid();
+        var syncBatchId = Guid.NewGuid();
+        var deviceId = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+
+        dbContext.Organizations.Add(new Organization(
+            organizationId,
+            "Caritas Monterrey P3 Rejected Payload Regression"));
+
+        dbContext.Users.Add(new User(
+            userId,
+            organizationId,
+            "Medico Rejected Payload Regression",
+            "medico.rejected.payload.regression@caritas.local"));
+
+        dbContext.Brigades.Add(new Brigade(
+            brigadeId,
+            organizationId,
+            "Brigada P3 Rejected Payload Regression",
+            "medical",
+            DateOnly.FromDateTime(now.UtcDateTime),
+            municipality: "Monterrey",
+            colony: "Centro",
+            locationText: "Caritas Monterrey"));
+
+        var syncBatch = new SyncBatch(
+            syncBatchId,
+            organizationId,
+            deviceId,
+            userId,
+            now,
+            brigadeId,
+            eventsCount: 2);
+
+        dbContext.SyncBatches.Add(syncBatch);
+
+        dbContext.SyncEvents.AddRange(
+            CreateEvent(
+                syncBatchId,
+                organizationId,
+                "001-patient-valid",
+                SyncEntityType.Patient,
+                Guid.NewGuid(),
+                new CreatePatientRequest
+                {
+                    PatientFolio = "PAT-REJECTED-001",
+                    FirstName = "Maria",
+                    PaternalLastName = "Lopez",
+                    MaternalLastName = "Garcia",
+                    ApproximateAge = 42,
+                    Sex = "female",
+                    Phone = "8180000000",
+                    Municipality = "Monterrey",
+                    Colony = "Centro",
+                    IsPartialRecord = false
+                },
+                now.AddSeconds(1)),
+            new SyncEvent(
+                Guid.NewGuid(),
+                syncBatchId,
+                organizationId,
+                "002-patient-invalid-json",
+                SyncEntityType.Patient,
+                SyncOperation.Create,
+                """{"patientFolio":"PAT-REJECTED-002","firstName":""",
+                Guid.NewGuid(),
+                createdAtDevice: now.AddSeconds(-20),
+                receivedAtServer: now.AddSeconds(2),
+                idempotencyKey: "p3-rejected-invalid-json"));
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var processor = new SyncBatchProcessor(dbContext);
+
+        var result = await processor.ProcessAsync(
+            organizationId,
+            syncBatchId,
+            cancellationToken);
+
+        Assert.True(result.Completed);
+        Assert.Equal(2, result.PendingEventsProcessed);
+        Assert.Equal(1, result.AcceptedCount);
+        Assert.Equal(1, result.RejectedCount);
+        Assert.Equal(0, result.ConflictCount);
+
+        Assert.Equal(1, await dbContext.Patients.CountAsync(cancellationToken));
+
+        var acceptedEvent = await dbContext.SyncEvents
+            .SingleAsync(
+                syncEvent => syncEvent.Status == SyncEventStatus.Accepted,
+                cancellationToken);
+
+        var rejectedEvent = await dbContext.SyncEvents
+            .SingleAsync(
+                syncEvent => syncEvent.Status == SyncEventStatus.Rejected,
+                cancellationToken);
+
+        Assert.Equal("001-patient-valid", acceptedEvent.LocalEventId);
+        Assert.Equal("002-patient-invalid-json", rejectedEvent.LocalEventId);
+        Assert.Contains(
+            "Sync event payload JSON is invalid.",
+            rejectedEvent.ErrorMessage,
+            StringComparison.Ordinal);
+
+        var completedBatch = await dbContext.SyncBatches.SingleAsync(cancellationToken);
+
+        Assert.Equal(SyncBatchStatus.CompletedWithErrors, completedBatch.Status);
+        Assert.Equal(1, completedBatch.AcceptedCount);
+        Assert.Equal(1, completedBatch.RejectedCount);
+        Assert.Equal(0, completedBatch.ConflictCount);
+    }
+
+    [Fact]
+    public async Task SyncBatchProcessor_ReturnsAlreadyCompletedWithoutDuplicatingClinicalRows()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var dbContext = CreateDbContext();
+
+        var seed = await SeedCompleteClinicalBatchAsync(
+            dbContext,
+            reverseEventInsertionOrder: false,
+            cancellationToken);
+
+        var processor = new SyncBatchProcessor(dbContext);
+
+        var firstResult = await processor.ProcessAsync(
+            seed.OrganizationId,
+            seed.SyncBatchId,
+            cancellationToken);
+
+        await AssertCompletedClinicalBatchAsync(
+            dbContext,
+            firstResult,
+            cancellationToken);
+
+        var secondResult = await processor.ProcessAsync(
+            seed.OrganizationId,
+            seed.SyncBatchId,
+            cancellationToken);
+
+        Assert.True(secondResult.Completed);
+        Assert.Equal(0, secondResult.PendingEventsProcessed);
+        Assert.Equal(8, secondResult.AcceptedCount);
+        Assert.Equal(0, secondResult.RejectedCount);
+        Assert.Equal(0, secondResult.ConflictCount);
+        Assert.Equal("Sync batch was already completed.", secondResult.Message);
+
+        Assert.Equal(1, await dbContext.Patients.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.PatientVisits.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.ServiceEncounters.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.VitalSignsRecords.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.FormResponses.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.ConsentDocuments.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.MedicalReferrals.CountAsync(cancellationToken));
+        Assert.Equal(1, await dbContext.MedicationDeliveries.CountAsync(cancellationToken));
+
+        var syncEvents = await dbContext.SyncEvents
+            .ToArrayAsync(cancellationToken);
+
+        Assert.Equal(8, syncEvents.Length);
+
+        Assert.All(
+            syncEvents,
+            syncEvent => Assert.Equal(SyncEventStatus.Accepted, syncEvent.Status));
+
+        var completedBatch = await dbContext.SyncBatches.SingleAsync(cancellationToken);
+
+        Assert.Equal(SyncBatchStatus.Completed, completedBatch.Status);
+        Assert.Equal(8, completedBatch.AcceptedCount);
+        Assert.Equal(0, completedBatch.RejectedCount);
+        Assert.Equal(0, completedBatch.ConflictCount);
+    }
+
+    [Fact]
+    public async Task SyncBatchProcessor_ThrowsWhenFailedBatchIsProcessed()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var dbContext = CreateDbContext();
+
+        var organizationId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var brigadeId = Guid.NewGuid();
+        var syncBatchId = Guid.NewGuid();
+        var deviceId = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+
+        dbContext.Organizations.Add(new Organization(
+            organizationId,
+            "Caritas Monterrey P3 Failed Batch Regression"));
+
+        dbContext.Users.Add(new User(
+            userId,
+            organizationId,
+            "Medico Failed Batch Regression",
+            "medico.failed.batch.regression@caritas.local"));
+
+        dbContext.Brigades.Add(new Brigade(
+            brigadeId,
+            organizationId,
+            "Brigada P3 Failed Batch Regression",
+            "medical",
+            DateOnly.FromDateTime(now.UtcDateTime),
+            municipality: "Monterrey",
+            colony: "Centro",
+            locationText: "Caritas Monterrey"));
+
+        var syncBatch = new SyncBatch(
+            syncBatchId,
+            organizationId,
+            deviceId,
+            userId,
+            now,
+            brigadeId,
+            eventsCount: 1);
+
+        syncBatch.Fail(
+            now.AddMinutes(1),
+            "Synthetic failed batch for P3 failed batch regression.");
+
+        dbContext.SyncBatches.Add(syncBatch);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var processor = new SyncBatchProcessor(dbContext);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => processor.ProcessAsync(
+                organizationId,
+                syncBatchId,
+                cancellationToken));
+
+        Assert.Equal("Failed sync batch cannot be processed.", exception.Message);
+
+        Assert.Equal(0, await dbContext.Patients.CountAsync(cancellationToken));
+        Assert.Equal(0, await dbContext.PatientVisits.CountAsync(cancellationToken));
+        Assert.Equal(0, await dbContext.ServiceEncounters.CountAsync(cancellationToken));
+        Assert.Equal(0, await dbContext.VitalSignsRecords.CountAsync(cancellationToken));
+        Assert.Equal(0, await dbContext.FormResponses.CountAsync(cancellationToken));
+        Assert.Equal(0, await dbContext.ConsentDocuments.CountAsync(cancellationToken));
+        Assert.Equal(0, await dbContext.MedicalReferrals.CountAsync(cancellationToken));
+        Assert.Equal(0, await dbContext.MedicationDeliveries.CountAsync(cancellationToken));
+        Assert.Equal(0, await dbContext.SyncEvents.CountAsync(cancellationToken));
+
+        var failedBatch = await dbContext.SyncBatches.SingleAsync(cancellationToken);
+
+        Assert.Equal(SyncBatchStatus.Failed, failedBatch.Status);
+        Assert.Equal(1, failedBatch.EventsCount);
+        Assert.Equal(0, failedBatch.AcceptedCount);
+        Assert.Equal(0, failedBatch.RejectedCount);
+        Assert.Equal(0, failedBatch.ConflictCount);
+        Assert.Contains(
+            "Synthetic failed batch for P3 failed batch regression.",
+            failedBatch.ErrorSummary,
+            StringComparison.Ordinal);
+    }
+    private static CaritasDbContext CreateDbContext()
+    {
+        var options = new DbContextOptionsBuilder<CaritasDbContext>()
+            .UseInMemoryDatabase($"p3-clinical-sync-e2e-{Guid.NewGuid():N}")
+            .EnableSensitiveDataLogging()
+            .Options;
+
+        return new CaritasDbContext(options);
+    }
+
+    private static SyncEvent CreateEvent<TPayload>(
+        Guid syncBatchId,
+        Guid organizationId,
+        string localEventId,
+        string entityType,
+        Guid entityId,
+        TPayload payload,
+        DateTimeOffset receivedAtServer)
+    {
+        return new SyncEvent(
+            Guid.NewGuid(),
+            syncBatchId,
+            organizationId,
+            localEventId,
+            entityType,
+            SyncOperation.Create,
+            JsonSerializer.Serialize(payload, JsonOptions),
+            entityId,
+            createdAtDevice: receivedAtServer.AddSeconds(-30),
+            receivedAtServer: receivedAtServer,
+            idempotencyKey: $"p3-e2e-{localEventId}");
+    }
+
+    private sealed record ClinicalSyncSeed(
+        Guid OrganizationId,
+        Guid SyncBatchId);
+}

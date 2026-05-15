@@ -17,6 +17,16 @@ public static class ProductionConfigurationValidationExtensions
 
         var configuration = builder.Configuration;
 
+        ValidateProductionAuthentication(configuration);
+        ValidateProductionSqlServerConnectionString(configuration.GetConnectionString("SqlServer"));
+        ValidateProductionCors(configuration);
+        ValidateProductionHttps(configuration);
+        ValidateProductionAllowedHosts(configuration);
+        ValidateProductionRateLimiting(configuration);
+    }
+
+    private static void ValidateProductionAuthentication(IConfiguration configuration)
+    {
         var authenticationMode = configuration["Authentication:Mode"];
 
         if (string.IsNullOrWhiteSpace(authenticationMode) ||
@@ -26,46 +36,10 @@ public static class ProductionConfigurationValidationExtensions
                 "Production requires Authentication:Mode to be configured to a non-Development provider.");
         }
 
-        
         if (string.Equals(authenticationMode, "Disabled", StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidOperationException(
                 "Disabled authentication mode is not allowed in Production environment.");
-        }
-var sqlServerConnectionString = configuration.GetConnectionString("SqlServer");
-
-        ValidateProductionSqlServerConnectionString(sqlServerConnectionString);
-
-        var allowedOrigins = configuration
-            .GetSection("Cors:AllowedOrigins")
-            .Get<string[]>() ?? [];
-
-        if (allowedOrigins.Length == 0)
-        {
-            throw new InvalidOperationException(
-                "Production requires at least one explicit Cors:AllowedOrigins entry.");
-        }
-
-        if (allowedOrigins.Any(IsUnsafeCorsOrigin))
-        {
-            throw new InvalidOperationException(
-                "Production CORS origins must be explicit HTTPS origins and cannot use localhost, loopback addresses, or wildcards.");
-        }
-
-        var requireHttps = configuration.GetValue("Security:RequireHttps", true);
-
-        if (!requireHttps)
-        {
-            throw new InvalidOperationException(
-                "Production requires Security:RequireHttps to be true.");
-        }
-
-        var allowedHosts = configuration["AllowedHosts"];
-
-        if (string.IsNullOrWhiteSpace(allowedHosts) || allowedHosts.Contains("*", StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException(
-                "Production requires AllowedHosts to be configured with explicit host names.");
         }
     }
 
@@ -106,6 +80,83 @@ var sqlServerConnectionString = configuration.GetConnectionString("SqlServer");
         }
     }
 
+    private static void ValidateProductionCors(IConfiguration configuration)
+    {
+        var configuredOrigins = configuration
+            .GetSection("Cors:AllowedOrigins")
+            .Get<string[]>() ?? [];
+
+        var allowedOrigins = configuredOrigins.Where(origin => !string.IsNullOrWhiteSpace(origin)).ToArray();
+
+        if (allowedOrigins.Length == 0)
+        {
+            throw new InvalidOperationException(
+                "Production requires at least one explicit Cors:AllowedOrigins entry.");
+        }
+
+        if (allowedOrigins.Any(IsUnsafeCorsOrigin))
+        {
+            throw new InvalidOperationException(
+                "Production CORS origins must be explicit HTTPS origins and cannot use localhost, loopback addresses, or wildcards.");
+        }
+    }
+
+    private static void ValidateProductionHttps(IConfiguration configuration)
+    {
+        var requireHttps = configuration.GetValue("Security:RequireHttps", true);
+
+        if (!requireHttps)
+        {
+            throw new InvalidOperationException(
+                "Production requires Security:RequireHttps to be true.");
+        }
+    }
+
+    private static void ValidateProductionAllowedHosts(IConfiguration configuration)
+    {
+        var allowedHosts = configuration["AllowedHosts"];
+
+        if (string.IsNullOrWhiteSpace(allowedHosts) ||
+            allowedHosts.Contains("*", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "Production requires AllowedHosts to be configured with explicit host names.");
+        }
+    }
+
+    private static void ValidateProductionRateLimiting(IConfiguration configuration)
+    {
+        var enabled = configuration.GetValue("Security:RateLimiting:Enabled", true);
+
+        if (!enabled)
+        {
+            throw new InvalidOperationException(
+                "Production requires Security:RateLimiting:Enabled to be true.");
+        }
+
+        var permitLimit = configuration.GetValue("Security:RateLimiting:PermitLimit", 100);
+        var windowMinutes = configuration.GetValue("Security:RateLimiting:WindowMinutes", 1);
+        var queueLimit = configuration.GetValue("Security:RateLimiting:QueueLimit", 0);
+
+        if (permitLimit <= 0)
+        {
+            throw new InvalidOperationException(
+                "Production requires Security:RateLimiting:PermitLimit to be greater than zero.");
+        }
+
+        if (windowMinutes <= 0)
+        {
+            throw new InvalidOperationException(
+                "Production requires Security:RateLimiting:WindowMinutes to be greater than zero.");
+        }
+
+        if (queueLimit < 0)
+        {
+            throw new InvalidOperationException(
+                "Production requires Security:RateLimiting:QueueLimit to be zero or greater.");
+        }
+    }
+
     private static bool IsUnsafeCorsOrigin(string origin)
     {
         if (string.IsNullOrWhiteSpace(origin))
@@ -128,8 +179,10 @@ var sqlServerConnectionString = configuration.GetConnectionString("SqlServer");
             return true;
         }
 
-        return string.Equals(uri.Host, "localhost", StringComparison.OrdinalIgnoreCase) ||
+        return uri.IsLoopback ||
+            string.Equals(uri.Host, "localhost", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(uri.Host, "127.0.0.1", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(uri.Host, "::1", StringComparison.OrdinalIgnoreCase);
+            string.Equals(uri.Host, "::1", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(uri.Host, "[::1]", StringComparison.OrdinalIgnoreCase);
     }
 }

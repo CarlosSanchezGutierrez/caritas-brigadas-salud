@@ -1,3 +1,6 @@
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Caritas.Brigadas.Api.Health;
 using Microsoft.AspNetCore.HttpOverrides;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
@@ -156,7 +159,16 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCaritasSwagger();
 builder.Services.AddProblemDetails();
-builder.Services.AddHealthChecks();
+builder.Services
+    .AddHealthChecks()
+    .AddCheck(
+        "api-live",
+        () => HealthCheckResult.Healthy("API process is running."),
+        tags: new[] { "live" })
+    .AddCheck<DatabaseConnectivityHealthCheck>(
+        "database",
+        failureStatus: HealthStatus.Unhealthy,
+        tags: new[] { "ready" });
 
 var app = builder.Build();
 
@@ -192,8 +204,25 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapHealthChecks("/health/live");
-app.MapHealthChecks("/health/ready");
+app.MapHealthChecks(
+    "/health/live",
+    new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("live"),
+        ResponseWriter = HealthCheckResponseWriter.WriteAsync
+    })
+.WithName("HealthLive")
+.WithTags("Health");
+
+app.MapHealthChecks(
+    "/health/ready",
+    new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("ready"),
+        ResponseWriter = HealthCheckResponseWriter.WriteAsync
+    })
+.WithName("HealthReady")
+.WithTags("Health");
 
 app.MapGet("/", (HttpContext httpContext) =>
 {

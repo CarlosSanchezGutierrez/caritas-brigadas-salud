@@ -1,0 +1,124 @@
+# P3 Sync Pending Event Dispatch Extraction Baseline
+
+Status: active  
+Scope: extraction of pending sync event dispatch from SyncBatchProcessor.ProcessAsync  
+Target phase: P3-22E  
+Depends on: P3-22D sync processor formatting hygiene
+
+---
+
+## 1. Purpose
+
+P3-22E extracts per-event dispatch from ProcessAsync into ProcessPendingEventAsync.
+
+This package does not extract domain handlers into separate classes yet. It only removes dispatch/orchestration noise from ProcessAsync so the next handler extraction can be done safely.
+
+---
+
+## 2. ProcessAsync contract
+
+Rules:
+
+- ProcessAsync must load the batch;
+- ProcessAsync must load pending events;
+- ProcessAsync must sort pending events through SyncProcessingOrder.GetOrder;
+- ProcessAsync must create one PendingBatchReservationState per batch processing run;
+- ProcessAsync must call ProcessPendingEventAsync for each pending event;
+- ProcessAsync must increment processed count once per pending event after dispatch returns;
+- ProcessAsync must calculate final accepted, rejected, and conflict counts;
+- ProcessAsync must complete the batch;
+- ProcessAsync must not directly branch on SyncEntityType for handler dispatch.
+
+---
+
+## 3. ProcessPendingEventAsync contract
+
+Rules:
+
+- ProcessPendingEventAsync must mark the event as processing;
+- ProcessPendingEventAsync must validate the event through TryValidateEvent;
+- ProcessPendingEventAsync must reject invalid events with a safe rejection reason;
+- ProcessPendingEventAsync must dispatch to the existing patient handler;
+- ProcessPendingEventAsync must dispatch to the existing patient visit handler;
+- ProcessPendingEventAsync must dispatch to the existing service encounter handler;
+- ProcessPendingEventAsync must dispatch to the existing vital signs handler;
+- ProcessPendingEventAsync must dispatch to the existing form response handler;
+- ProcessPendingEventAsync must dispatch to the existing consent document handler;
+- ProcessPendingEventAsync must dispatch to the existing medical referral handler;
+- ProcessPendingEventAsync must dispatch to the existing medication delivery handler;
+- ProcessPendingEventAsync must mark unsupported events as conflict with the existing skeleton conflict reason.
+
+---
+
+## 4. Non-negotiable constraints
+
+Rules:
+
+- no database migration;
+- no endpoint contract change;
+- no sync entity type expansion;
+- no handler behavior change;
+- no handler class extraction in this package;
+- no weakening of P3-21 integration hardening;
+- no weakening of P3-22A zero technical debt gate;
+- no weakening of P3-22B component extraction;
+- no weakening of P3-22C payload reader extraction;
+- no weakening of P3-22D formatting hygiene.
+
+---
+
+## 5. Acceptance criteria
+
+P3-22E is complete when:
+
+- ProcessPendingEventAsync exists;
+- ProcessAsync calls ProcessPendingEventAsync inside the pending event loop;
+- ProcessAsync no longer branches directly on SyncEntityType for handler dispatch;
+- ProcessPendingEventAsync dispatches to all existing handlers;
+- all previous P3 sync processor verifiers remain green;
+- dotnet build and dotnet test remain green.
+---
+
+## 6. P3-22F patient sync event handler extraction note
+
+P3-22F extracts patient/create behavior into PatientSyncEventHandler while preserving ProcessPendingEventAsync dispatch behavior.
+---
+
+## 7. P3-22G patient visit sync event handler extraction note
+
+P3-22G extracts patient_visit/create behavior into PatientVisitSyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
+---
+
+## 8. P3-22H service encounter sync event handler extraction note
+
+P3-22H extracts service_encounter/create behavior into ServiceEncounterSyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
+---
+
+## 9. P3-22I vital signs sync event handler extraction note
+
+P3-22I extracts vital_signs/create behavior into VitalSignsSyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
+---
+
+## 10. P3-22J form response sync event handler extraction note
+
+P3-22J extracts form_response/create behavior into FormResponseSyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
+---
+
+## 11. P3-22K consent document sync event handler extraction note
+
+P3-22K extracts consent_document/create behavior into ConsentDocumentSyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
+---
+
+## 12. P3-22L medical referral sync event handler extraction note
+
+P3-22L extracts medical_referral/create behavior into MedicalReferralSyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
+---
+
+## 13. P3-22M medication delivery sync event handler extraction note
+
+P3-22M extracts medication_delivery/create behavior into MedicationDeliverySyncEventHandler while keeping SyncBatchProcessor dispatch wrappers temporarily.
+---
+
+## 14. P3-22O direct handler dispatch note
+
+P3-22O keeps ProcessPendingEventAsync but dispatches directly to extracted sync event handlers instead of temporary wrapper methods.
