@@ -197,3 +197,5 @@ Write-Host "============================================================" -Foreg
 & (Join-Path $RepoRoot "scripts\verify-p3-operational-incident-response-runbook.ps1")
 
 & (Join-Path $RepoRoot "scripts\verify-p3-production-readiness-final-blocker-matrix.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-backend-production-readiness-closure-report.ps1")
