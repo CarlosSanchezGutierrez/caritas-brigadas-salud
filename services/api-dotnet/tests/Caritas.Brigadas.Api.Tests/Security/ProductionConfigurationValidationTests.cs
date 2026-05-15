@@ -35,6 +35,18 @@ public sealed class ProductionConfigurationValidationTests
     }
 
     [Fact]
+    public void ValidateProductionConfiguration_Throws_WhenProductionUsesDisabledAuthentication()
+    {
+        var builder = CreateValidProductionBuilder();
+        builder.Configuration["Authentication:Mode"] = "Disabled";
+
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => builder.ValidateProductionConfiguration());
+
+        Assert.Contains("Disabled authentication mode", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ValidateProductionConfiguration_Throws_WhenProductionHasNoSqlServerConnectionString()
     {
         var builder = CreateValidProductionBuilder();
@@ -65,10 +77,28 @@ public sealed class ProductionConfigurationValidationTests
     }
 
     [Fact]
-    public void ValidateProductionConfiguration_Throws_WhenProductionCorsUsesLocalhost()
+    public void ValidateProductionConfiguration_Throws_WhenProductionHasNoCorsOrigins()
     {
         var builder = CreateValidProductionBuilder();
-        builder.Configuration["Cors:AllowedOrigins:0"] = "https://localhost:3000";
+        builder.Configuration["Cors:AllowedOrigins:0"] = null;
+
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => builder.ValidateProductionConfiguration());
+
+        Assert.Contains("Cors:AllowedOrigins", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("https://localhost:3000")]
+    [InlineData("http://brigadas.caritas.example.org")]
+    [InlineData("https://127.0.0.1")]
+    [InlineData("https://[::1]")]
+    [InlineData("*")]
+    [InlineData("not-a-uri")]
+    public void ValidateProductionConfiguration_Throws_WhenProductionCorsOriginIsUnsafe(string origin)
+    {
+        var builder = CreateValidProductionBuilder();
+        builder.Configuration["Cors:AllowedOrigins:0"] = origin;
 
         var exception = Assert.Throws<InvalidOperationException>(
             () => builder.ValidateProductionConfiguration());
@@ -101,6 +131,38 @@ public sealed class ProductionConfigurationValidationTests
     }
 
     [Fact]
+    public void ValidateProductionConfiguration_Throws_WhenProductionDisablesRateLimiting()
+    {
+        var builder = CreateValidProductionBuilder();
+        builder.Configuration["Security:RateLimiting:Enabled"] = "false";
+
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => builder.ValidateProductionConfiguration());
+
+        Assert.Contains("Security:RateLimiting:Enabled", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("Security:RateLimiting:PermitLimit", "0", "PermitLimit")]
+    [InlineData("Security:RateLimiting:PermitLimit", "-1", "PermitLimit")]
+    [InlineData("Security:RateLimiting:WindowMinutes", "0", "WindowMinutes")]
+    [InlineData("Security:RateLimiting:WindowMinutes", "-1", "WindowMinutes")]
+    [InlineData("Security:RateLimiting:QueueLimit", "-1", "QueueLimit")]
+    public void ValidateProductionConfiguration_Throws_WhenProductionRateLimitingValuesAreInvalid(
+        string key,
+        string value,
+        string expectedMessageToken)
+    {
+        var builder = CreateValidProductionBuilder();
+        builder.Configuration[key] = value;
+
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => builder.ValidateProductionConfiguration());
+
+        Assert.Contains(expectedMessageToken, exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ValidateProductionConfiguration_DoesNotThrow_WhenProductionConfigurationIsExplicit()
     {
         var builder = CreateValidProductionBuilder();
@@ -121,6 +183,10 @@ public sealed class ProductionConfigurationValidationTests
         builder.Configuration["ConnectionStrings:SqlServer"] = "Server=tcp:sql.example.org,1433;Database=CaritasBrigadas;User Id=caritas_app;Password=placeholder;Encrypt=True;TrustServerCertificate=False;";
         builder.Configuration["Cors:AllowedOrigins:0"] = "https://brigadas.caritas.example.org";
         builder.Configuration["Security:RequireHttps"] = "true";
+        builder.Configuration["Security:RateLimiting:Enabled"] = "true";
+        builder.Configuration["Security:RateLimiting:PermitLimit"] = "100";
+        builder.Configuration["Security:RateLimiting:WindowMinutes"] = "1";
+        builder.Configuration["Security:RateLimiting:QueueLimit"] = "0";
         builder.Configuration["AllowedHosts"] = "brigadas.caritas.example.org";
 
         return builder;
