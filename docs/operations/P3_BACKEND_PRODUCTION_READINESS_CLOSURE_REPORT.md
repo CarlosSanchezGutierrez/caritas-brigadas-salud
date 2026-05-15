@@ -215,3 +215,10 @@ It should not be represented as production-ready yet.
 Final statement:
 
 The backend is NOT_PRODUCTION_READY until staging or production-like deployment evidence, SQL Server smoke evidence, deployment health smoke evidence, backup/restore evidence, rollback evidence, observability evidence, incident response evidence, final blocker matrix approval, and deployment evidence record completion exist.
+---
+
+## 11. P3-26L security and product readiness gap audit
+
+P3-26L classifies remaining work before frontend, staging, and production.
+
+The backend remains NOT_PRODUCTION_READY and the frontend remains NOT_READY_FOR_FULL_FRONTEND until patient intake, consent/signature, insurance/social security, emergency contact, optional data handling, offline sync, SQL Server VM connectivity, least privilege, ACL/firewall, secrets, and staging evidence are completed or explicitly classified.
