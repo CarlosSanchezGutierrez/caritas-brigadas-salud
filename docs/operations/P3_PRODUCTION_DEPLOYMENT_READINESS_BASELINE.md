@@ -196,3 +196,10 @@ Production authentication must use JWT Bearer configuration and must not rely on
 P3-26C adds an opt-in SQL Server smoke test script.
 
 Production go-live remains blocked until the SQL Server smoke script is executed successfully against a controlled smoke or staging database and the execution evidence is attached to the deployment record.
+---
+
+## 16. P3-26H deployment evidence template and release checklist
+
+P3-26H defines the mandatory deployment evidence record for production releases.
+
+Production go-live remains blocked until every production deployment captures release identity, pre-deployment gates, database evidence, smoke evidence, security evidence, observability evidence, rollback evidence, approval evidence, and an explicit go/no-go decision.

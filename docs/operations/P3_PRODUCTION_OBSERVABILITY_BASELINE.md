@@ -223,3 +223,10 @@ P3-26D is complete when:
 - repository governance validation includes the observability verifier;
 - production go-live remains blocked until observability implementation is complete;
 - dotnet build and dotnet test pass.
+---
+
+## 16. Deployment evidence record
+
+Production observability evidence must be captured in the deployment evidence record for every release.
+
+The record must include health endpoint evidence, structured logging evidence, correlation id evidence, request telemetry evidence, post-deployment log review, error rate review, latency review, incident owner, and escalation contact.
