@@ -9,8 +9,10 @@ public sealed class P3PreMainSecurityReviewFindingsTests
     {
         var source = File.ReadAllText(GetApiSourcePath("Middleware", "RequestTelemetryMiddleware.cs"));
 
-        Assert.Contains("SanitizeForLog(context.Request.Method)", source, StringComparison.Ordinal);
+        Assert.Contains("NormalizeHttpMethodForLog(context.Request.Method)", source, StringComparison.Ordinal);
+        Assert.Contains("private static string NormalizeHttpMethodForLog(string? method)", source, StringComparison.Ordinal);
         Assert.Contains("private static string SanitizeForLog(string? value)", source, StringComparison.Ordinal);
+        Assert.Contains("normalizedMethod is `"GET`"", source, StringComparison.Ordinal);
         Assert.Contains("char.IsControl", source, StringComparison.Ordinal);
         Assert.Contains("return SanitizeForLog(rawPath);", source, StringComparison.Ordinal);
         Assert.DoesNotContain("var httpMethod = context.Request.Method;", source, StringComparison.Ordinal);
@@ -42,6 +44,23 @@ public sealed class P3PreMainSecurityReviewFindingsTests
             StringComparison.Ordinal);
     }
 
+
+    [Fact]
+    public void AuditLogConfiguration_StoresFullAcceptedCorrelationIds()
+    {
+        var source = File.ReadAllText(GetInfrastructureSourcePath(
+            "Persistence",
+            "Configurations",
+            "AuditLogConfiguration.cs"));
+
+        Assert.Matches(
+            @"builder\.Property\(auditLog => auditLog\.CorrelationId\)\s*\r?\n\s*\.HasMaxLength\(128\);",
+            source);
+
+        Assert.DoesNotMatch(
+            @"builder\.Property\(auditLog => auditLog\.CorrelationId\)\s*\r?\n\s*\.HasMaxLength\(100\);",
+            source);
+    }
     [Fact]
     public void SecurityReviewVerifier_IsWiredIntoGovernance()
     {

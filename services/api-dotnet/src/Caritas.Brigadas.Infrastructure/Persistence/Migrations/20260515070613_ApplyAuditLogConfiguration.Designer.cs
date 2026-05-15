@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CaritasDbContext))]
-    [Migration("20260515055019_ApplyAuditLogConfiguration")]
+    [Migration("20260515070613_ApplyAuditLogConfiguration")]
     partial class ApplyAuditLogConfiguration
     {
         /// <inheritdoc />
@@ -157,8 +157,8 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("CorrelationId")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("datetimeoffset");
