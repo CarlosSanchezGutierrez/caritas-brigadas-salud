@@ -184,7 +184,18 @@ Before full frontend implementation, the frontend must know:
 
 ---
 
-## 10. Non-goals
+
+## 10. Migrant or incomplete patient data handling
+
+Patient intake must support migrant, transient, vulnerable, undocumented, or incomplete-data scenarios.
+
+The backend and frontend must allow intake when a patient cannot provide full legal identity, phone, address, CURP, government id, insurance/social security, or emergency contact.
+
+Incomplete patient data must be represented explicitly through isIdentityIncomplete and identityIncompleteReason instead of being silently ignored.
+
+The patient intake workflow must prioritize safe care continuity over rigid demographic completeness.
+
+## 11. Non-goals
 
 P3-30A does not create database migrations.
 
@@ -200,7 +211,7 @@ P3-30A does not start frontend implementation.
 
 ---
 
-## 11. Acceptance criteria
+## 12. Acceptance criteria
 
 P3-30A is complete when:
 
