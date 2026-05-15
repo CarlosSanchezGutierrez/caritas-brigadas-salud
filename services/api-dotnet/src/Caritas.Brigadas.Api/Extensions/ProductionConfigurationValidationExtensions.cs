@@ -82,9 +82,11 @@ public static class ProductionConfigurationValidationExtensions
 
     private static void ValidateProductionCors(IConfiguration configuration)
     {
-        var allowedOrigins = configuration
+        var configuredOrigins = configuration
             .GetSection("Cors:AllowedOrigins")
             .Get<string[]>() ?? [];
+
+        var allowedOrigins = configuredOrigins.Where(origin => !string.IsNullOrWhiteSpace(origin)).ToArray();
 
         if (allowedOrigins.Length == 0)
         {
@@ -177,8 +179,10 @@ public static class ProductionConfigurationValidationExtensions
             return true;
         }
 
-        return string.Equals(uri.Host, "localhost", StringComparison.OrdinalIgnoreCase) ||
+        return uri.IsLoopback ||
+            string.Equals(uri.Host, "localhost", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(uri.Host, "127.0.0.1", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(uri.Host, "::1", StringComparison.OrdinalIgnoreCase);
+            string.Equals(uri.Host, "::1", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(uri.Host, "[::1]", StringComparison.OrdinalIgnoreCase);
     }
 }

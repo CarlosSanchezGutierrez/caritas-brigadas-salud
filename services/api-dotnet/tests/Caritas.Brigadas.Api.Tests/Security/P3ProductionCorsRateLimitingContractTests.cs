@@ -43,7 +43,7 @@ public sealed class P3ProductionCorsRateLimitingContractTests
             "private static void ValidateProductionCors",
             "private static void ValidateProductionRateLimiting",
             "private static bool IsUnsafeCorsOrigin",
-            ".Where(origin => !string.IsNullOrWhiteSpace(origin))",
+            "var allowedOrigins = configuredOrigins.Where(origin => !string.IsNullOrWhiteSpace(origin)).ToArray();",
             "uri.IsLoopback",
             "[::1]",
             "Security:RateLimiting:Enabled",
@@ -78,6 +78,7 @@ public sealed class P3ProductionCorsRateLimitingContractTests
             "Security:RateLimiting:QueueLimit",
             "https://localhost:3000",
             "http://brigadas.caritas.example.org",
+            "https://[::1]",
             "*",
             "not-a-uri"
         };

@@ -91,6 +91,9 @@ $RequiredProductionValidationTokens = @(
     "private static void ValidateProductionCors",
     "private static void ValidateProductionRateLimiting",
     "private static bool IsUnsafeCorsOrigin",
+    "var allowedOrigins = configuredOrigins.Where(origin => !string.IsNullOrWhiteSpace(origin)).ToArray();",
+    "uri.IsLoopback",
+    "[::1]",
     "Security:RateLimiting:Enabled",
     "Security:RateLimiting:PermitLimit",
     "Security:RateLimiting:WindowMinutes",
@@ -118,6 +121,7 @@ $RequiredProductionTestTokens = @(
     "Security:RateLimiting:QueueLimit",
     "https://localhost:3000",
     "http://brigadas.caritas.example.org",
+    "https://[::1]",
     "*",
     "not-a-uri"
 )
