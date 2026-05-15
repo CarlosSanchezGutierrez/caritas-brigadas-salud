@@ -134,6 +134,13 @@ foreach ($Token in $ForbiddenTelemetryTokens) {
     Assert-NotContains $Telemetry $Token "RequestTelemetryMiddleware"
 }
 
+$BeginScopeIndex = $Telemetry.IndexOf("using var scope = _logger.BeginScope(scopeProperties);", [System.StringComparison]::Ordinal)
+$NextIndex = $Telemetry.IndexOf("await _next(context);", [System.StringComparison]::Ordinal)
+
+if ($BeginScopeIndex -lt 0 -or $NextIndex -lt 0 -or $BeginScopeIndex -gt $NextIndex) {
+    throw "RequestTelemetryMiddleware must start the logging scope before invoking downstream middleware."
+}
+
 Assert-Contains $HttpContextExtensions "GetCorrelationId" "HttpContextExtensions"
 Assert-Contains $Observability "P3-26F structured logging and correlation id implementation" "P3 production observability baseline"
 Assert-Contains $Governance "verify-p3-structured-logging-correlation-id.ps1" "repository governance baseline"

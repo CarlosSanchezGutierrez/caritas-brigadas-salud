@@ -35,7 +35,8 @@ public sealed class P3StructuredLoggingCorrelationIdContractTests
             "using Caritas.Brigadas.Api.Extensions;",
             "context.GetCorrelationId()",
             "SanitizePath(context.Request.Path)",
-            "BeginScope(new Dictionary<string, object?>",
+            "scopeProperties",
+            "using var scope = _logger.BeginScope(scopeProperties);",
             "[\"CorrelationId\"]",
             "[\"RequestId\"]",
             "[\"HttpMethod\"]",
@@ -52,6 +53,26 @@ public sealed class P3StructuredLoggingCorrelationIdContractTests
         AssertRequiredTokens(source, requiredTokens, "RequestTelemetryMiddleware");
     }
 
+
+    [Fact]
+    public void RequestTelemetryMiddleware_StartsScopeBeforeInvokingNextMiddleware()
+    {
+        var source = File.ReadAllText(GetMiddlewarePath("RequestTelemetryMiddleware.cs"));
+
+        var beginScopeIndex = source.IndexOf(
+            "using var scope = _logger.BeginScope(scopeProperties);",
+            StringComparison.Ordinal);
+
+        var nextIndex = source.IndexOf(
+            "await _next(context);",
+            StringComparison.Ordinal);
+
+        Assert.True(beginScopeIndex >= 0, "RequestTelemetryMiddleware must create a logging scope.");
+        Assert.True(nextIndex >= 0, "RequestTelemetryMiddleware must invoke downstream middleware.");
+        Assert.True(
+            beginScopeIndex < nextIndex,
+            "RequestTelemetryMiddleware must start the logging scope before invoking downstream middleware.");
+    }
     [Fact]
     public void RequestTelemetryMiddleware_SanitizesSensitiveRoutes()
     {
@@ -116,7 +137,8 @@ public sealed class P3StructuredLoggingCorrelationIdContractTests
             "RequestTelemetryMiddleware.cs",
             "HttpContextExtensions.cs",
             "context.GetCorrelationId()",
-            "BeginScope(new Dictionary<string, object?>",
+            "scopeProperties",
+            "using var scope = _logger.BeginScope(scopeProperties);",
             "/api/v1/[sensitive-resource]"
         };
 

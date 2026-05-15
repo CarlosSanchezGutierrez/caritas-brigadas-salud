@@ -33,6 +33,20 @@ public sealed class RequestTelemetryMiddleware
         var stopwatch = Stopwatch.StartNew();
         var httpMethod = context.Request.Method;
         var sanitizedPath = SanitizePath(context.Request.Path);
+        var correlationId = context.GetCorrelationId();
+
+        var scopeProperties = new Dictionary<string, object?>
+        {
+            ["CorrelationId"] = correlationId,
+            ["RequestId"] = context.TraceIdentifier,
+            ["HttpMethod"] = httpMethod,
+            ["EndpointRoute"] = sanitizedPath,
+            ["StatusCode"] = 0,
+            ["ElapsedMilliseconds"] = 0
+        };
+
+        using var scope = _logger.BeginScope(scopeProperties);
+
         Exception? capturedException = null;
 
         try
@@ -50,17 +64,9 @@ public sealed class RequestTelemetryMiddleware
 
             var elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
             var statusCode = context.Response.StatusCode;
-            var correlationId = context.GetCorrelationId();
 
-            using var scope = _logger.BeginScope(new Dictionary<string, object?>
-            {
-                ["CorrelationId"] = correlationId,
-                ["RequestId"] = context.TraceIdentifier,
-                ["HttpMethod"] = httpMethod,
-                ["EndpointRoute"] = sanitizedPath,
-                ["StatusCode"] = statusCode,
-                ["ElapsedMilliseconds"] = elapsedMilliseconds
-            });
+            scopeProperties["StatusCode"] = statusCode;
+            scopeProperties["ElapsedMilliseconds"] = elapsedMilliseconds;
 
             if (capturedException is not null)
             {
