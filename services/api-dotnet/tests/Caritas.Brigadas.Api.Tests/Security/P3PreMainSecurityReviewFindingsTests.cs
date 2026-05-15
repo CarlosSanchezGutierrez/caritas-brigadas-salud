@@ -10,7 +10,7 @@ public sealed class P3PreMainSecurityReviewFindingsTests
     {
         var source = File.ReadAllText(GetApiSourcePath("Middleware", "RequestTelemetryMiddleware.cs"));
 
-        Assert.Contains("NormalizeHttpMethodForLog(context.Request.Method)", source, StringComparison.Ordinal);
+        Assert.Contains("SanitizeForLog(NormalizeHttpMethodForLog(context.Request.Method))", source, StringComparison.Ordinal);
         Assert.Contains("private static string NormalizeHttpMethodForLog(string? method)", source, StringComparison.Ordinal);
         Assert.Contains("normalizedMethod is \"GET\"", source, StringComparison.Ordinal);
         Assert.Contains("private static string SanitizeForLog(string? value)", source, StringComparison.Ordinal);

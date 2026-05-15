@@ -31,7 +31,7 @@ public sealed class RequestTelemetryMiddleware
         ArgumentNullException.ThrowIfNull(context);
 
         var stopwatch = Stopwatch.StartNew();
-        var httpMethod = NormalizeHttpMethodForLog(context.Request.Method);
+        var httpMethod = SanitizeForLog(NormalizeHttpMethodForLog(context.Request.Method));
         var sanitizedPath = SanitizePath(context.Request.Path);
         var correlationId = context.GetCorrelationId();
 
