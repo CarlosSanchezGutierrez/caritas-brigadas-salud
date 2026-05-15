@@ -58,12 +58,11 @@ internal sealed class PatientSyncEventHandler
             .AnyAsync(
                 patient =>
                     patient.Id == patientId &&
-                    patient.OrganizationId == organizationId &&
-                    !patient.IsDeleted,
+                    patient.OrganizationId == organizationId,
                 cancellationToken);
 
         if (patientIdAlreadyExists ||
-            _dbContext.Patients.Local.Any(patient => patient.Id == patientId && patient.OrganizationId == organizationId && !patient.IsDeleted))
+            _dbContext.Patients.Local.Any(patient => patient.Id == patientId && patient.OrganizationId == organizationId))
         {
             syncEvent.MarkConflict(
                 processedAt,
