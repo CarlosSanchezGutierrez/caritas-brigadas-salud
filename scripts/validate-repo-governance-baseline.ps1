@@ -189,3 +189,5 @@ Write-Host "============================================================" -Foreg
 & (Join-Path $RepoRoot "scripts\verify-p3-health-endpoint-deployment-smoke.ps1")
 
 & (Join-Path $RepoRoot "scripts\verify-p3-structured-logging-correlation-id.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-production-cors-rate-limiting.ps1")
