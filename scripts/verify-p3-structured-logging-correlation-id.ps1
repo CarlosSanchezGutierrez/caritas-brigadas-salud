@@ -101,13 +101,17 @@ $RequiredTelemetryTokens = @(
     "using Caritas.Brigadas.Api.Extensions;",
     "context.GetCorrelationId()",
     "SanitizePath(context.Request.Path)",
-    "BeginScope(new Dictionary<string, object?>",
+    "var scopeProperties = new Dictionary<string, object?>",
+    "using var scope = _logger.BeginScope(scopeProperties);",
+    "await _next(context);",
     "[""CorrelationId""]",
     "[""RequestId""]",
     "[""HttpMethod""]",
     "[""EndpointRoute""]",
     "[""StatusCode""]",
     "[""ElapsedMilliseconds""]",
+    "scopeProperties[""StatusCode""] = statusCode;",
+    "scopeProperties[""ElapsedMilliseconds""] = elapsedMilliseconds;",
     "StatusCodes.Status500InternalServerError",
     "StatusCodes.Status400BadRequest",
     "LogInformation",
@@ -127,7 +131,8 @@ $ForbiddenTelemetryTokens = @(
     "Request.QueryString",
     "ConnectionStrings",
     "Bearer ",
-    "Password"
+    "Password",
+    "BeginScope(new Dictionary<string, object?>"
 )
 
 foreach ($Token in $ForbiddenTelemetryTokens) {

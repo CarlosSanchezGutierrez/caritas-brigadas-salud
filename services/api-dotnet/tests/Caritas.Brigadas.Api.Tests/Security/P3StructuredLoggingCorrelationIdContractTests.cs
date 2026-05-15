@@ -35,7 +35,7 @@ public sealed class P3StructuredLoggingCorrelationIdContractTests
             "using Caritas.Brigadas.Api.Extensions;",
             "context.GetCorrelationId()",
             "SanitizePath(context.Request.Path)",
-            "scopeProperties",
+            "var scopeProperties = new Dictionary<string, object?>",
             "using var scope = _logger.BeginScope(scopeProperties);",
             "[\"CorrelationId\"]",
             "[\"RequestId\"]",
@@ -43,6 +43,8 @@ public sealed class P3StructuredLoggingCorrelationIdContractTests
             "[\"EndpointRoute\"]",
             "[\"StatusCode\"]",
             "[\"ElapsedMilliseconds\"]",
+            "scopeProperties[\"StatusCode\"] = statusCode;",
+            "scopeProperties[\"ElapsedMilliseconds\"] = elapsedMilliseconds;",
             "StatusCodes.Status500InternalServerError",
             "StatusCodes.Status400BadRequest",
             "LogInformation",
@@ -52,7 +54,6 @@ public sealed class P3StructuredLoggingCorrelationIdContractTests
 
         AssertRequiredTokens(source, requiredTokens, "RequestTelemetryMiddleware");
     }
-
 
     [Fact]
     public void RequestTelemetryMiddleware_StartsScopeBeforeInvokingNextMiddleware()
@@ -73,6 +74,7 @@ public sealed class P3StructuredLoggingCorrelationIdContractTests
             beginScopeIndex < nextIndex,
             "RequestTelemetryMiddleware must start the logging scope before invoking downstream middleware.");
     }
+
     [Fact]
     public void RequestTelemetryMiddleware_SanitizesSensitiveRoutes()
     {
@@ -95,6 +97,10 @@ public sealed class P3StructuredLoggingCorrelationIdContractTests
         Assert.DoesNotContain("Request.QueryString", source, StringComparison.Ordinal);
         Assert.DoesNotContain("Request.Body", source, StringComparison.Ordinal);
         Assert.DoesNotContain("PayloadJson", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("ConnectionStrings", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("Bearer ", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("Password", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("BeginScope(new Dictionary<string, object?>", source, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -115,6 +121,7 @@ public sealed class P3StructuredLoggingCorrelationIdContractTests
             "StatusCode",
             "ElapsedMilliseconds",
             "/api/v1/[sensitive-resource]",
+            "raw PayloadJson",
             "Information for successful responses below 400",
             "Warning for responses from 400 to 499",
             "Error for responses 500 or greater",
@@ -137,8 +144,9 @@ public sealed class P3StructuredLoggingCorrelationIdContractTests
             "RequestTelemetryMiddleware.cs",
             "HttpContextExtensions.cs",
             "context.GetCorrelationId()",
-            "scopeProperties",
+            "var scopeProperties = new Dictionary<string, object?>",
             "using var scope = _logger.BeginScope(scopeProperties);",
+            "RequestTelemetryMiddleware must start the logging scope before invoking downstream middleware.",
             "/api/v1/[sensitive-resource]"
         };
 
