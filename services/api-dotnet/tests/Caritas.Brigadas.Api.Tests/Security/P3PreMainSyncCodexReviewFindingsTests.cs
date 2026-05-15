@@ -56,6 +56,21 @@ public sealed class P3PreMainSyncCodexReviewFindingsTests
             StringComparison.Ordinal);
     }
 
+
+    [Fact]
+    public void SyncBatchWriteRepository_DoesNotPersistEmptyRetryBatches()
+    {
+        var source = File.ReadAllText(GetInfrastructureSourcePath("Sync", "SyncBatchWriteRepository.cs"));
+
+        Assert.Contains("existingEvents.Length > 0", source, StringComparison.Ordinal);
+        Assert.Contains("return ToSummaryDto(existingBatch);", source, StringComparison.Ordinal);
+        Assert.Contains("Payload contains sync events that were already submitted in a different batch.", source, StringComparison.Ordinal);
+        Assert.Contains("_dbContext.SyncBatches.Add(batch);", source, StringComparison.Ordinal);
+        Assert.Contains("_dbContext.SyncEvents.AddRange(events);", source, StringComparison.Ordinal);
+
+        Assert.DoesNotContain("var newEvents = events", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("_dbContext.SyncEvents.AddRange(newEvents);", source, StringComparison.Ordinal);
+    }
     private static string GetInfrastructureSourcePath(params string[] parts)
     {
         return Path.Combine(
