@@ -56,6 +56,9 @@ The consent and signature contract must define:
 - signerType;
 - signerFullName;
 - signerRelationshipToPatient;
+- refusalReason;
+- unableToSignReason;
+- voidReason;
 - signatureStorageMode;
 - signatureObjectKey;
 - signatureFileName;
@@ -215,9 +218,9 @@ Consent validation must include:
 - signature evidence required for ACCEPTED or GUARDIAN_ACCEPTED when signatureMethod is DRAWN_SIGNATURE;
 - signerRelationshipToPatient required for GUARDIAN;
 - signerFullName required for WITNESS;
-- refusal reason required for REFUSED;
-- unable-to-sign reason required for UNABLE_TO_SIGN;
-- void reason required for VOIDED;
+- refusalReason required for REFUSED;
+- unableToSignReason required for UNABLE_TO_SIGN;
+- voidReason required for VOIDED;
 - signatureSha256 required when binary signature evidence exists.
 
 ---

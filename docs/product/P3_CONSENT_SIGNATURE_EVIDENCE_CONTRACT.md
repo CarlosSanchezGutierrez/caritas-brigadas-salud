@@ -53,6 +53,9 @@ Expected consent workflow:
 | signerType | enum | Yes | PATIENT, GUARDIAN, etc. |
 | signerFullName | string | Conditional | Required for witness/typed flows |
 | signerRelationshipToPatient | string | Conditional | Required for guardian |
+| refusalReason | string | Conditional | Required when consentStatus is REFUSED |
+| unableToSignReason | string | Conditional | Required when consentStatus is UNABLE_TO_SIGN |
+| voidReason | string | Conditional | Required when consentStatus is VOIDED |
 | signatureStorageMode | enum | Conditional | FILE_REFERENCE, LOCAL_PENDING, etc. |
 | signatureObjectKey | string | Conditional | External object/file reference |
 | signatureFileName | string | No | Optional display/debug metadata |
@@ -173,8 +176,9 @@ Required rejection examples:
 | ACCEPTED without signature evidence when DRAWN_SIGNATURE | Blocking | Re-capture signature | Reject |
 | GUARDIAN signer without relationship | Blocking | Show error | Reject |
 | WITNESS signer without full name | Blocking | Show error | Reject |
-| REFUSED without reason | Blocking | Show error | Reject |
-| UNABLE_TO_SIGN without reason | Blocking | Show error | Reject |
+| REFUSED without refusalReason | Blocking | Show error | Reject |
+| UNABLE_TO_SIGN without unableToSignReason | Blocking | Show error | Reject |
+| VOIDED without voidReason | Blocking | Show error | Reject |
 | signature binary exists without signatureSha256 | Blocking | Recompute hash | Reject |
 | optional file metadata missing | Non-blocking | Allow save | Accept if hash/evidence exists |
 
@@ -248,3 +252,8 @@ Allowed telemetry:
 - elapsed time;
 - consent event status;
 - non-sensitive rejection reason.
+---
+
+## 12. P3-30C emergency contact and insurance fields
+
+P3-30C defines the emergency contact, social security, and insurance fields that complete the patient details contract before OpenAPI/frontend contract freeze.

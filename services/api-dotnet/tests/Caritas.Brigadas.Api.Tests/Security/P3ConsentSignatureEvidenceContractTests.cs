@@ -19,6 +19,9 @@ public sealed class P3ConsentSignatureEvidenceContractTests
             "consentStatus",
             "signatureMethod",
             "signerType",
+            "refusalReason",
+            "unableToSignReason",
+            "voidReason",
             "signatureSha256",
             "consentTextSnapshotHash",
             "ACCEPTED",
@@ -58,8 +61,14 @@ public sealed class P3ConsentSignatureEvidenceContractTests
             "consent_signature_missing",
             "consent_guardian_relationship_missing",
             "consent_unable_to_sign_reason_missing",
-            "Firma dibujada",
-            "Tutor o responsable",
+            "refusalReason",
+            "unableToSignReason",
+            "voidReason",
+            "REFUSED without refusalReason",
+            "UNABLE_TO_SIGN without unableToSignReason",
+            "VOIDED without voidReason",
+            "drawnSignature",
+            "guardian",
             "pendingSync",
             "Never log",
             "base64 signature",
@@ -81,7 +90,10 @@ public sealed class P3ConsentSignatureEvidenceContractTests
             "P3_CONSENT_SIGNATURE_EVIDENCE_CONTRACT.md",
             "P3_PATIENT_INTAKE_FUNCTIONAL_CONTRACT.md",
             "P3_SECURITY_PRODUCT_READINESS_GAP_AUDIT.md",
-            "repository governance baseline"
+            "repository governance baseline",
+            "refusalReason",
+            "unableToSignReason",
+            "voidReason"
         };
 
         AssertRequiredTokens(source, requiredTokens, "P3 consent signature evidence contract verifier");
