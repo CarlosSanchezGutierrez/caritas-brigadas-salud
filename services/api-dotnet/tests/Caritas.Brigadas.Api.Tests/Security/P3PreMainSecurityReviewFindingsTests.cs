@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace Caritas.Brigadas.Api.Tests.Security;
@@ -5,17 +6,18 @@ namespace Caritas.Brigadas.Api.Tests.Security;
 public sealed class P3PreMainSecurityReviewFindingsTests
 {
     [Fact]
-    public void RequestTelemetryMiddleware_SanitizesRequestControlledLogValues()
+    public void RequestTelemetryMiddleware_NormalizesRequestMethodBeforeLogging()
     {
         var source = File.ReadAllText(GetApiSourcePath("Middleware", "RequestTelemetryMiddleware.cs"));
 
         Assert.Contains("NormalizeHttpMethodForLog(context.Request.Method)", source, StringComparison.Ordinal);
         Assert.Contains("private static string NormalizeHttpMethodForLog(string? method)", source, StringComparison.Ordinal);
+        Assert.Contains("normalizedMethod is \"GET\"", source, StringComparison.Ordinal);
         Assert.Contains("private static string SanitizeForLog(string? value)", source, StringComparison.Ordinal);
-        Assert.Contains("normalizedMethod is `"GET`"", source, StringComparison.Ordinal);
         Assert.Contains("char.IsControl", source, StringComparison.Ordinal);
         Assert.Contains("return SanitizeForLog(rawPath);", source, StringComparison.Ordinal);
         Assert.DoesNotContain("var httpMethod = context.Request.Method;", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("var httpMethod = SanitizeForLog(context.Request.Method);", source, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -44,7 +46,6 @@ public sealed class P3PreMainSecurityReviewFindingsTests
             StringComparison.Ordinal);
     }
 
-
     [Fact]
     public void AuditLogConfiguration_StoresFullAcceptedCorrelationIds()
     {
@@ -61,6 +62,41 @@ public sealed class P3PreMainSecurityReviewFindingsTests
             @"builder\.Property\(auditLog => auditLog\.CorrelationId\)\s*\r?\n\s*\.HasMaxLength\(100\);",
             source);
     }
+
+    [Fact]
+    public void AuditLogMigrationHistory_PreservesOriginalAndAddsFollowUpWideningMigration()
+    {
+        var migrationRoot = Path.Combine(
+            FindRepositoryRoot(),
+            "services",
+            "api-dotnet",
+            "src",
+            "Caritas.Brigadas.Infrastructure",
+            "Persistence",
+            "Migrations");
+
+        Assert.True(
+            File.Exists(Path.Combine(migrationRoot, "20260515055019_ApplyAuditLogConfiguration.cs")),
+            "The original ApplyAuditLogConfiguration migration must be preserved.");
+
+        Assert.True(
+            File.Exists(Path.Combine(migrationRoot, "20260515055019_ApplyAuditLogConfiguration.Designer.cs")),
+            "The original ApplyAuditLogConfiguration designer must be preserved.");
+
+        var widenMigration = Directory.GetFiles(
+                migrationRoot,
+                "*WidenAuditLogCorrelationIdTo128.cs",
+                SearchOption.TopDirectoryOnly)
+            .SingleOrDefault(file => !file.EndsWith(".Designer.cs", StringComparison.Ordinal));
+
+        Assert.False(string.IsNullOrWhiteSpace(widenMigration));
+
+        var widenMigrationSource = File.ReadAllText(widenMigration!);
+
+        Assert.Contains("CorrelationId", widenMigrationSource, StringComparison.Ordinal);
+        Assert.Contains("maxLength: 128", widenMigrationSource, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void SecurityReviewVerifier_IsWiredIntoGovernance()
     {

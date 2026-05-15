@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CaritasDbContext))]
-    [Migration("20260515070613_ApplyAuditLogConfiguration")]
-    partial class ApplyAuditLogConfiguration
+    [Migration("20260515071601_WidenAuditLogCorrelationIdTo128")]
+    partial class WidenAuditLogCorrelationIdTo128
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

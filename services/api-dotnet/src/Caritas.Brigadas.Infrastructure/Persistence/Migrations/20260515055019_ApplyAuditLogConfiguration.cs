@@ -42,8 +42,8 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "CorrelationId",
                 table: "AuditLogs",
-                type: "nvarchar(128)",
-                maxLength: 128,
+                type: "nvarchar(100)",
+                maxLength: 100,
                 nullable: true,
                 oldClrType: typeof(string),
                 oldType: "nvarchar(max)",
@@ -133,8 +133,8 @@ namespace Caritas.Brigadas.Infrastructure.Persistence.Migrations
                 type: "nvarchar(max)",
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(128)",
-                oldMaxLength: 128,
+                oldType: "nvarchar(100)",
+                oldMaxLength: 100,
                 oldNullable: true);
 
             migrationBuilder.AlterColumn<string>(

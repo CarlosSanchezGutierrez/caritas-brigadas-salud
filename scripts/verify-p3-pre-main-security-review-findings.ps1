@@ -77,3 +77,15 @@ Assert-Contains $AuditLogConfiguration "auditLog.OccurredAtUtc" "AuditLogConfigu
 Assert-Contains $Governance "verify-p3-pre-main-security-review-findings.ps1" "repository governance baseline"
 
 Write-Host "P3 pre-main security review findings verification passed." -ForegroundColor Green
+$MigrationRoot = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Persistence/Migrations"
+
+$OriginalAuditMigration = Get-ChildItem -Path $MigrationRoot -Filter "20260515055019_ApplyAuditLogConfiguration.cs" -ErrorAction SilentlyContinue
+$WidenAuditMigration = Get-ChildItem -Path $MigrationRoot -Filter "*WidenAuditLogCorrelationIdTo128.cs" -ErrorAction SilentlyContinue
+
+if (-not $OriginalAuditMigration) {
+    throw "Original ApplyAuditLogConfiguration migration must be preserved."
+}
+
+if (-not $WidenAuditMigration) {
+    throw "WidenAuditLogCorrelationIdTo128 migration is required."
+}
