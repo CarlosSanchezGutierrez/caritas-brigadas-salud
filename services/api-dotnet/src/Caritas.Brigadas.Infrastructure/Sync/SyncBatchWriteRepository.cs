@@ -189,7 +189,7 @@ public sealed class SyncBatchWriteRepository : ISyncBatchWriteRepository
                 }
             }
 
-            throw new DomainException("Payload contains sync events that were already submitted in a different batch.");
+            throw new InvalidOperationException("Payload contains sync events that were already submitted in a different batch.");
         }
 
         _dbContext.SyncBatches.Add(batch);
