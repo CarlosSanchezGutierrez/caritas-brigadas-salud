@@ -1,5 +1,6 @@
 using Caritas.Brigadas.Domain.Common;
 using Caritas.Brigadas.Domain.Entities;
+using Caritas.Brigadas.Infrastructure.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -55,6 +56,8 @@ public sealed class CaritasDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.ApplyConfiguration(new AuditLogConfiguration());
 
         ConfigureCore(modelBuilder);
         ConfigureBrigades(modelBuilder);

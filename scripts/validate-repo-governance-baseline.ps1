@@ -209,3 +209,5 @@ Write-Host "============================================================" -Foreg
 & (Join-Path $RepoRoot "scripts\verify-p3-emergency-contact-insurance-fields-contract.ps1")
 
 & (Join-Path $RepoRoot "scripts\verify-p3-openapi-frontend-contract-freeze.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-pre-main-security-review-findings.ps1")

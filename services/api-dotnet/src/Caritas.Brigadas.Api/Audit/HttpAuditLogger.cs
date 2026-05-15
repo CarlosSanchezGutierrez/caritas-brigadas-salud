@@ -1,3 +1,4 @@
+using Caritas.Brigadas.Api.Extensions;
 using Caritas.Brigadas.Application.Audit;
 using Caritas.Brigadas.Application.Security;
 
@@ -54,7 +55,7 @@ public sealed class HttpAuditLogger : IAuditLogger
             EntityName = entityName,
             EntityId = entityId,
             DetailsJson = detailsJson,
-            CorrelationId = httpContext?.TraceIdentifier,
+            CorrelationId = httpContext?.GetCorrelationId(),
             IpAddress = httpContext?.Connection.RemoteIpAddress?.ToString(),
             UserAgent = httpContext?.Request.Headers["User-Agent"].ToString(),
             OccurredAtUtc = DateTimeOffset.UtcNow
