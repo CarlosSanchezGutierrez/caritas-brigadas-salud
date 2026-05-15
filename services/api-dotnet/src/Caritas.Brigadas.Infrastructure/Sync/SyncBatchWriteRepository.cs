@@ -56,14 +56,13 @@ public sealed class SyncBatchWriteRepository : ISyncBatchWriteRepository
 
         var syncPayloadEvents = ExtractSyncPayloadEvents(request.PayloadJson);
 
-        
-
         if (request.EventsCount.HasValue &&
             request.EventsCount.Value != syncPayloadEvents.Count)
         {
             throw new DomainException("Events count does not match payload event count.");
         }
-var organizationExists = await _dbContext.Organizations
+
+        var organizationExists = await _dbContext.Organizations
             .AsNoTracking()
             .AnyAsync(
                 organization =>
@@ -113,8 +112,6 @@ var organizationExists = await _dbContext.Organizations
             startedAt: request.StartedAt ?? DateTimeOffset.UtcNow,
             eventsCount: syncPayloadEvents.Count);
 
-        _dbContext.SyncBatches.Add(batch);
-
         var events = syncPayloadEvents
             .Select(item => new SyncEvent(
                 id: Guid.NewGuid(),
@@ -150,27 +147,61 @@ var organizationExists = await _dbContext.Organizations
             .Select(syncEvent => syncEvent.IdempotencyKey)
             .ToArray();
 
-        var existingKeys = await _dbContext.SyncEvents
+        var existingEvents = await _dbContext.SyncEvents
             .AsNoTracking()
             .Where(syncEvent =>
                 syncEvent.OrganizationId == organizationId &&
                 eventKeys.Contains(syncEvent.IdempotencyKey))
-            .Select(syncEvent => syncEvent.IdempotencyKey)
+            .Select(syncEvent => new
+            {
+                syncEvent.IdempotencyKey,
+                syncEvent.SyncBatchId
+            })
             .ToArrayAsync(cancellationToken);
 
-        var existingKeySet = existingKeys.ToHashSet(StringComparer.Ordinal);
-
-        var newEvents = events
-            .Where(syncEvent => !existingKeySet.Contains(syncEvent.IdempotencyKey))
-            .ToArray();
-
-        if (newEvents.Length > 0)
+        if (existingEvents.Length > 0)
         {
-            _dbContext.SyncEvents.AddRange(newEvents);
+            var existingKeySet = existingEvents
+                .Select(syncEvent => syncEvent.IdempotencyKey)
+                .ToHashSet(StringComparer.Ordinal);
+
+            if (existingKeySet.Count == events.Length)
+            {
+                var existingBatchIds = existingEvents
+                    .Select(syncEvent => syncEvent.SyncBatchId)
+                    .Distinct()
+                    .ToArray();
+
+                if (existingBatchIds.Length == 1)
+                {
+                    var existingBatch = await _dbContext.SyncBatches
+                        .AsNoTracking()
+                        .SingleOrDefaultAsync(
+                            syncBatch =>
+                                syncBatch.Id == existingBatchIds[0] &&
+                                syncBatch.OrganizationId == organizationId,
+                            cancellationToken);
+
+                    if (existingBatch is not null)
+                    {
+                        return ToSummaryDto(existingBatch);
+                    }
+                }
+            }
+
+            throw new InvalidOperationException("Payload contains sync events that were already submitted in a different batch.");
         }
+
+        _dbContext.SyncBatches.Add(batch);
+        _dbContext.SyncEvents.AddRange(events);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        return ToSummaryDto(batch);
+    }
+
+    private static SyncBatchSummaryDto ToSummaryDto(SyncBatch batch)
+    {
         return new SyncBatchSummaryDto
         {
             Id = batch.Id,
