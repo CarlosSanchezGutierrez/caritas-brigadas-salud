@@ -159,3 +159,17 @@ Decision rationale: PENDING
 | Incident response record link | PENDING |
 | Rollback escalation owner | PENDING |
 | Privacy/legal escalation owner | PENDING |
+---
+
+## 12. Production readiness final blocker matrix
+
+| Field | Value |
+|---|---|
+| Production readiness final blocker matrix | PENDING |
+| Overall readiness status | PENDING |
+| Final go/no-go decision | PENDING |
+| Blocking items remaining | PENDING |
+| Conditional items accepted | PENDING |
+| Waived items approved | PENDING |
+| Technical approver | PENDING |
+| Business approver | PENDING |

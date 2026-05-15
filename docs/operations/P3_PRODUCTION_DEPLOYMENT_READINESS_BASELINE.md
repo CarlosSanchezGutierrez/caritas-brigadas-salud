@@ -210,3 +210,10 @@ Production go-live remains blocked until every production deployment captures re
 P3-26I defines the mandatory operational incident response runbook for production incidents.
 
 Production go-live remains blocked until incidents can be classified by severity, assigned to owners, triaged, mitigated, rolled back when needed, communicated, and reviewed through postmortem evidence.
+---
+
+## 18. P3-26J production readiness final blocker matrix
+
+P3-26J defines the final blocker matrix required before declaring the backend production-ready.
+
+Production go-live remains blocked until every required blocker is classified as READY, CONDITIONAL, WAIVED_WITH_APPROVAL, or NOT_APPLICABLE with evidence, owner, approver, exit criterion, risk statement, and final decision.
