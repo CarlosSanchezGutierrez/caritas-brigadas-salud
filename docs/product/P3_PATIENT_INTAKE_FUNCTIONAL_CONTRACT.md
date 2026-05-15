@@ -298,3 +298,10 @@ Not allowed until P3-30B/P3-30C/P3-30D:
 - final consent/signature UI;
 - final emergency contact/insurance UI;
 - production API integration.
+---
+
+## 13. P3-30B consent and signature evidence contract
+
+P3-30B defines privacy notice consent, patient or guardian signature evidence, consent status, signature method, signer type, offline consent sync, and logging restrictions.
+
+Patient intake remains only partially frontend-ready until consent/signature, emergency contact, insurance/social security, and OpenAPI contracts are complete.
