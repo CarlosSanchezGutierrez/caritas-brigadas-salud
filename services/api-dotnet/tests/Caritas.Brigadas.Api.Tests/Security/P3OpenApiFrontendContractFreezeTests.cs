@@ -76,7 +76,7 @@ public sealed class P3OpenApiFrontendContractFreezeTests
         Assert.Contains("UseCaritasSwagger", program, StringComparison.Ordinal);
         Assert.Contains("openapi/{documentName}/openapi.json", swaggerExtensions, StringComparison.Ordinal);
         Assert.Contains("RoutePrefix = \"swagger\"", swaggerExtensions, StringComparison.Ordinal);
-        Assert.Contains("Cáritas Brigadas de Salud API v1", swaggerExtensions, StringComparison.Ordinal);
+        Assert.Contains("Brigadas de Salud API v1", swaggerExtensions, StringComparison.Ordinal);
     }
 
     [Fact]

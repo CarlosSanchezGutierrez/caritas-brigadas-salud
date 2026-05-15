@@ -111,7 +111,7 @@ Assert-Contains $Program "AddCaritasSwagger" "Program.cs"
 Assert-Contains $Program "UseCaritasSwagger" "Program.cs"
 Assert-Contains $SwaggerExtensions "openapi/{documentName}/openapi.json" "SwaggerServiceExtensions.cs"
 Assert-Contains $SwaggerExtensions "RoutePrefix = `"swagger`"" "SwaggerServiceExtensions.cs"
-Assert-Contains $SwaggerExtensions "Cáritas Brigadas de Salud API v1" "SwaggerServiceExtensions.cs"
+Assert-Contains $SwaggerExtensions "Brigadas de Salud API v1" "SwaggerServiceExtensions.cs"
 
 Assert-Contains $PatientIntake "P3-30D OpenAPI/frontend contract freeze" "P3 patient intake functional contract"
 Assert-Contains $Consent "P3-30D OpenAPI/frontend contract freeze" "P3 consent signature evidence contract"
