@@ -248,3 +248,8 @@ Allowed telemetry:
 - elapsed time;
 - consent event status;
 - non-sensitive rejection reason.
+---
+
+## 12. P3-30C emergency contact and insurance fields
+
+P3-30C defines the emergency contact, social security, and insurance fields that complete the patient details contract before OpenAPI/frontend contract freeze.

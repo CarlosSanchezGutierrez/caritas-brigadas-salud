@@ -305,3 +305,10 @@ Not allowed until P3-30B/P3-30C/P3-30D:
 P3-30B defines privacy notice consent, patient or guardian signature evidence, consent status, signature method, signer type, offline consent sync, and logging restrictions.
 
 Patient intake remains only partially frontend-ready until consent/signature, emergency contact, insurance/social security, and OpenAPI contracts are complete.
+---
+
+## 14. P3-30C emergency contact and insurance fields
+
+P3-30C defines emergency contact, social security, and insurance field semantics, optionality, validation, privacy handling, and frontend expectations.
+
+Patient intake remains only partially frontend-ready until OpenAPI/frontend contract freeze is complete.
