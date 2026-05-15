@@ -236,3 +236,10 @@ Not allowed until P3-30D:
 - final generated client;
 - final OpenAPI-based implementation;
 - production API integration.
+---
+
+## 12. P3-30D OpenAPI/frontend contract freeze
+
+P3-30D freezes the frontend API contract after emergency contact and insurance/social security contracts are complete.
+
+After P3-30D, frontend patient details scaffolding is allowed in mock API mode.

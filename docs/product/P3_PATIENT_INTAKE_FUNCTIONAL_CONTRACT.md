@@ -312,3 +312,10 @@ Patient intake remains only partially frontend-ready until consent/signature, em
 P3-30C defines emergency contact, social security, and insurance field semantics, optionality, validation, privacy handling, and frontend expectations.
 
 Patient intake remains only partially frontend-ready until OpenAPI/frontend contract freeze is complete.
+---
+
+## 15. P3-30D OpenAPI/frontend contract freeze
+
+P3-30D freezes the frontend integration contract after patient intake, consent/signature, emergency contact, insurance/social security, and offline sync expectations have been documented.
+
+After P3-30D, frontend MVP scaffolding is allowed.
