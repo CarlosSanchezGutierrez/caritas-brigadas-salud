@@ -255,7 +255,7 @@ Recommended Spanish labels:
 - Rechazó firmar;
 - Motivo de rechazo;
 - Firma guardada;
-- Pendiente de sincronización.
+- Pendiente de sincronizacion.
 
 ---
 

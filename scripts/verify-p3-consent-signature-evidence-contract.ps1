@@ -88,7 +88,7 @@ $RequiredContractTokens = @(
     "consent_unable_to_sign_reason_missing",
     "Firma dibujada",
     "Tutor o responsable",
-    "Pendiente de sincronización",
+    "pendingSync",
     "Never log",
     "base64 signature",
     "PayloadJson"

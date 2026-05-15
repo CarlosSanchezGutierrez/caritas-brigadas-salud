@@ -198,7 +198,7 @@ Required rejection examples:
 | witness | Testigo |
 | refusalReason | Motivo de rechazo |
 | unableToSignReason | Motivo por el que no puede firmar |
-| pendingSync | Pendiente de sincronización |
+| pendingSync | Pendiente de sincronizacion |
 | signatureSaved | Firma guardada |
 
 ---
