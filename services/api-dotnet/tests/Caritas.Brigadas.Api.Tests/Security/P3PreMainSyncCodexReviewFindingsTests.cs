@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Xunit;
 
 namespace Caritas.Brigadas.Api.Tests.Security;
@@ -10,11 +9,34 @@ public sealed class P3PreMainSyncCodexReviewFindingsTests
     {
         var source = File.ReadAllText(GetInfrastructureSourcePath("Sync", "PatientSyncEventHandler.cs"));
 
+        var startToken = "        var patientIdAlreadyExists = await _dbContext.Patients";
+        var endToken = "        if (patientIdAlreadyExists ||";
+
+        var startIndex = source.IndexOf(startToken, StringComparison.Ordinal);
+        var endIndex = source.IndexOf(endToken, startIndex, StringComparison.Ordinal);
+
+        Assert.True(startIndex >= 0, "patientIdAlreadyExists block must exist.");
+        Assert.True(endIndex > startIndex, "patientIdAlreadyExists block must end before conflict check.");
+
+        var patientIdAlreadyExistsBlock = source[startIndex..endIndex];
+
         Assert.Contains("patient_id_already_exists", source, StringComparison.Ordinal);
 
-        Assert.DoesNotMatch(
-            @"patient\.Id == patientId &&\s*patient\.OrganizationId == organizationId &&\s*!patient\.IsDeleted",
-            source);
+        Assert.Matches(
+            @"patient\.Id == patientId\s*&&\s*patient\.OrganizationId == organizationId\s*,",
+            patientIdAlreadyExistsBlock);
+
+        Assert.DoesNotContain("!patient.IsDeleted", patientIdAlreadyExistsBlock, StringComparison.Ordinal);
+
+        Assert.Contains(
+            "_dbContext.Patients.Local.Any(patient => patient.Id == patientId && patient.OrganizationId == organizationId)",
+            source,
+            StringComparison.Ordinal);
+
+        Assert.DoesNotContain(
+            "_dbContext.Patients.Local.Any(patient => patient.Id == patientId && patient.OrganizationId == organizationId && !patient.IsDeleted)",
+            source,
+            StringComparison.Ordinal);
     }
 
     [Fact]

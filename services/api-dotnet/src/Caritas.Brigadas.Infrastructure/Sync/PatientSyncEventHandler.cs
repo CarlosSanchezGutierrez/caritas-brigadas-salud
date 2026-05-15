@@ -58,8 +58,7 @@ internal sealed class PatientSyncEventHandler
             .AnyAsync(
                 patient =>
                     patient.Id == patientId &&
-                    patient.OrganizationId == organizationId &&
-                    !patient.IsDeleted,
+                    patient.OrganizationId == organizationId,
                 cancellationToken);
 
         if (patientIdAlreadyExists ||
