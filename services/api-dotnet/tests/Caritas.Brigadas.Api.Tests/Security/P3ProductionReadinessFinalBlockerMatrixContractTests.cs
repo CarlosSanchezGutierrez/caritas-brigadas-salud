@@ -24,6 +24,7 @@ public sealed class P3ProductionReadinessFinalBlockerMatrixContractTests
             "Hard blockers",
             "SQL Server smoke test",
             "deployment health smoke",
+            "request telemetry",
             "incident response runbook",
             "privacy/data handling evidence",
             "Acceptance criteria"
@@ -60,9 +61,15 @@ public sealed class P3ProductionReadinessFinalBlockerMatrixContractTests
             "SQL Server smoke test",
             "P3J-011",
             "Deployment health smoke",
-            "P3J-016",
+            "P3J-014",
+            "Request telemetry",
+            "request telemetry evidence",
+            "Request telemetry fields are present and sanitized",
+            "P3J-015",
+            "Production observability",
+            "P3J-017",
             "Incident response runbook",
-            "P3J-019",
+            "P3J-020",
             "Privacy/data handling evidence",
             "GO",
             "NO-GO",
@@ -86,7 +93,9 @@ public sealed class P3ProductionReadinessFinalBlockerMatrixContractTests
             "P3_PRODUCTION_DEPLOYMENT_READINESS_BASELINE.md",
             "DEPLOYMENT_EVIDENCE_RECORD_TEMPLATE.md",
             "INCIDENT_RESPONSE_RECORD_TEMPLATE.md",
-            "repository governance baseline"
+            "repository governance baseline",
+            "Request telemetry",
+            "request telemetry evidence"
         };
 
         AssertRequiredTokens(source, requiredTokens, "P3 production readiness final blocker matrix verifier");
