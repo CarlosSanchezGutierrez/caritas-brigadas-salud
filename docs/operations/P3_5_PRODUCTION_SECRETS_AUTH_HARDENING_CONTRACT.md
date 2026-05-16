@@ -103,6 +103,8 @@ Frontend and mobile role checks are not security controls.
 
 Required API rules:
 
+- Backend validates tokens.
+
 - Validate token issuer.
 - Validate token audience.
 - Validate token lifetime.
