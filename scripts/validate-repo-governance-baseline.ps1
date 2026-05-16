@@ -221,3 +221,5 @@ Write-Host "============================================================" -Foreg
 & (Join-Path $RepoRoot "scripts\verify-p3-5-encryption-data-protection-contract.ps1")
 
 & (Join-Path $RepoRoot "scripts\verify-p3-5-backup-restore-rollback-evidence-contract.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-5-observability-incident-response-evidence-contract.ps1")
