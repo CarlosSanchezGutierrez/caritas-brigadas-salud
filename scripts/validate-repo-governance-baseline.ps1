@@ -229,3 +229,5 @@ Write-Host "============================================================" -Foreg
 & (Join-Path $RepoRoot "scripts\verify-p3-5-mobile-api-offline-readiness-contract.ps1")
 
 & (Join-Path $RepoRoot "scripts\verify-p3-5-admin-reporting-backend-contract.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-5-ai-gateway-crypto-audit-lab-adr.ps1")
