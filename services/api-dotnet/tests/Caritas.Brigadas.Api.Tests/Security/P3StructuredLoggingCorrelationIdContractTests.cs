@@ -116,7 +116,7 @@ public sealed class P3StructuredLoggingCorrelationIdContractTests
                 "/api/v1/[sensitive-resource]",
                 "/api/v1/organizations/[id]",
                 "/api/v1/organizations/[id]/reports/[segment]",
-                "/api/v1/audit-logs",
+                "/api/v1/organizations/[id]/audit-logs",
                 "/api/v1/[endpoint]"
             },
             "RequestTelemetryMiddleware endpoint classification");
