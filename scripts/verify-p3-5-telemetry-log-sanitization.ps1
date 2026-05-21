@@ -1,21 +1,13 @@
 $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
-
-$ProgramPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Api/Program.cs"
-$AuthHeadersPath = Join-Path $RepoRoot "apps/web-next/src/lib/auth-headers.ts"
 $TelemetryPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Api/Middleware/RequestTelemetryMiddleware.cs"
 
-function Assert-FileExists {
-    param(
-        [string]$Path,
-        [string]$Label
-    )
-
-    if (-not (Test-Path $Path)) {
-        throw "$Label file not found: $Path"
-    }
+if (-not (Test-Path $TelemetryPath)) {
+    throw "RequestTelemetryMiddleware.cs not found."
 }
+
+$Telemetry = Get-Content $TelemetryPath -Raw -Encoding UTF8
 
 function Assert-Contains {
     param(
@@ -41,31 +33,6 @@ function Assert-NotContains {
     }
 }
 
-Assert-FileExists $ProgramPath "Program.cs"
-Assert-FileExists $AuthHeadersPath "auth-headers.ts"
-Assert-FileExists $TelemetryPath "RequestTelemetryMiddleware.cs"
-
-$Program = Get-Content $ProgramPath -Raw -Encoding UTF8
-$AuthHeaders = Get-Content $AuthHeadersPath -Raw -Encoding UTF8
-$Telemetry = Get-Content $TelemetryPath -Raw -Encoding UTF8
-
-Assert-NotContains $Program "options.KnownIPNetworks.Clear();" "Program.cs"
-Assert-NotContains $Program "options.KnownProxies.Clear();" "Program.cs"
-Assert-NotContains $Program "Microsoft.AspNetCore.HttpOverrides.IPNetwork" "Program.cs"
-Assert-NotContains $Program "options.KnownNetworks" "Program.cs"
-Assert-Contains $Program "ReverseProxy:ForwardedHeaders:KnownProxies" "Program.cs"
-Assert-Contains $Program "ReverseProxy:ForwardedHeaders:KnownIPNetworks" "Program.cs"
-Assert-Contains $Program "new System.Net.IPNetwork(prefix, prefixLength)" "Program.cs"
-
-if ($AuthHeaders -match 'if\s*\(\s*AUTH_MODE\s*===\s*["'']oidc["'']\s*\)\s*\{\s*return\s*\{\s*\}\s*;') {
-    throw "auth-headers.ts still returns empty headers in OIDC mode."
-}
-
-Assert-Contains $AuthHeaders "Authorization" "auth-headers.ts"
-Assert-Contains $AuthHeaders "Bearer" "auth-headers.ts"
-Assert-Contains $AuthHeaders "readBrowserStorageItem" "auth-headers.ts"
-Assert-NotContains $AuthHeaders "const storageCandidates = [window.sessionStorage, window.localStorage];" "auth-headers.ts"
-
 Assert-Contains $Telemetry "using Caritas.Brigadas.Api.Extensions;" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "context.GetCorrelationId()" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "SanitizePath(context.Request.Path)" "RequestTelemetryMiddleware.cs"
@@ -75,13 +42,16 @@ Assert-Contains $Telemetry "AllowedPathSegmentsForLog" "RequestTelemetryMiddlewa
 Assert-Contains $Telemetry "/api/v1/[sensitive-resource]" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "[segment]" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "[id]" "RequestTelemetryMiddleware.cs"
+Assert-Contains $Telemetry "MaxEndpointRouteLength" "RequestTelemetryMiddleware.cs"
+Assert-Contains $Telemetry "MaxEndpointSegments" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "builder.Append('_')" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "char.IsLetterOrDigit" "RequestTelemetryMiddleware.cs"
 
 Assert-NotContains $Telemetry "SanitizeForLog(NormalizeHttpMethodForLog(context.Request.Method))" "RequestTelemetryMiddleware.cs"
 Assert-NotContains $Telemetry "NormalizeHttpMethodForLog" "RequestTelemetryMiddleware.cs"
 Assert-NotContains $Telemetry 'normalizedMethod is "GET"' "RequestTelemetryMiddleware.cs"
-Assert-NotContains $Telemetry "return SanitizeForLog(rawPath);" "RequestTelemetryMiddleware.cs"
+Assert-NotContains $Telemetry "var httpMethod = SanitizeForLog" "RequestTelemetryMiddleware.cs"
 Assert-NotContains $Telemetry "value.Where(static character => !char.IsControl(character))" "RequestTelemetryMiddleware.cs"
+Assert-NotContains $Telemetry "return SanitizeForLog(rawPath);" "RequestTelemetryMiddleware.cs"
 
-Write-Host "P3 pre-main security review findings verification passed." -ForegroundColor Green
+Write-Host "P3.5 telemetry log sanitization verification passed." -ForegroundColor Green
