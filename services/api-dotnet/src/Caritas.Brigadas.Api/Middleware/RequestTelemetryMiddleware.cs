@@ -145,6 +145,11 @@ public sealed class RequestTelemetryMiddleware
         }
     }
 
+    private static int GetMaxEndpointSegmentsForLog()
+    {
+        return MaxEndpointSegments;
+    }
+
     private static string GetSafeHttpMethodForLog(string? method)
     {
         if (HttpMethods.IsGet(method))
