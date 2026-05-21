@@ -20,7 +20,7 @@ public sealed class P35MainPromotionSecurityBlockerTests
         Assert.Contains("ReverseProxy:ForwardedHeaders:KnownIPNetworks", program, StringComparison.Ordinal);
         Assert.Contains("IPAddress.TryParse", program, StringComparison.Ordinal);
         Assert.Contains("options.KnownIPNetworks.Add", program, StringComparison.Ordinal);
-        Assert.Contains("new Microsoft.AspNetCore.HttpOverrides.IPNetwork", program, StringComparison.Ordinal);
+        Assert.Contains("new System.Net.IPNetwork", program, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -39,6 +39,9 @@ public sealed class P35MainPromotionSecurityBlockerTests
         Assert.Contains("OIDC access token is required", authHeaders, StringComparison.Ordinal);
         Assert.Contains("readOidcAccessTokenFromBrowserStorage", authHeaders, StringComparison.Ordinal);
         Assert.Contains("normalizeBearerToken", authHeaders, StringComparison.Ordinal);
+        Assert.Contains("readBrowserStorageItem", authHeaders, StringComparison.Ordinal);
+        Assert.Contains("window[storageName]", authHeaders, StringComparison.Ordinal);
+        Assert.DoesNotContain("const storageCandidates = [window.sessionStorage, window.localStorage];", authHeaders, StringComparison.Ordinal);
     }
 
     private static string GetRepoPath(params string[] parts)

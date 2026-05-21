@@ -60,7 +60,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
             continue;
         }
 
-        options.KnownIPNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(prefix, prefixLength));
+        options.KnownIPNetworks.Add(new System.Net.IPNetwork(prefix, prefixLength));
     }
 });
 

@@ -52,7 +52,7 @@ Assert-Contains $Program "ReverseProxy:ForwardedHeaders:KnownProxies" "Program.c
 Assert-Contains $Program "ReverseProxy:ForwardedHeaders:KnownIPNetworks" "Program.cs"
 Assert-Contains $Program "IPAddress.TryParse" "Program.cs"
 Assert-Contains $Program "options.KnownIPNetworks.Add" "Program.cs"
-Assert-Contains $Program "new Microsoft.AspNetCore.HttpOverrides.IPNetwork" "Program.cs"
+Assert-Contains $Program "new System.Net.IPNetwork" "Program.cs"
 
 if ($AuthHeaders -match 'if\s*\(\s*AUTH_MODE\s*===\s*["'']oidc["'']\s*\)\s*\{\s*return\s*\{\s*\}\s*;') {
     throw "auth-headers.ts still returns an empty header object in OIDC mode."
@@ -63,5 +63,8 @@ Assert-Contains $AuthHeaders "Bearer" "auth-headers.ts"
 Assert-Contains $AuthHeaders "OIDC access token is required" "auth-headers.ts"
 Assert-Contains $AuthHeaders "readOidcAccessTokenFromBrowserStorage" "auth-headers.ts"
 Assert-Contains $AuthHeaders "normalizeBearerToken" "auth-headers.ts"
+Assert-Contains $AuthHeaders "readBrowserStorageItem" "auth-headers.ts"
+Assert-Contains $AuthHeaders "window[storageName]" "auth-headers.ts"
+Assert-NotContains $AuthHeaders "const storageCandidates = [window.sessionStorage, window.localStorage];" "auth-headers.ts"
 
 Write-Host "P3.5 main promotion security blocker verification passed." -ForegroundColor Green

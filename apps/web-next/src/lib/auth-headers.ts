@@ -6,6 +6,8 @@ const OIDC_ACCESS_TOKEN_STORAGE_KEYS = [
   "caritas_oidc_access_token",
 ] as const;
 
+type BrowserStorageName = "sessionStorage" | "localStorage";
+
 export function getApiAuthHeaders(accessToken?: string): Record<string, string> {
   if (AUTH_MODE === "development") {
     return getDevelopmentAuthHeaders();
@@ -35,23 +37,31 @@ function readOidcAccessTokenFromBrowserStorage(): string | null {
     return null;
   }
 
-  const storageCandidates = [window.sessionStorage, window.localStorage];
+  const storageNames = ["sessionStorage", "localStorage"] as const;
 
-  for (const storage of storageCandidates) {
+  for (const storageName of storageNames) {
     for (const key of OIDC_ACCESS_TOKEN_STORAGE_KEYS) {
-      try {
-        const value = storage.getItem(key);
+      const value = readBrowserStorageItem(storageName, key);
 
-        if (value !== null && value.trim().length > 0) {
-          return value;
-        }
-      } catch {
-        continue;
+      if (value !== null && value.trim().length > 0) {
+        return value;
       }
     }
   }
 
   return null;
+}
+
+function readBrowserStorageItem(
+  storageName: BrowserStorageName,
+  key: string,
+): string | null {
+  try {
+    const storage = window[storageName];
+    return storage.getItem(key);
+  } catch {
+    return null;
+  }
 }
 
 function normalizeBearerToken(value: string | null | undefined): string | null {
