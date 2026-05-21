@@ -17,8 +17,8 @@ public sealed class P35TelemetryLogSanitizationTests
 
         Assert.Contains("AllowedHttpMethodsForLog", telemetry, StringComparison.Ordinal);
         Assert.Contains("GetSafeHttpMethodForLog", telemetry, StringComparison.Ordinal);
-        Assert.DoesNotContain("SanitizeForLog(NormalizeHttpMethodForLog", telemetry, StringComparison.Ordinal);
-        Assert.DoesNotContain("NormalizeHttpMethodForLog", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("SanitizeForLog(GetSafeHttpMethodForLog", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("GetSafeHttpMethodForLog", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("var httpMethod = SanitizeForLog", telemetry, StringComparison.Ordinal);
     }
 
