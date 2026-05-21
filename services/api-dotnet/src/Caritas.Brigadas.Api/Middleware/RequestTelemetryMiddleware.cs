@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using Caritas.Brigadas.Api.Extensions;
 
 namespace Caritas.Brigadas.Api.Middleware;
 
@@ -73,15 +74,15 @@ public sealed class RequestTelemetryMiddleware
 
         var stopwatch = Stopwatch.StartNew();
         var httpMethod = GetSafeHttpMethodForLog(context.Request.Method);
-        var endpointRoute = GetSafeEndpointRouteForLog(context.Request.Path);
-        var correlationId = SanitizeForLog(context.TraceIdentifier);
+        var sanitizedPath = SanitizePath(context.Request.Path);
+        var correlationId = SanitizeForLog(context.GetCorrelationId());
 
         var scopeProperties = new Dictionary<string, object?>
         {
             ["CorrelationId"] = correlationId,
             ["RequestId"] = context.TraceIdentifier,
             ["HttpMethod"] = httpMethod,
-            ["EndpointRoute"] = endpointRoute,
+            ["EndpointRoute"] = sanitizedPath,
             ["StatusCode"] = 0,
             ["ElapsedMilliseconds"] = 0
         };
@@ -115,7 +116,7 @@ public sealed class RequestTelemetryMiddleware
                     capturedException,
                     "HTTP request failed {HttpMethod} {EndpointRoute} with {StatusCode} in {ElapsedMilliseconds} ms.",
                     httpMethod,
-                    endpointRoute,
+                    sanitizedPath,
                     statusCode,
                     elapsedMilliseconds);
             }
@@ -125,7 +126,7 @@ public sealed class RequestTelemetryMiddleware
                     "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
                     statusCode,
                     httpMethod,
-                    endpointRoute,
+                    sanitizedPath,
                     elapsedMilliseconds);
             }
             else if (statusCode >= StatusCodes.Status400BadRequest)
@@ -134,7 +135,7 @@ public sealed class RequestTelemetryMiddleware
                     "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
                     statusCode,
                     httpMethod,
-                    endpointRoute,
+                    sanitizedPath,
                     elapsedMilliseconds);
             }
             else
@@ -143,7 +144,7 @@ public sealed class RequestTelemetryMiddleware
                     "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
                     statusCode,
                     httpMethod,
-                    endpointRoute,
+                    sanitizedPath,
                     elapsedMilliseconds);
             }
         }
@@ -163,7 +164,7 @@ public sealed class RequestTelemetryMiddleware
             : "UNKNOWN";
     }
 
-    private static string GetSafeEndpointRouteForLog(PathString path)
+    private static string SanitizePath(PathString path)
     {
         var rawPath = path.Value;
 

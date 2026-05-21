@@ -33,7 +33,7 @@ public sealed class P35TelemetryLogSanitizationTests
             "Middleware",
             "RequestTelemetryMiddleware.cs"));
 
-        Assert.Contains("GetSafeEndpointRouteForLog", telemetry, StringComparison.Ordinal);
+        Assert.Contains("SanitizePath", telemetry, StringComparison.Ordinal);
         Assert.Contains("AllowedPathSegmentsForLog", telemetry, StringComparison.Ordinal);
         Assert.Contains("/api/v1/[sensitive-resource]", telemetry, StringComparison.Ordinal);
         Assert.Contains("[segment]", telemetry, StringComparison.Ordinal);
@@ -57,7 +57,8 @@ public sealed class P35TelemetryLogSanitizationTests
         Assert.Contains("char.IsLetterOrDigit", telemetry, StringComparison.Ordinal);
         Assert.Contains("builder.Append('_')", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("value.Where(static character => !char.IsControl(character))", telemetry, StringComparison.Ordinal);
-        Assert.DoesNotContain("context.GetCorrelationId()", telemetry, StringComparison.Ordinal);
+        Assert.Contains("using Caritas.Brigadas.Api.Extensions;", telemetry, StringComparison.Ordinal);
+        Assert.Contains("context.GetCorrelationId()", telemetry, StringComparison.Ordinal);
         Assert.Contains("context.TraceIdentifier", telemetry, StringComparison.Ordinal);
     }
 

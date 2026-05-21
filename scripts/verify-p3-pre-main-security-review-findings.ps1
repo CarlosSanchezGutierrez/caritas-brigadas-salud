@@ -55,8 +55,8 @@ $DbContext = Get-Content $DbContextPath -Raw -Encoding UTF8
 $AuditLogConfiguration = Get-Content $AuditLogConfigurationPath -Raw -Encoding UTF8
 $Governance = Get-Content $GovernancePath -Raw -Encoding UTF8
 
-Assert-Contains $RequestTelemetry "SanitizeForLog(NormalizeHttpMethodForLog(context.Request.Method))" "RequestTelemetryMiddleware"
-Assert-Contains $RequestTelemetry "private static string NormalizeHttpMethodForLog(string? method)" "RequestTelemetryMiddleware"
+Assert-Contains $RequestTelemetry "GetSafeHttpMethodForLog(context.Request.Method)" "RequestTelemetryMiddleware"
+Assert-Contains $RequestTelemetry "private static string GetSafeHttpMethodForLog(string? method)" "RequestTelemetryMiddleware"
 Assert-Contains $RequestTelemetry "private static string SanitizeForLog(string? value)" "RequestTelemetryMiddleware"
 Assert-Contains $RequestTelemetry "normalizedMethod is `"GET`"" "RequestTelemetryMiddleware"
 Assert-Contains $RequestTelemetry "char.IsControl" "RequestTelemetryMiddleware"
