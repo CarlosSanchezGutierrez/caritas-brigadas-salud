@@ -233,3 +233,5 @@ Write-Host "============================================================" -Foreg
 & (Join-Path $RepoRoot "scripts\verify-p3-5-ai-gateway-crypto-audit-lab-adr.ps1")
 
 & (Join-Path $RepoRoot "scripts\verify-p3-5-backend-production-closure-audit.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-5-main-promotion-security-blockers.ps1")
