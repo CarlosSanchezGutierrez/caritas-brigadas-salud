@@ -1,3 +1,5 @@
+using System.Net;
+using System.Globalization;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Caritas.Brigadas.Api.Health;
@@ -21,9 +23,45 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
         ForwardedHeaders.XForwardedProto |
         ForwardedHeaders.XForwardedHost;
 
-    // Required for container/reverse-proxy deployments where the proxy network is dynamic.
-    options.KnownIPNetworks.Clear();
-    options.KnownProxies.Clear();
+    var knownProxies = builder.Configuration
+        .GetSection("ReverseProxy:ForwardedHeaders:KnownProxies")
+        .Get<string[]>() ?? [];
+
+    foreach (var knownProxy in knownProxies)
+    {
+        if (IPAddress.TryParse(knownProxy, out var address))
+        {
+            options.KnownProxies.Add(address);
+        }
+    }
+
+    var knownNetworks = builder.Configuration
+        .GetSection("ReverseProxy:ForwardedHeaders:KnownIPNetworks")
+        .Get<string[]>() ?? [];
+
+    foreach (var knownNetwork in knownNetworks)
+    {
+        var parts = knownNetwork.Split(
+            '/',
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        if (parts.Length != 2)
+        {
+            continue;
+        }
+
+        if (!IPAddress.TryParse(parts[0], out var prefix))
+        {
+            continue;
+        }
+
+        if (!int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out var prefixLength))
+        {
+            continue;
+        }
+
+        options.KnownIPNetworks.Add(new System.Net.IPNetwork(prefix, prefixLength));
+    }
 });
 
 if (builder.Environment.IsDevelopment())
