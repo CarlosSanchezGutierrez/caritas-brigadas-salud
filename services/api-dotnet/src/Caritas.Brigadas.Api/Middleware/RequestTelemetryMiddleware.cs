@@ -1,54 +1,22 @@
 using System.Diagnostics;
 using System.Text;
 using Caritas.Brigadas.Api.Extensions;
+using Microsoft.AspNetCore.Mvc.Controllers;
 
 namespace Caritas.Brigadas.Api.Middleware;
 
 public sealed class RequestTelemetryMiddleware
 {
     private const int MaxLogValueLength = 128;
-    private const int MaxEndpointRouteLength = 128;
-    private const int MaxEndpointSegments = 8;
 
-    private static readonly string[] AllowedHttpMethodsForLog =
+    private static readonly string[] SensitiveEndpointTokens =
     [
-        HttpMethods.Get,
-        HttpMethods.Post,
-        HttpMethods.Put,
-        HttpMethods.Patch,
-        HttpMethods.Delete,
-        HttpMethods.Head,
-        HttpMethods.Options,
-        HttpMethods.Trace,
-        HttpMethods.Connect
-    ];
-
-    private static readonly PathString[] SensitivePathSegments =
-    [
-        new("/api/v1/patients"),
-        new("/api/v1/patient-visits"),
-        new("/api/v1/service-encounters"),
-        new("/api/v1/form-responses"),
-        new("/api/v1/consent-documents"),
-        new("/api/v1/sync-batches")
-    ];
-
-    private static readonly (PathString Prefix, string Route)[] AllowedPathSegmentsForLog =
-    [
-        (new PathString("/api/v1/health"), "/api/v1/health"),
-        (new PathString("/api/v1/health/live"), "/api/v1/health/live"),
-        (new PathString("/api/v1/health/ready"), "/api/v1/health/ready"),
-        (new PathString("/api/v1/organizations"), "/api/v1/organizations/[id]"),
-        (new PathString("/api/v1/reports"), "/api/v1/reports/[segment]"),
-        (new PathString("/api/v1/audit-logs"), "/api/v1/audit-logs"),
-        (new PathString("/api/v1/users"), "/api/v1/users/[id]"),
-        (new PathString("/api/v1/roles"), "/api/v1/roles"),
-        (new PathString("/api/v1/permissions"), "/api/v1/permissions"),
-        (new PathString("/api/v1/brigades"), "/api/v1/brigades/[id]"),
-        (new PathString("/api/v1/services"), "/api/v1/services"),
-        (new PathString("/api/v1/catalogs"), "/api/v1/catalogs"),
-        (new PathString("/api/v1/auth"), "/api/v1/auth/[segment]"),
-        (new PathString("/api/v1/me"), "/api/v1/me")
+        "patients",
+        "patient-visits",
+        "service-encounters",
+        "form-responses",
+        "consent-documents",
+        "sync-batches"
     ];
 
     private readonly RequestDelegate _next;
@@ -68,16 +36,15 @@ public sealed class RequestTelemetryMiddleware
 
         var stopwatch = Stopwatch.StartNew();
         var httpMethod = GetSafeHttpMethodForLog(context.Request.Method);
-        var sanitizedPath = SanitizePath(context.Request.Path);
-        _ = context.GetCorrelationId();
-        var correlationId = SanitizeForLog(context.TraceIdentifier);
+        var endpointRoute = GetSafeEndpointRouteForLog(context.GetEndpoint());
+        var correlationId = SanitizeForLog(context.GetCorrelationId());
 
         var scopeProperties = new Dictionary<string, object?>
         {
             ["CorrelationId"] = correlationId,
             ["RequestId"] = context.TraceIdentifier,
             ["HttpMethod"] = httpMethod,
-            ["EndpointRoute"] = sanitizedPath,
+            ["EndpointRoute"] = endpointRoute,
             ["StatusCode"] = 0,
             ["ElapsedMilliseconds"] = 0
         };
@@ -111,7 +78,7 @@ public sealed class RequestTelemetryMiddleware
                     capturedException,
                     "HTTP request failed {HttpMethod} {EndpointRoute} with {StatusCode} in {ElapsedMilliseconds} ms.",
                     httpMethod,
-                    sanitizedPath,
+                    endpointRoute,
                     statusCode,
                     elapsedMilliseconds);
             }
@@ -121,7 +88,7 @@ public sealed class RequestTelemetryMiddleware
                     "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
                     statusCode,
                     httpMethod,
-                    sanitizedPath,
+                    endpointRoute,
                     elapsedMilliseconds);
             }
             else if (statusCode >= StatusCodes.Status400BadRequest)
@@ -130,7 +97,7 @@ public sealed class RequestTelemetryMiddleware
                     "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
                     statusCode,
                     httpMethod,
-                    sanitizedPath,
+                    endpointRoute,
                     elapsedMilliseconds);
             }
             else
@@ -139,108 +106,141 @@ public sealed class RequestTelemetryMiddleware
                     "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
                     statusCode,
                     httpMethod,
-                    sanitizedPath,
+                    endpointRoute,
                     elapsedMilliseconds);
             }
         }
     }
 
-    private static int GetMaxEndpointSegmentsForLog()
-    {
-        return MaxEndpointSegments;
-    }
-
     private static string GetSafeHttpMethodForLog(string? method)
     {
+        if (string.IsNullOrWhiteSpace(method))
+        {
+            return "UNKNOWN";
+        }
+
         if (HttpMethods.IsGet(method))
         {
-            return GetAllowedHttpMethod(HttpMethods.Get);
+            return "GET";
         }
 
         if (HttpMethods.IsPost(method))
         {
-            return GetAllowedHttpMethod(HttpMethods.Post);
+            return "POST";
         }
 
         if (HttpMethods.IsPut(method))
         {
-            return GetAllowedHttpMethod(HttpMethods.Put);
+            return "PUT";
         }
 
         if (HttpMethods.IsPatch(method))
         {
-            return GetAllowedHttpMethod(HttpMethods.Patch);
+            return "PATCH";
         }
 
         if (HttpMethods.IsDelete(method))
         {
-            return GetAllowedHttpMethod(HttpMethods.Delete);
+            return "DELETE";
         }
 
         if (HttpMethods.IsHead(method))
         {
-            return GetAllowedHttpMethod(HttpMethods.Head);
+            return "HEAD";
         }
 
         if (HttpMethods.IsOptions(method))
         {
-            return GetAllowedHttpMethod(HttpMethods.Options);
+            return "OPTIONS";
         }
 
         if (HttpMethods.IsTrace(method))
         {
-            return GetAllowedHttpMethod(HttpMethods.Trace);
+            return "TRACE";
         }
 
         if (HttpMethods.IsConnect(method))
         {
-            return GetAllowedHttpMethod(HttpMethods.Connect);
+            return "CONNECT";
         }
 
         return "UNKNOWN";
     }
 
-    private static string GetAllowedHttpMethod(string method)
+    private static string GetSafeEndpointRouteForLog(Endpoint? endpoint)
     {
-        return Array.IndexOf(AllowedHttpMethodsForLog, method) >= 0
-            ? method
-            : "UNKNOWN";
+        if (endpoint is null)
+        {
+            return "/[unmatched-endpoint]";
+        }
+
+        var controllerAction = endpoint.Metadata.GetMetadata<ControllerActionDescriptor>();
+        var routeTemplate = controllerAction?.AttributeRouteInfo?.Template;
+
+        if (string.IsNullOrWhiteSpace(routeTemplate))
+        {
+            return "/[mapped-endpoint]";
+        }
+
+        return ClassifyEndpointTemplateForLog(routeTemplate);
     }
 
-    private static string SanitizePath(PathString path)
+    private static string ClassifyEndpointTemplateForLog(string routeTemplate)
     {
-        if (!path.HasValue)
+        foreach (var sensitiveToken in SensitiveEndpointTokens)
         {
-            return "/";
-        }
-
-        if (path.Value?.Length > MaxEndpointRouteLength)
-        {
-            return "/api/v1/[truncated]";
-        }
-
-        if (MaxEndpointSegments <= 0)
-        {
-            return "/api/v1/[truncated]";
-        }
-
-        foreach (var sensitivePath in SensitivePathSegments)
-        {
-            if (path.StartsWithSegments(sensitivePath))
+            if (routeTemplate.Contains(sensitiveToken, StringComparison.OrdinalIgnoreCase))
             {
                 return "/api/v1/[sensitive-resource]";
             }
         }
 
-        foreach (var allowedRoute in AllowedPathSegmentsForLog)
+        if (routeTemplate.Contains("health", StringComparison.OrdinalIgnoreCase))
         {
-            if (path.StartsWithSegments(allowedRoute.Prefix))
-            {
-                return allowedRoute.Route;
-            }
+            return "/api/v1/health";
         }
 
-        return "/api/v1/[segment]";
+        if (routeTemplate.Contains("reports", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/organizations/[id]/reports/[segment]";
+        }
+
+        if (routeTemplate.Contains("audit-logs", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/organizations/[id]/audit-logs";
+        }
+
+        if (routeTemplate.Contains("organizations", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/organizations/[id]";
+        }
+
+        if (routeTemplate.Contains("users", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/users/[id]";
+        }
+
+        if (routeTemplate.Contains("roles", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/roles";
+        }
+
+        if (routeTemplate.Contains("permissions", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/permissions";
+        }
+
+        if (routeTemplate.Contains("auth", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/auth/[segment]";
+        }
+
+        if (routeTemplate.Contains("me", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/me";
+        }
+
+        return "/api/v1/[endpoint]";
     }
 
     private static string SanitizeForLog(string? value)
