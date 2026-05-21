@@ -17,9 +17,10 @@ public sealed class P35MainPromotionSecurityBlockerTests
         Assert.DoesNotContain("options.KnownIPNetworks.Clear();", program, StringComparison.Ordinal);
         Assert.DoesNotContain("options.KnownProxies.Clear();", program, StringComparison.Ordinal);
         Assert.Contains("ReverseProxy:ForwardedHeaders:KnownProxies", program, StringComparison.Ordinal);
-        Assert.Contains("ReverseProxy:ForwardedHeaders:KnownNetworks", program, StringComparison.Ordinal);
+        Assert.Contains("ReverseProxy:ForwardedHeaders:KnownIPNetworks", program, StringComparison.Ordinal);
         Assert.Contains("IPAddress.TryParse", program, StringComparison.Ordinal);
-        Assert.Contains("new IPNetwork", program, StringComparison.Ordinal);
+        Assert.Contains("options.KnownIPNetworks.Add", program, StringComparison.Ordinal);
+        Assert.Contains("new Microsoft.AspNetCore.HttpOverrides.IPNetwork", program, StringComparison.Ordinal);
     }
 
     [Fact]

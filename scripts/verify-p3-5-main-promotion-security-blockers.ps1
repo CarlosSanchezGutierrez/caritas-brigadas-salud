@@ -49,9 +49,10 @@ $AuthHeaders = Get-Content $AuthHeadersPath -Raw -Encoding UTF8
 Assert-NotContains $Program "options.KnownIPNetworks.Clear();" "Program.cs"
 Assert-NotContains $Program "options.KnownProxies.Clear();" "Program.cs"
 Assert-Contains $Program "ReverseProxy:ForwardedHeaders:KnownProxies" "Program.cs"
-Assert-Contains $Program "ReverseProxy:ForwardedHeaders:KnownNetworks" "Program.cs"
+Assert-Contains $Program "ReverseProxy:ForwardedHeaders:KnownIPNetworks" "Program.cs"
 Assert-Contains $Program "IPAddress.TryParse" "Program.cs"
-Assert-Contains $Program "new IPNetwork" "Program.cs"
+Assert-Contains $Program "options.KnownIPNetworks.Add" "Program.cs"
+Assert-Contains $Program "new Microsoft.AspNetCore.HttpOverrides.IPNetwork" "Program.cs"
 
 if ($AuthHeaders -match 'if\s*\(\s*AUTH_MODE\s*===\s*["'']oidc["'']\s*\)\s*\{\s*return\s*\{\s*\}\s*;') {
     throw "auth-headers.ts still returns an empty header object in OIDC mode."

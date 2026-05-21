@@ -36,7 +36,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     }
 
     var knownNetworks = builder.Configuration
-        .GetSection("ReverseProxy:ForwardedHeaders:KnownNetworks")
+        .GetSection("ReverseProxy:ForwardedHeaders:KnownIPNetworks")
         .Get<string[]>() ?? [];
 
     foreach (var knownNetwork in knownNetworks)
@@ -60,7 +60,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
             continue;
         }
 
-        options.KnownNetworks.Add(new IPNetwork(prefix, prefixLength));
+        options.KnownIPNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(prefix, prefixLength));
     }
 });
 
