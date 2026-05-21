@@ -24,7 +24,7 @@ public sealed class P35MainPromotionSecurityBlockerTests
     }
 
     [Fact]
-    public void WebAuthHeaders_DoNotReturnEmptyHeadersInOidcMode()
+    public void WebAuthHeaders_SendBearerWhenTokenExistsAndAllowAnonymousWhenMissing()
     {
         var authHeaders = File.ReadAllText(GetRepoPath(
             "apps",
@@ -36,11 +36,13 @@ public sealed class P35MainPromotionSecurityBlockerTests
         Assert.DoesNotContain("if (AUTH_MODE === \"oidc\") {\n    return {};", authHeaders, StringComparison.Ordinal);
         Assert.Contains("Authorization", authHeaders, StringComparison.Ordinal);
         Assert.Contains("Bearer", authHeaders, StringComparison.Ordinal);
-        Assert.Contains("OIDC access token is required", authHeaders, StringComparison.Ordinal);
+        Assert.Contains("return {} satisfies Record<string, string>;", authHeaders, StringComparison.Ordinal);
         Assert.Contains("readOidcAccessTokenFromBrowserStorage", authHeaders, StringComparison.Ordinal);
         Assert.Contains("normalizeBearerToken", authHeaders, StringComparison.Ordinal);
         Assert.Contains("readBrowserStorageItem", authHeaders, StringComparison.Ordinal);
         Assert.Contains("window[storageName]", authHeaders, StringComparison.Ordinal);
+        Assert.DoesNotContain("OIDC access token is required", authHeaders, StringComparison.Ordinal);
+        Assert.DoesNotContain("throw new Error(", authHeaders, StringComparison.Ordinal);
         Assert.DoesNotContain("const storageCandidates = [window.sessionStorage, window.localStorage];", authHeaders, StringComparison.Ordinal);
     }
 

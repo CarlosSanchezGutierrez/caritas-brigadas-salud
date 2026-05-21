@@ -1,16 +1,15 @@
 using System.Diagnostics;
 using System.Text;
 using Caritas.Brigadas.Api.Extensions;
+using Microsoft.AspNetCore.Mvc.Controllers;
 
 namespace Caritas.Brigadas.Api.Middleware;
 
 public sealed class RequestTelemetryMiddleware
 {
-    private const int MaxLogValueLength = 256;
-    private const int MaxEndpointRouteLength = 256;
-    private const int MaxEndpointSegments = 8;
+    private const int MaxLogValueLength = 128;
 
-    private static readonly string[] SensitivePathSegments =
+    private static readonly string[] SensitiveEndpointTokens =
     [
         "patients",
         "patient-visits",
@@ -19,43 +18,6 @@ public sealed class RequestTelemetryMiddleware
         "consent-documents",
         "sync-batches"
     ];
-
-    private static readonly IReadOnlyDictionary<string, string> AllowedHttpMethodsForLog =
-        new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["GET"] = "GET",
-            ["POST"] = "POST",
-            ["PUT"] = "PUT",
-            ["PATCH"] = "PATCH",
-            ["DELETE"] = "DELETE",
-            ["HEAD"] = "HEAD",
-            ["OPTIONS"] = "OPTIONS",
-            ["TRACE"] = "TRACE",
-            ["CONNECT"] = "CONNECT"
-        };
-
-    private static readonly IReadOnlyDictionary<string, string> AllowedPathSegmentsForLog =
-        new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["api"] = "api",
-            ["v1"] = "v1",
-            ["health"] = "health",
-            ["live"] = "live",
-            ["ready"] = "ready",
-            ["organizations"] = "organizations",
-            ["reports"] = "reports",
-            ["summary"] = "summary",
-            ["summary.csv"] = "summary.csv",
-            ["audit-logs"] = "audit-logs",
-            ["users"] = "users",
-            ["roles"] = "roles",
-            ["permissions"] = "permissions",
-            ["brigades"] = "brigades",
-            ["services"] = "services",
-            ["catalogs"] = "catalogs",
-            ["auth"] = "auth",
-            ["me"] = "me"
-        };
 
     private readonly RequestDelegate _next;
     private readonly ILogger<RequestTelemetryMiddleware> _logger;
@@ -74,7 +36,7 @@ public sealed class RequestTelemetryMiddleware
 
         var stopwatch = Stopwatch.StartNew();
         var httpMethod = GetSafeHttpMethodForLog(context.Request.Method);
-        var sanitizedPath = SanitizePath(context.Request.Path);
+        var endpointRoute = GetSafeEndpointRouteForLog(context.GetEndpoint());
         var correlationId = SanitizeForLog(context.GetCorrelationId());
 
         var scopeProperties = new Dictionary<string, object?>
@@ -82,7 +44,7 @@ public sealed class RequestTelemetryMiddleware
             ["CorrelationId"] = correlationId,
             ["RequestId"] = context.TraceIdentifier,
             ["HttpMethod"] = httpMethod,
-            ["EndpointRoute"] = sanitizedPath,
+            ["EndpointRoute"] = endpointRoute,
             ["StatusCode"] = 0,
             ["ElapsedMilliseconds"] = 0
         };
@@ -116,7 +78,7 @@ public sealed class RequestTelemetryMiddleware
                     capturedException,
                     "HTTP request failed {HttpMethod} {EndpointRoute} with {StatusCode} in {ElapsedMilliseconds} ms.",
                     httpMethod,
-                    sanitizedPath,
+                    endpointRoute,
                     statusCode,
                     elapsedMilliseconds);
             }
@@ -126,7 +88,7 @@ public sealed class RequestTelemetryMiddleware
                     "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
                     statusCode,
                     httpMethod,
-                    sanitizedPath,
+                    endpointRoute,
                     elapsedMilliseconds);
             }
             else if (statusCode >= StatusCodes.Status400BadRequest)
@@ -135,7 +97,7 @@ public sealed class RequestTelemetryMiddleware
                     "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
                     statusCode,
                     httpMethod,
-                    sanitizedPath,
+                    endpointRoute,
                     elapsedMilliseconds);
             }
             else
@@ -144,7 +106,7 @@ public sealed class RequestTelemetryMiddleware
                     "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
                     statusCode,
                     httpMethod,
-                    sanitizedPath,
+                    endpointRoute,
                     elapsedMilliseconds);
             }
         }
@@ -157,107 +119,128 @@ public sealed class RequestTelemetryMiddleware
             return "UNKNOWN";
         }
 
-        var normalizedMethod = method.Trim().ToUpperInvariant();
-
-        return AllowedHttpMethodsForLog.TryGetValue(normalizedMethod, out var trustedMethod)
-            ? trustedMethod
-            : "UNKNOWN";
-    }
-
-    private static string SanitizePath(PathString path)
-    {
-        var rawPath = path.Value;
-
-        if (string.IsNullOrWhiteSpace(rawPath))
+        if (HttpMethods.IsGet(method))
         {
-            return "/";
+            return "GET";
         }
 
-        foreach (var segment in SensitivePathSegments)
+        if (HttpMethods.IsPost(method))
         {
-            if (rawPath.Contains(segment, StringComparison.OrdinalIgnoreCase))
+            return "POST";
+        }
+
+        if (HttpMethods.IsPut(method))
+        {
+            return "PUT";
+        }
+
+        if (HttpMethods.IsPatch(method))
+        {
+            return "PATCH";
+        }
+
+        if (HttpMethods.IsDelete(method))
+        {
+            return "DELETE";
+        }
+
+        if (HttpMethods.IsHead(method))
+        {
+            return "HEAD";
+        }
+
+        if (HttpMethods.IsOptions(method))
+        {
+            return "OPTIONS";
+        }
+
+        if (HttpMethods.IsTrace(method))
+        {
+            return "TRACE";
+        }
+
+        if (HttpMethods.IsConnect(method))
+        {
+            return "CONNECT";
+        }
+
+        return "UNKNOWN";
+    }
+
+    private static string GetSafeEndpointRouteForLog(Endpoint? endpoint)
+    {
+        if (endpoint is null)
+        {
+            return "/[unmatched-endpoint]";
+        }
+
+        var controllerAction = endpoint.Metadata.GetMetadata<ControllerActionDescriptor>();
+        var routeTemplate = controllerAction?.AttributeRouteInfo?.Template;
+
+        if (string.IsNullOrWhiteSpace(routeTemplate))
+        {
+            return "/[mapped-endpoint]";
+        }
+
+        return ClassifyEndpointTemplateForLog(routeTemplate);
+    }
+
+    private static string ClassifyEndpointTemplateForLog(string routeTemplate)
+    {
+        foreach (var sensitiveToken in SensitiveEndpointTokens)
+        {
+            if (routeTemplate.Contains(sensitiveToken, StringComparison.OrdinalIgnoreCase))
             {
                 return "/api/v1/[sensitive-resource]";
             }
         }
 
-        var rawSegments = rawPath.Split(
-            '/',
-            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-        if (rawSegments.Length == 0)
+        if (routeTemplate.Contains("health", StringComparison.OrdinalIgnoreCase))
         {
-            return "/";
+            return "/api/v1/health";
         }
 
-        var route = new StringBuilder(capacity: Math.Min(rawPath.Length, MaxEndpointRouteLength));
-        var emittedSegments = 0;
-
-        foreach (var rawSegment in rawSegments)
+        if (routeTemplate.Contains("reports", StringComparison.OrdinalIgnoreCase))
         {
-            if (emittedSegments >= MaxEndpointSegments)
-            {
-                route.Append("/[truncated]");
-                break;
-            }
-
-            var safeSegment = GetSafePathSegmentForLog(rawSegment);
-
-            if (route.Length + safeSegment.Length + 1 > MaxEndpointRouteLength)
-            {
-                route.Append("/[truncated]");
-                break;
-            }
-
-            route.Append('/').Append(safeSegment);
-            emittedSegments++;
+            return "/api/v1/organizations/[id]/reports/[segment]";
         }
 
-        return route.Length == 0
-            ? "/"
-            : route.ToString();
-    }
-
-    private static string GetSafePathSegmentForLog(string? segment)
-    {
-        if (string.IsNullOrWhiteSpace(segment))
+        if (routeTemplate.Contains("audit-logs", StringComparison.OrdinalIgnoreCase))
         {
-            return "[segment]";
+            return "/api/v1/organizations/[id]/audit-logs";
         }
 
-        var normalizedSegment = SanitizeForLog(segment).ToLowerInvariant();
-
-        if (Guid.TryParse(normalizedSegment, out _))
+        if (routeTemplate.Contains("organizations", StringComparison.OrdinalIgnoreCase))
         {
-            return "[id]";
+            return "/api/v1/organizations/[id]";
         }
 
-        if (IsNumericIdentifier(normalizedSegment))
+        if (routeTemplate.Contains("users", StringComparison.OrdinalIgnoreCase))
         {
-            return "[id]";
+            return "/api/v1/users/[id]";
         }
 
-        return AllowedPathSegmentsForLog.TryGetValue(normalizedSegment, out var trustedSegment)
-            ? trustedSegment
-            : "[segment]";
-    }
-
-    private static bool IsNumericIdentifier(string value)
-    {
-        if (value.Length == 0)
+        if (routeTemplate.Contains("roles", StringComparison.OrdinalIgnoreCase))
         {
-            return false;
+            return "/api/v1/roles";
         }
 
-        foreach (var character in value)
+        if (routeTemplate.Contains("permissions", StringComparison.OrdinalIgnoreCase))
         {
-            if (!char.IsDigit(character))
-            {
-                return false;
-            }
+            return "/api/v1/permissions";
         }
 
-        return true;
+        if (routeTemplate.Contains("auth", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/auth/[segment]";
+        }
+
+        if (routeTemplate.Contains("me", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/me";
+        }
+
+        return "/api/v1/[endpoint]";
     }
 
     private static string SanitizeForLog(string? value)
@@ -277,7 +260,7 @@ public sealed class RequestTelemetryMiddleware
             }
 
             if (char.IsLetterOrDigit(character)
-                || character is '-' or '_' or '.' or '/' or ' ' or ':' or '[' or ']' or '(' or ')')
+                || character is '-' or '_' or '.' or ':' or '[' or ']')
             {
                 builder.Append(character);
             }
