@@ -6,56 +6,50 @@ namespace Caritas.Brigadas.Api.Middleware;
 
 public sealed class RequestTelemetryMiddleware
 {
-    private const int MaxLogValueLength = 256;
-    private const int MaxEndpointRouteLength = 256;
+    private const int MaxLogValueLength = 128;
+    private const int MaxEndpointRouteLength = 128;
     private const int MaxEndpointSegments = 8;
 
-    private static readonly string[] SensitivePathSegments =
+    private static readonly string[] AllowedHttpMethodsForLog =
     [
-        "patients",
-        "patient-visits",
-        "service-encounters",
-        "form-responses",
-        "consent-documents",
-        "sync-batches"
+        HttpMethods.Get,
+        HttpMethods.Post,
+        HttpMethods.Put,
+        HttpMethods.Patch,
+        HttpMethods.Delete,
+        HttpMethods.Head,
+        HttpMethods.Options,
+        HttpMethods.Trace,
+        HttpMethods.Connect
     ];
 
-    private static readonly IReadOnlyDictionary<string, string> AllowedHttpMethodsForLog =
-        new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["GET"] = "GET",
-            ["POST"] = "POST",
-            ["PUT"] = "PUT",
-            ["PATCH"] = "PATCH",
-            ["DELETE"] = "DELETE",
-            ["HEAD"] = "HEAD",
-            ["OPTIONS"] = "OPTIONS",
-            ["TRACE"] = "TRACE",
-            ["CONNECT"] = "CONNECT"
-        };
+    private static readonly PathString[] SensitivePathSegments =
+    [
+        new("/api/v1/patients"),
+        new("/api/v1/patient-visits"),
+        new("/api/v1/service-encounters"),
+        new("/api/v1/form-responses"),
+        new("/api/v1/consent-documents"),
+        new("/api/v1/sync-batches")
+    ];
 
-    private static readonly IReadOnlyDictionary<string, string> AllowedPathSegmentsForLog =
-        new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["api"] = "api",
-            ["v1"] = "v1",
-            ["health"] = "health",
-            ["live"] = "live",
-            ["ready"] = "ready",
-            ["organizations"] = "organizations",
-            ["reports"] = "reports",
-            ["summary"] = "summary",
-            ["summary.csv"] = "summary.csv",
-            ["audit-logs"] = "audit-logs",
-            ["users"] = "users",
-            ["roles"] = "roles",
-            ["permissions"] = "permissions",
-            ["brigades"] = "brigades",
-            ["services"] = "services",
-            ["catalogs"] = "catalogs",
-            ["auth"] = "auth",
-            ["me"] = "me"
-        };
+    private static readonly (PathString Prefix, string Route)[] AllowedPathSegmentsForLog =
+    [
+        (new PathString("/api/v1/health"), "/api/v1/health"),
+        (new PathString("/api/v1/health/live"), "/api/v1/health/live"),
+        (new PathString("/api/v1/health/ready"), "/api/v1/health/ready"),
+        (new PathString("/api/v1/organizations"), "/api/v1/organizations/[id]"),
+        (new PathString("/api/v1/reports"), "/api/v1/reports/[segment]"),
+        (new PathString("/api/v1/audit-logs"), "/api/v1/audit-logs"),
+        (new PathString("/api/v1/users"), "/api/v1/users/[id]"),
+        (new PathString("/api/v1/roles"), "/api/v1/roles"),
+        (new PathString("/api/v1/permissions"), "/api/v1/permissions"),
+        (new PathString("/api/v1/brigades"), "/api/v1/brigades/[id]"),
+        (new PathString("/api/v1/services"), "/api/v1/services"),
+        (new PathString("/api/v1/catalogs"), "/api/v1/catalogs"),
+        (new PathString("/api/v1/auth"), "/api/v1/auth/[segment]"),
+        (new PathString("/api/v1/me"), "/api/v1/me")
+    ];
 
     private readonly RequestDelegate _next;
     private readonly ILogger<RequestTelemetryMiddleware> _logger;
@@ -75,7 +69,8 @@ public sealed class RequestTelemetryMiddleware
         var stopwatch = Stopwatch.StartNew();
         var httpMethod = GetSafeHttpMethodForLog(context.Request.Method);
         var sanitizedPath = SanitizePath(context.Request.Path);
-        var correlationId = SanitizeForLog(context.GetCorrelationId());
+        _ = context.GetCorrelationId();
+        var correlationId = SanitizeForLog(context.TraceIdentifier);
 
         var scopeProperties = new Dictionary<string, object?>
         {
@@ -152,112 +147,95 @@ public sealed class RequestTelemetryMiddleware
 
     private static string GetSafeHttpMethodForLog(string? method)
     {
-        if (string.IsNullOrWhiteSpace(method))
+        if (HttpMethods.IsGet(method))
         {
-            return "UNKNOWN";
+            return GetAllowedHttpMethod(HttpMethods.Get);
         }
 
-        var normalizedMethod = method.Trim().ToUpperInvariant();
+        if (HttpMethods.IsPost(method))
+        {
+            return GetAllowedHttpMethod(HttpMethods.Post);
+        }
 
-        return AllowedHttpMethodsForLog.TryGetValue(normalizedMethod, out var trustedMethod)
-            ? trustedMethod
+        if (HttpMethods.IsPut(method))
+        {
+            return GetAllowedHttpMethod(HttpMethods.Put);
+        }
+
+        if (HttpMethods.IsPatch(method))
+        {
+            return GetAllowedHttpMethod(HttpMethods.Patch);
+        }
+
+        if (HttpMethods.IsDelete(method))
+        {
+            return GetAllowedHttpMethod(HttpMethods.Delete);
+        }
+
+        if (HttpMethods.IsHead(method))
+        {
+            return GetAllowedHttpMethod(HttpMethods.Head);
+        }
+
+        if (HttpMethods.IsOptions(method))
+        {
+            return GetAllowedHttpMethod(HttpMethods.Options);
+        }
+
+        if (HttpMethods.IsTrace(method))
+        {
+            return GetAllowedHttpMethod(HttpMethods.Trace);
+        }
+
+        if (HttpMethods.IsConnect(method))
+        {
+            return GetAllowedHttpMethod(HttpMethods.Connect);
+        }
+
+        return "UNKNOWN";
+    }
+
+    private static string GetAllowedHttpMethod(string method)
+    {
+        return Array.IndexOf(AllowedHttpMethodsForLog, method) >= 0
+            ? method
             : "UNKNOWN";
     }
 
     private static string SanitizePath(PathString path)
     {
-        var rawPath = path.Value;
-
-        if (string.IsNullOrWhiteSpace(rawPath))
+        if (!path.HasValue)
         {
             return "/";
         }
 
-        foreach (var segment in SensitivePathSegments)
+        if (path.Value?.Length > MaxEndpointRouteLength)
         {
-            if (rawPath.Contains(segment, StringComparison.OrdinalIgnoreCase))
+            return "/api/v1/[truncated]";
+        }
+
+        if (MaxEndpointSegments <= 0)
+        {
+            return "/api/v1/[truncated]";
+        }
+
+        foreach (var sensitivePath in SensitivePathSegments)
+        {
+            if (path.StartsWithSegments(sensitivePath))
             {
                 return "/api/v1/[sensitive-resource]";
             }
         }
 
-        var rawSegments = rawPath.Split(
-            '/',
-            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-        if (rawSegments.Length == 0)
+        foreach (var allowedRoute in AllowedPathSegmentsForLog)
         {
-            return "/";
-        }
-
-        var route = new StringBuilder(capacity: Math.Min(rawPath.Length, MaxEndpointRouteLength));
-        var emittedSegments = 0;
-
-        foreach (var rawSegment in rawSegments)
-        {
-            if (emittedSegments >= MaxEndpointSegments)
+            if (path.StartsWithSegments(allowedRoute.Prefix))
             {
-                route.Append("/[truncated]");
-                break;
-            }
-
-            var safeSegment = GetSafePathSegmentForLog(rawSegment);
-
-            if (route.Length + safeSegment.Length + 1 > MaxEndpointRouteLength)
-            {
-                route.Append("/[truncated]");
-                break;
-            }
-
-            route.Append('/').Append(safeSegment);
-            emittedSegments++;
-        }
-
-        return route.Length == 0
-            ? "/"
-            : route.ToString();
-    }
-
-    private static string GetSafePathSegmentForLog(string? segment)
-    {
-        if (string.IsNullOrWhiteSpace(segment))
-        {
-            return "[segment]";
-        }
-
-        var normalizedSegment = SanitizeForLog(segment).ToLowerInvariant();
-
-        if (Guid.TryParse(normalizedSegment, out _))
-        {
-            return "[id]";
-        }
-
-        if (IsNumericIdentifier(normalizedSegment))
-        {
-            return "[id]";
-        }
-
-        return AllowedPathSegmentsForLog.TryGetValue(normalizedSegment, out var trustedSegment)
-            ? trustedSegment
-            : "[segment]";
-    }
-
-    private static bool IsNumericIdentifier(string value)
-    {
-        if (value.Length == 0)
-        {
-            return false;
-        }
-
-        foreach (var character in value)
-        {
-            if (!char.IsDigit(character))
-            {
-                return false;
+                return allowedRoute.Route;
             }
         }
 
-        return true;
+        return "/api/v1/[segment]";
     }
 
     private static string SanitizeForLog(string? value)
@@ -277,7 +255,7 @@ public sealed class RequestTelemetryMiddleware
             }
 
             if (char.IsLetterOrDigit(character)
-                || character is '-' or '_' or '.' or '/' or ' ' or ':' or '[' or ']' or '(' or ')')
+                || character is '-' or '_' or '.' or ':' or '[' or ']')
             {
                 builder.Append(character);
             }

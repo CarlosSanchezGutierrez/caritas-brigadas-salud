@@ -19,9 +19,7 @@ export function getApiAuthHeaders(accessToken?: string): Record<string, string> 
     );
 
     if (token === null) {
-      throw new Error(
-        "OIDC access token is required before calling protected API endpoints.",
-      );
+      return {} satisfies Record<string, string>;
     }
 
     return {

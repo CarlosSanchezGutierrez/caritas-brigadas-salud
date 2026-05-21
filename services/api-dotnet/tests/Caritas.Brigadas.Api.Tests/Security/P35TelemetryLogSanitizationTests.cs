@@ -17,10 +17,12 @@ public sealed class P35TelemetryLogSanitizationTests
 
         Assert.Contains("AllowedHttpMethodsForLog", telemetry, StringComparison.Ordinal);
         Assert.Contains("GetSafeHttpMethodForLog(context.Request.Method)", telemetry, StringComparison.Ordinal);
+        Assert.Contains("HttpMethods.IsGet(method)", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("SanitizeForLog(NormalizeHttpMethodForLog(context.Request.Method))", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("NormalizeHttpMethodForLog", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("var httpMethod = SanitizeForLog", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("normalizedMethod is \"GET\"", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("var normalizedMethod = method.Trim().ToUpperInvariant();", telemetry, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -41,6 +43,7 @@ public sealed class P35TelemetryLogSanitizationTests
         Assert.Contains("[id]", telemetry, StringComparison.Ordinal);
         Assert.Contains("MaxEndpointRouteLength", telemetry, StringComparison.Ordinal);
         Assert.Contains("MaxEndpointSegments", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("rawPath.Split", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("return SanitizeForLog(rawPath);", telemetry, StringComparison.Ordinal);
     }
 
@@ -57,6 +60,7 @@ public sealed class P35TelemetryLogSanitizationTests
 
         Assert.Contains("using Caritas.Brigadas.Api.Extensions;", telemetry, StringComparison.Ordinal);
         Assert.Contains("context.GetCorrelationId()", telemetry, StringComparison.Ordinal);
+        Assert.Contains("context.TraceIdentifier", telemetry, StringComparison.Ordinal);
         Assert.Contains("char.IsLetterOrDigit", telemetry, StringComparison.Ordinal);
         Assert.Contains("builder.Append('_')", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("value.Where(static character => !char.IsControl(character))", telemetry, StringComparison.Ordinal);

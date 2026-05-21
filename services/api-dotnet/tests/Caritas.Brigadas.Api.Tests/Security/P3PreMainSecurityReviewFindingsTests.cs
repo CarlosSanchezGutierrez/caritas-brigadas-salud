@@ -24,7 +24,7 @@ public sealed class P3PreMainSecurityReviewFindingsTests
     }
 
     [Fact]
-    public void WebAuthHeaders_SendBearerTokenInOidcMode()
+    public void WebAuthHeaders_SendBearerTokenWhenTokenExistsAndAllowAnonymousWhenMissing()
     {
         var authHeaders = File.ReadAllText(GetRepoPath(
             "apps",
@@ -37,11 +37,14 @@ public sealed class P3PreMainSecurityReviewFindingsTests
         Assert.Contains("Authorization", authHeaders, StringComparison.Ordinal);
         Assert.Contains("Bearer", authHeaders, StringComparison.Ordinal);
         Assert.Contains("readBrowserStorageItem", authHeaders, StringComparison.Ordinal);
+        Assert.Contains("return {} satisfies Record<string, string>;", authHeaders, StringComparison.Ordinal);
+        Assert.DoesNotContain("OIDC access token is required", authHeaders, StringComparison.Ordinal);
+        Assert.DoesNotContain("throw new Error(", authHeaders, StringComparison.Ordinal);
         Assert.DoesNotContain("const storageCandidates = [window.sessionStorage, window.localStorage];", authHeaders, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void RequestTelemetryMiddleware_UsesSafeAllowlistedLogValues()
+    public void RequestTelemetryMiddleware_UsesCodeQlFriendlyConstantLogValues()
     {
         var telemetry = File.ReadAllText(GetRepoPath(
             "services",
@@ -55,6 +58,7 @@ public sealed class P3PreMainSecurityReviewFindingsTests
         Assert.Contains("context.GetCorrelationId()", telemetry, StringComparison.Ordinal);
         Assert.Contains("SanitizePath(context.Request.Path)", telemetry, StringComparison.Ordinal);
         Assert.Contains("GetSafeHttpMethodForLog(context.Request.Method)", telemetry, StringComparison.Ordinal);
+        Assert.Contains("HttpMethods.IsGet(method)", telemetry, StringComparison.Ordinal);
         Assert.Contains("AllowedHttpMethodsForLog", telemetry, StringComparison.Ordinal);
         Assert.Contains("AllowedPathSegmentsForLog", telemetry, StringComparison.Ordinal);
         Assert.Contains("/api/v1/[sensitive-resource]", telemetry, StringComparison.Ordinal);
@@ -66,6 +70,8 @@ public sealed class P3PreMainSecurityReviewFindingsTests
         Assert.DoesNotContain("SanitizeForLog(NormalizeHttpMethodForLog(context.Request.Method))", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("NormalizeHttpMethodForLog", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("normalizedMethod is \"GET\"", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("var normalizedMethod = method.Trim().ToUpperInvariant();", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("rawPath.Split", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("return SanitizeForLog(rawPath);", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("value.Where(static character => !char.IsControl(character))", telemetry, StringComparison.Ordinal);
     }

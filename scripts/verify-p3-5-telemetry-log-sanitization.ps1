@@ -37,6 +37,7 @@ Assert-Contains $Telemetry "using Caritas.Brigadas.Api.Extensions;" "RequestTele
 Assert-Contains $Telemetry "context.GetCorrelationId()" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "SanitizePath(context.Request.Path)" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "GetSafeHttpMethodForLog(context.Request.Method)" "RequestTelemetryMiddleware.cs"
+Assert-Contains $Telemetry "HttpMethods.IsGet(method)" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "AllowedHttpMethodsForLog" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "AllowedPathSegmentsForLog" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "/api/v1/[sensitive-resource]" "RequestTelemetryMiddleware.cs"
@@ -50,8 +51,9 @@ Assert-Contains $Telemetry "char.IsLetterOrDigit" "RequestTelemetryMiddleware.cs
 Assert-NotContains $Telemetry "SanitizeForLog(NormalizeHttpMethodForLog(context.Request.Method))" "RequestTelemetryMiddleware.cs"
 Assert-NotContains $Telemetry "NormalizeHttpMethodForLog" "RequestTelemetryMiddleware.cs"
 Assert-NotContains $Telemetry 'normalizedMethod is "GET"' "RequestTelemetryMiddleware.cs"
-Assert-NotContains $Telemetry "var httpMethod = SanitizeForLog" "RequestTelemetryMiddleware.cs"
-Assert-NotContains $Telemetry "value.Where(static character => !char.IsControl(character))" "RequestTelemetryMiddleware.cs"
+Assert-NotContains $Telemetry "var normalizedMethod = method.Trim().ToUpperInvariant();" "RequestTelemetryMiddleware.cs"
+Assert-NotContains $Telemetry "rawPath.Split" "RequestTelemetryMiddleware.cs"
 Assert-NotContains $Telemetry "return SanitizeForLog(rawPath);" "RequestTelemetryMiddleware.cs"
+Assert-NotContains $Telemetry "value.Where(static character => !char.IsControl(character))" "RequestTelemetryMiddleware.cs"
 
 Write-Host "P3.5 telemetry log sanitization verification passed." -ForegroundColor Green

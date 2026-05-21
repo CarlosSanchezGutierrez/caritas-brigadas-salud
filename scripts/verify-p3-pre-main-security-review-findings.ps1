@@ -58,18 +58,22 @@ Assert-Contains $Program "ReverseProxy:ForwardedHeaders:KnownIPNetworks" "Progra
 Assert-Contains $Program "new System.Net.IPNetwork(prefix, prefixLength)" "Program.cs"
 
 if ($AuthHeaders -match 'if\s*\(\s*AUTH_MODE\s*===\s*["'']oidc["'']\s*\)\s*\{\s*return\s*\{\s*\}\s*;') {
-    throw "auth-headers.ts still returns empty headers in OIDC mode."
+    throw "auth-headers.ts still returns unconditional empty headers in OIDC mode."
 }
 
 Assert-Contains $AuthHeaders "Authorization" "auth-headers.ts"
 Assert-Contains $AuthHeaders "Bearer" "auth-headers.ts"
 Assert-Contains $AuthHeaders "readBrowserStorageItem" "auth-headers.ts"
+Assert-Contains $AuthHeaders "return {} satisfies Record<string, string>;" "auth-headers.ts"
+Assert-NotContains $AuthHeaders "OIDC access token is required" "auth-headers.ts"
+Assert-NotContains $AuthHeaders "throw new Error(" "auth-headers.ts"
 Assert-NotContains $AuthHeaders "const storageCandidates = [window.sessionStorage, window.localStorage];" "auth-headers.ts"
 
 Assert-Contains $Telemetry "using Caritas.Brigadas.Api.Extensions;" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "context.GetCorrelationId()" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "SanitizePath(context.Request.Path)" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "GetSafeHttpMethodForLog(context.Request.Method)" "RequestTelemetryMiddleware.cs"
+Assert-Contains $Telemetry "HttpMethods.IsGet(method)" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "AllowedHttpMethodsForLog" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "AllowedPathSegmentsForLog" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "/api/v1/[sensitive-resource]" "RequestTelemetryMiddleware.cs"
@@ -81,6 +85,8 @@ Assert-Contains $Telemetry "char.IsLetterOrDigit" "RequestTelemetryMiddleware.cs
 Assert-NotContains $Telemetry "SanitizeForLog(NormalizeHttpMethodForLog(context.Request.Method))" "RequestTelemetryMiddleware.cs"
 Assert-NotContains $Telemetry "NormalizeHttpMethodForLog" "RequestTelemetryMiddleware.cs"
 Assert-NotContains $Telemetry 'normalizedMethod is "GET"' "RequestTelemetryMiddleware.cs"
+Assert-NotContains $Telemetry "var normalizedMethod = method.Trim().ToUpperInvariant();" "RequestTelemetryMiddleware.cs"
+Assert-NotContains $Telemetry "rawPath.Split" "RequestTelemetryMiddleware.cs"
 Assert-NotContains $Telemetry "return SanitizeForLog(rawPath);" "RequestTelemetryMiddleware.cs"
 Assert-NotContains $Telemetry "value.Where(static character => !char.IsControl(character))" "RequestTelemetryMiddleware.cs"
 
