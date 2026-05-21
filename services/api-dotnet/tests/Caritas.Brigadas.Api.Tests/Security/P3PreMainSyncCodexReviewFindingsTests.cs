@@ -71,6 +71,22 @@ public sealed class P3PreMainSyncCodexReviewFindingsTests
         Assert.DoesNotContain("var newEvents = events", source, StringComparison.Ordinal);
         Assert.DoesNotContain("_dbContext.SyncEvents.AddRange(newEvents);", source, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void SyncBatchWriteRepository_ThrowsConflictForCrossBatchDuplicateEvents()
+    {
+        var source = File.ReadAllText(GetInfrastructureSourcePath("Sync", "SyncBatchWriteRepository.cs"));
+
+        Assert.Contains(
+            "throw new InvalidOperationException(\"Payload contains sync events that were already submitted in a different batch.\");",
+            source,
+            StringComparison.Ordinal);
+
+        Assert.DoesNotContain(
+            "throw new DomainException(\"Payload contains sync events that were already submitted in a different batch.\");",
+            source,
+            StringComparison.Ordinal);
+    }
     private static string GetInfrastructureSourcePath(params string[] parts)
     {
         return Path.Combine(
