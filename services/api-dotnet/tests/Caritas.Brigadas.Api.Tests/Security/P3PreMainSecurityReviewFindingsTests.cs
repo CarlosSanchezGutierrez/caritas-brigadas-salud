@@ -63,8 +63,8 @@ public sealed class P3PreMainSecurityReviewFindingsTests
         Assert.Contains("builder.Append('_')", telemetry, StringComparison.Ordinal);
         Assert.Contains("char.IsLetterOrDigit", telemetry, StringComparison.Ordinal);
 
-        Assert.DoesNotContain("GetSafeHttpMethodForLog(context.Request.Method)", telemetry, StringComparison.Ordinal);
-        Assert.DoesNotContain("GetSafeHttpMethodForLog", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("SanitizeForLog(NormalizeHttpMethodForLog(context.Request.Method))", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("NormalizeHttpMethodForLog", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("normalizedMethod is \"GET\"", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("return SanitizeForLog(rawPath);", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("value.Where(static character => !char.IsControl(character))", telemetry, StringComparison.Ordinal);

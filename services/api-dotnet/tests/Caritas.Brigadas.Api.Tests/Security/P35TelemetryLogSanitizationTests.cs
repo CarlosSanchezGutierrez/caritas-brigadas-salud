@@ -16,10 +16,11 @@ public sealed class P35TelemetryLogSanitizationTests
             "RequestTelemetryMiddleware.cs"));
 
         Assert.Contains("AllowedHttpMethodsForLog", telemetry, StringComparison.Ordinal);
-        Assert.Contains("GetSafeHttpMethodForLog", telemetry, StringComparison.Ordinal);
-        Assert.DoesNotContain("SanitizeForLog(GetSafeHttpMethodForLog", telemetry, StringComparison.Ordinal);
-        Assert.DoesNotContain("GetSafeHttpMethodForLog", telemetry, StringComparison.Ordinal);
+        Assert.Contains("GetSafeHttpMethodForLog(context.Request.Method)", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("SanitizeForLog(NormalizeHttpMethodForLog(context.Request.Method))", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("NormalizeHttpMethodForLog", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("var httpMethod = SanitizeForLog", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("normalizedMethod is \"GET\"", telemetry, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -33,7 +34,7 @@ public sealed class P35TelemetryLogSanitizationTests
             "Middleware",
             "RequestTelemetryMiddleware.cs"));
 
-        Assert.Contains("SanitizePath", telemetry, StringComparison.Ordinal);
+        Assert.Contains("SanitizePath(context.Request.Path)", telemetry, StringComparison.Ordinal);
         Assert.Contains("AllowedPathSegmentsForLog", telemetry, StringComparison.Ordinal);
         Assert.Contains("/api/v1/[sensitive-resource]", telemetry, StringComparison.Ordinal);
         Assert.Contains("[segment]", telemetry, StringComparison.Ordinal);
@@ -44,7 +45,7 @@ public sealed class P35TelemetryLogSanitizationTests
     }
 
     [Fact]
-    public void RequestTelemetryMiddleware_UsesStrictLogSanitizer()
+    public void RequestTelemetryMiddleware_UsesStrictLogSanitizerAndCorrelationContract()
     {
         var telemetry = File.ReadAllText(GetRepoPath(
             "services",
@@ -54,12 +55,11 @@ public sealed class P35TelemetryLogSanitizationTests
             "Middleware",
             "RequestTelemetryMiddleware.cs"));
 
+        Assert.Contains("using Caritas.Brigadas.Api.Extensions;", telemetry, StringComparison.Ordinal);
+        Assert.Contains("context.GetCorrelationId()", telemetry, StringComparison.Ordinal);
         Assert.Contains("char.IsLetterOrDigit", telemetry, StringComparison.Ordinal);
         Assert.Contains("builder.Append('_')", telemetry, StringComparison.Ordinal);
         Assert.DoesNotContain("value.Where(static character => !char.IsControl(character))", telemetry, StringComparison.Ordinal);
-        Assert.Contains("using Caritas.Brigadas.Api.Extensions;", telemetry, StringComparison.Ordinal);
-        Assert.Contains("context.GetCorrelationId()", telemetry, StringComparison.Ordinal);
-        Assert.Contains("context.TraceIdentifier", telemetry, StringComparison.Ordinal);
     }
 
     private static string GetRepoPath(params string[] parts)

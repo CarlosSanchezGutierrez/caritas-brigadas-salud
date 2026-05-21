@@ -78,9 +78,9 @@ Assert-Contains $Telemetry "[id]" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "builder.Append('_')" "RequestTelemetryMiddleware.cs"
 Assert-Contains $Telemetry "char.IsLetterOrDigit" "RequestTelemetryMiddleware.cs"
 
-Assert-NotContains $Telemetry "GetSafeHttpMethodForLog(context.Request.Method)" "RequestTelemetryMiddleware.cs"
-Assert-NotContains $Telemetry "GetSafeHttpMethodForLog" "RequestTelemetryMiddleware.cs"
-Assert-NotContains $Telemetry "AllowedHttpMethodsForLog" "RequestTelemetryMiddleware.cs"
+Assert-NotContains $Telemetry "SanitizeForLog(NormalizeHttpMethodForLog(context.Request.Method))" "RequestTelemetryMiddleware.cs"
+Assert-NotContains $Telemetry "NormalizeHttpMethodForLog" "RequestTelemetryMiddleware.cs"
+Assert-NotContains $Telemetry 'normalizedMethod is "GET"' "RequestTelemetryMiddleware.cs"
 Assert-NotContains $Telemetry "return SanitizeForLog(rawPath);" "RequestTelemetryMiddleware.cs"
 Assert-NotContains $Telemetry "value.Where(static character => !char.IsControl(character))" "RequestTelemetryMiddleware.cs"
 
