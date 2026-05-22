@@ -263,4 +263,85 @@ $ForbiddenTokens = @(
 
 foreach ($Token in $ForbiddenTokens) { Assert-DoesNotContainToken -Content $AllDocumentationContent -Token $Token }
 
+
+# P3.34 Codex full client required evidence regression checks
+$P334WebContent = Read-RepoText -RelativePath "docs/web/P3_34_WEB_STABILIZATION_REVIEW.md"
+$P334IosContent = Read-RepoText -RelativePath "docs/mobile/P3_34_IOS_STABILIZATION_REVIEW.md"
+$P334AndroidContent = Read-RepoText -RelativePath "docs/mobile/P3_34_ANDROID_STABILIZATION_REVIEW.md"
+
+$P334CommonClientRequiredTokens = @(
+    "approved hypercare monitoring review reference",
+    "approved deployment execution review reference",
+    "approved deployment execution planning reference",
+    "approved final go live authorization review reference",
+    "approved go live planning review reference",
+    "approved production readiness review execution reference",
+    "approved release candidate reference",
+    "environment name",
+    "deployed commit SHA",
+    "artifact reference",
+    "API contract version",
+    "OpenAPI artifact reference",
+    "stabilization monitoring window",
+    "steady state readiness evidence",
+    "operational handoff evidence",
+    "support handoff evidence",
+    "runbook handoff evidence",
+    "knowledge transfer evidence",
+    "service level baseline evidence",
+    "open incident review evidence",
+    "open defect review evidence",
+    "known limitation review evidence",
+    "residual risk acceptance evidence",
+    "security closure evidence",
+    "privacy closure evidence",
+    "data governance closure evidence",
+    "availability evidence",
+    "latency evidence",
+    "API error rate evidence",
+    "database health evidence",
+    "SQL Server connectivity evidence",
+    "audit trail health evidence",
+    "privacy-safe telemetry evidence",
+    "user feedback evidence",
+    "stabilization action register",
+    "operational handover readiness blockers",
+    "stabilization review state",
+    "request id",
+    "correlation id",
+    "organization id",
+    "authorization role",
+    "endpoint id",
+    "standard error envelope",
+    "audit trail reference",
+    "support diagnostic evidence",
+    "monitoring evidence",
+    "alerting evidence",
+    "evidence sanitization status"
+)
+
+foreach ($Token in $P334CommonClientRequiredTokens) {
+    Assert-ContainsToken -Content $P334WebContent -Token $Token
+    Assert-ContainsToken -Content $P334IosContent -Token $Token
+    Assert-ContainsToken -Content $P334AndroidContent -Token $Token
+}
+
+$P334MobileRequiredTokens = @(
+    "mobile release channel stability evidence",
+    "device rollout stability evidence",
+    "sync health evidence",
+    "offline queue health evidence",
+    "conflict resolution evidence",
+    "device id",
+    "idempotency key",
+    "client operation id",
+    "sync status",
+    "server acknowledgment",
+    "conflict id"
+)
+
+foreach ($Token in $P334MobileRequiredTokens) {
+    Assert-ContainsToken -Content $P334IosContent -Token $Token
+    Assert-ContainsToken -Content $P334AndroidContent -Token $Token
+}
 Write-Host "P3.34 stabilization review boundary verifier passed from repo root: $RepoRoot"

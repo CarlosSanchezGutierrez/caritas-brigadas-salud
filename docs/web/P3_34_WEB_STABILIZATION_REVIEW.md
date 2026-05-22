@@ -16,7 +16,10 @@ Required evidence:
 
 - approved hypercare monitoring review reference.
 - approved deployment execution review reference.
+- approved deployment execution planning reference.
 - approved final go live authorization review reference.
+- approved go live planning review reference.
+- approved production readiness review execution reference.
 - approved release candidate reference.
 - environment name.
 - deployed commit SHA.
@@ -40,6 +43,8 @@ Required evidence:
 - availability evidence.
 - latency evidence.
 - API error rate evidence.
+- database health evidence.
+- SQL Server connectivity evidence.
 - audit trail health evidence.
 - privacy-safe telemetry evidence.
 - user feedback evidence.
