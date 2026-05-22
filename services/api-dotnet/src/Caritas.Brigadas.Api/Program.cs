@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Sockets;
 using System.Globalization;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -60,10 +61,14 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
             continue;
         }
 
+        if (!IsValidKnownNetworkPrefixLength(prefix, prefixLength))
+        {
+            continue;
+        }
+
         options.KnownIPNetworks.Add(new System.Net.IPNetwork(prefix, prefixLength));
     }
 });
-
 if (builder.Environment.IsDevelopment())
 {
     builder.Configuration.AddJsonFile(
@@ -282,7 +287,15 @@ app.MapGet("/", (HttpContext httpContext) =>
 .Produces<ApiResponse<object>>(StatusCodes.Status200OK);
 
 app.Run();
-
+static bool IsValidKnownNetworkPrefixLength(IPAddress prefix, int prefixLength)
+{
+    return prefix.AddressFamily switch
+    {
+        AddressFamily.InterNetwork => prefixLength is >= 0 and <= 32,
+        AddressFamily.InterNetworkV6 => prefixLength is >= 0 and <= 128,
+        _ => false
+    };
+}
 public partial class Program
 {
 }
