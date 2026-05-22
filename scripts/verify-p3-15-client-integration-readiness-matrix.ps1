@@ -69,11 +69,11 @@ $ForbiddenTokens = @(
     "all clients are ready",
     "mobile clients may write directly to SQL Server",
     "frontend may bypass API",
-    "client integration is production ready",
+    "client integration production readiness is claimed",
     "skip contract tests",
-    "unrestricted patient-level exports",
+    "patient-level exports are unrestricted",
     "silent overwrite allowed",
-    "secrets are stored in repository"
+    "repository intentionally stores secrets"
 )
 
 foreach ($Token in $ForbiddenTokens) { Assert-DoesNotContainToken -Content $AllDocumentationContent -Token $Token }
