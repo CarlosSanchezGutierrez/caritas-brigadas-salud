@@ -1,6 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
+$Backtick = [char]96
 
 function Assert-FileExists {
     param(
@@ -22,6 +23,18 @@ function Assert-Contains {
 
     if (-not $Content.Contains($Token)) {
         throw "$Label does not contain required token: $Token"
+    }
+}
+
+function Assert-NotContains {
+    param(
+        [string]$Content,
+        [string]$Token,
+        [string]$Label
+    )
+
+    if ($Content.Contains($Token)) {
+        throw "$Label contains forbidden token: $Token"
     }
 }
 
@@ -52,8 +65,14 @@ Assert-Contains $Plan "Observability evidence" "P3.6 plan"
 Assert-Contains $Plan "Smoke test evidence" "P3.6 plan"
 Assert-Contains $Plan "Rollback evidence" "P3.6 plan"
 
-Assert-Contains $Register "Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE" "Production evidence register"
-Assert-Contains $Register "Every required evidence item listed in `P3_6_PRODUCTION_EVIDENCE_IMPLEMENTATION.md` must have a corresponding row in this register." "Production evidence register"
+Assert-Contains $Register "# Production Evidence Register" "Production evidence register"
+Assert-Contains $Register "## Global status" "Production evidence register"
+Assert-Contains $Register ($Backtick + "Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE" + $Backtick) "Production evidence register"
+Assert-Contains $Register "## Evidence table" "Production evidence register"
+Assert-Contains $Register "Every required evidence item listed in " "Production evidence register"
+Assert-Contains $Register ($Backtick + "P3_6_PRODUCTION_EVIDENCE_IMPLEMENTATION.md" + $Backtick) "Production evidence register"
+Assert-NotContains $Register 'Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE",' "Production evidence register"
+Assert-NotContains $Register '    ",' "Production evidence register"
 
 $RequiredEvidenceRows = @(
     "P3.6-EV-001 | Deployment | Environment name",
@@ -121,7 +140,13 @@ Assert-Contains $DeploymentRunbook "SQL Server target available" "Production dep
 Assert-Contains $DeploymentRunbook "ConnectionStrings__SqlServer" "Production deployment runbook"
 Assert-Contains $DeploymentRunbook "Cors__AllowedOrigins__0" "Production deployment runbook"
 Assert-Contains $DeploymentRunbook "Cors__AllowedOrigins__1" "Production deployment runbook"
+Assert-Contains $DeploymentRunbook "ReverseProxy__ForwardedHeaders__KnownProxies__0" "Production deployment runbook"
+Assert-Contains $DeploymentRunbook "ReverseProxy__ForwardedHeaders__KnownIPNetworks__0" "Production deployment runbook"
 Assert-Contains $DeploymentRunbook "Minimum smoke tests" "Production deployment runbook"
+Assert-NotContains $DeploymentRunbook "ConnectionStrings__CaritasDatabase" "Production deployment runbook"
+Assert-NotContains $DeploymentRunbook ("- " + $Backtick + "Cors__AllowedOrigins" + $Backtick) "Production deployment runbook"
+Assert-NotContains $DeploymentRunbook ("- " + $Backtick + "ReverseProxy__ForwardedHeaders__KnownProxies" + $Backtick) "Production deployment runbook"
+Assert-NotContains $DeploymentRunbook ("- " + $Backtick + "ReverseProxy__ForwardedHeaders__KnownIPNetworks" + $Backtick) "Production deployment runbook"
 
 Assert-Contains $RollbackRunbook "Application rollback" "Production rollback runbook"
 Assert-Contains $RollbackRunbook "Database rollback" "Production rollback runbook"
