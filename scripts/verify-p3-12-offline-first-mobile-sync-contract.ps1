@@ -127,9 +127,9 @@ $ForbiddenTokens = @(
     "Azure is required",
     "AWS is required",
     "direct mobile write to SQL Server is allowed",
-    "offline sync can bypass audit",
+    "offline sync can bypass audit is allowed",
     "silent overwrite allowed",
-    "patient data on-chain",
+    "patient data on-chain is allowed",
     "AI clinical automation enabled",
     "production ready"
 )

@@ -71,18 +71,21 @@ This template must be filled only with real sanitized evidence.
 
 | Scenario | Evidence reference | Status | Blockers |
 |---|---|---|---|
-| offline capture | TBD | TBD | TBD |
-| pending sync | TBD | TBD | TBD |
-| server acceptance | TBD | TBD | TBD |
-| duplicate idempotency key | TBD | TBD | TBD |
-| missing organization id rejection | TBD | TBD | TBD |
-| missing device id rejection | TBD | TBD | TBD |
-| unauthorized sync rejection | TBD | TBD | TBD |
-| stale conflict | TBD | TBD | TBD |
-| clinical correction | TBD | TBD | TBD |
-| rejected records | TBD | TBD | TBD |
-| quarantine | TBD | TBD | TBD |
-| audit trail after acceptance | TBD | TBD | TBD |
+| offline capture creates local draft | TBD | TBD | TBD |
+| local draft becomes pending sync | TBD | TBD | TBD |
+| pending sync sends idempotency key | TBD | TBD | TBD |
+| server accepts valid operation | TBD | TBD | TBD |
+| server returns acknowledgment | TBD | TBD | TBD |
+| duplicate idempotency key does not duplicate server records | TBD | TBD | TBD |
+| missing organization id is rejected | TBD | TBD | TBD |
+| missing device id is rejected | TBD | TBD | TBD |
+| unauthorized sync is rejected | TBD | TBD | TBD |
+| stale record creates conflict | TBD | TBD | TBD |
+| clinical correction creates correction event | TBD | TBD | TBD |
+| rejected records are tracked | TBD | TBD | TBD |
+| quarantine is tracked | TBD | TBD | TBD |
+| accepted operation creates audit trail | TBD | TBD | TBD |
+| client reconciles server acknowledgment | TBD | TBD | TBD |
 
 ## Final status
 

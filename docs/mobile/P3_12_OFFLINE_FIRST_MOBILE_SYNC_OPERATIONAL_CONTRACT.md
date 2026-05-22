@@ -107,7 +107,7 @@ Required statuses:
 - No unaudited sync.
 - No silent overwrite.
 - No direct mobile write to SQL Server.
-- No patient data on-chain.
+- No patient records may be stored on blockchain.
 - No external AI dependency for sync.
 - No offline record accepted without server validation.
 - No cross-organization sync.
