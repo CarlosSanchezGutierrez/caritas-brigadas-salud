@@ -211,3 +211,29 @@ Write-Host "============================================================" -Foreg
 & (Join-Path $RepoRoot "scripts\verify-p3-openapi-frontend-contract-freeze.ps1")
 
 & (Join-Path $RepoRoot "scripts\verify-p3-pre-main-security-review-findings.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-5-production-environment-contract.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-5-sqlserver-integration-evidence-contract.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-5-production-secrets-auth-hardening-contract.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-5-encryption-data-protection-contract.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-5-backup-restore-rollback-evidence-contract.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-5-observability-incident-response-evidence-contract.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-5-security-testing-vulnerability-management-contract.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-5-mobile-api-offline-readiness-contract.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-5-admin-reporting-backend-contract.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-5-ai-gateway-crypto-audit-lab-adr.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-5-backend-production-closure-audit.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-5-main-promotion-security-blockers.ps1")
+
+& (Join-Path $RepoRoot "scripts\verify-p3-5-telemetry-log-sanitization.ps1")

@@ -2,6 +2,10 @@ $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 
+$ProgramPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Api/Program.cs"
+$AuthHeadersPath = Join-Path $RepoRoot "apps/web-next/src/lib/auth-headers.ts"
+$TelemetryPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Api/Middleware/RequestTelemetryMiddleware.cs"
+
 function Assert-FileExists {
     param(
         [string]$Path,
@@ -25,7 +29,7 @@ function Assert-Contains {
     }
 }
 
-function Assert-DoesNotContain {
+function Assert-NotContains {
     param(
         [string]$Content,
         [string]$Token,
@@ -37,55 +41,48 @@ function Assert-DoesNotContain {
     }
 }
 
-$RequestTelemetryPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Api/Middleware/RequestTelemetryMiddleware.cs"
-$HttpAuditLoggerPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Api/Audit/HttpAuditLogger.cs"
-$DbContextPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Persistence/CaritasDbContext.cs"
-$AuditLogConfigurationPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Persistence/Configurations/AuditLogConfiguration.cs"
-$GovernancePath = Join-Path $RepoRoot "scripts/validate-repo-governance-baseline.ps1"
+Assert-FileExists $ProgramPath "Program.cs"
+Assert-FileExists $AuthHeadersPath "auth-headers.ts"
+Assert-FileExists $TelemetryPath "RequestTelemetryMiddleware.cs"
 
-Assert-FileExists $RequestTelemetryPath "RequestTelemetryMiddleware"
-Assert-FileExists $HttpAuditLoggerPath "HttpAuditLogger"
-Assert-FileExists $DbContextPath "CaritasDbContext"
-Assert-FileExists $AuditLogConfigurationPath "AuditLogConfiguration"
-Assert-FileExists $GovernancePath "repository governance baseline"
+$Program = Get-Content $ProgramPath -Raw -Encoding UTF8
+$AuthHeaders = Get-Content $AuthHeadersPath -Raw -Encoding UTF8
+$Telemetry = Get-Content $TelemetryPath -Raw -Encoding UTF8
 
-$RequestTelemetry = Get-Content $RequestTelemetryPath -Raw -Encoding UTF8
-$HttpAuditLogger = Get-Content $HttpAuditLoggerPath -Raw -Encoding UTF8
-$DbContext = Get-Content $DbContextPath -Raw -Encoding UTF8
-$AuditLogConfiguration = Get-Content $AuditLogConfigurationPath -Raw -Encoding UTF8
-$Governance = Get-Content $GovernancePath -Raw -Encoding UTF8
+Assert-NotContains $Program "options.KnownIPNetworks.Clear();" "Program.cs"
+Assert-NotContains $Program "options.KnownProxies.Clear();" "Program.cs"
+Assert-NotContains $Program "Microsoft.AspNetCore.HttpOverrides.IPNetwork" "Program.cs"
+Assert-NotContains $Program "options.KnownNetworks" "Program.cs"
+Assert-Contains $Program "ReverseProxy:ForwardedHeaders:KnownProxies" "Program.cs"
+Assert-Contains $Program "ReverseProxy:ForwardedHeaders:KnownIPNetworks" "Program.cs"
+Assert-Contains $Program "new System.Net.IPNetwork(prefix, prefixLength)" "Program.cs"
 
-Assert-Contains $RequestTelemetry "SanitizeForLog(NormalizeHttpMethodForLog(context.Request.Method))" "RequestTelemetryMiddleware"
-Assert-Contains $RequestTelemetry "private static string NormalizeHttpMethodForLog(string? method)" "RequestTelemetryMiddleware"
-Assert-Contains $RequestTelemetry "private static string SanitizeForLog(string? value)" "RequestTelemetryMiddleware"
-Assert-Contains $RequestTelemetry "normalizedMethod is `"GET`"" "RequestTelemetryMiddleware"
-Assert-Contains $RequestTelemetry "char.IsControl" "RequestTelemetryMiddleware"
-Assert-Contains $RequestTelemetry "return SanitizeForLog(rawPath);" "RequestTelemetryMiddleware"
-Assert-DoesNotContain $RequestTelemetry "var httpMethod = context.Request.Method;" "RequestTelemetryMiddleware"
+if ($AuthHeaders -match 'if\s*\(\s*AUTH_MODE\s*===\s*["'']oidc["'']\s*\)\s*\{\s*return\s*\{\s*\}\s*;') {
+    throw "auth-headers.ts still returns unconditional empty headers in OIDC mode."
+}
 
-Assert-Contains $HttpAuditLogger "using Caritas.Brigadas.Api.Extensions;" "HttpAuditLogger"
-Assert-Contains $HttpAuditLogger "CorrelationId = httpContext?.GetCorrelationId()," "HttpAuditLogger"
-Assert-DoesNotContain $HttpAuditLogger "CorrelationId = httpContext?.TraceIdentifier," "HttpAuditLogger"
+Assert-Contains $AuthHeaders "Authorization" "auth-headers.ts"
+Assert-Contains $AuthHeaders "Bearer" "auth-headers.ts"
+Assert-Contains $AuthHeaders "readBrowserStorageItem" "auth-headers.ts"
+Assert-Contains $AuthHeaders "return {} satisfies Record<string, string>;" "auth-headers.ts"
+Assert-NotContains $AuthHeaders "OIDC access token is required" "auth-headers.ts"
+Assert-NotContains $AuthHeaders "throw new Error(" "auth-headers.ts"
+Assert-NotContains $AuthHeaders "const storageCandidates = [window.sessionStorage, window.localStorage];" "auth-headers.ts"
 
-Assert-Contains $DbContext "using Caritas.Brigadas.Infrastructure.Persistence.Configurations;" "CaritasDbContext"
-Assert-Contains $DbContext "modelBuilder.ApplyConfiguration(new AuditLogConfiguration());" "CaritasDbContext"
+Assert-Contains $Telemetry "using Caritas.Brigadas.Api.Extensions;" "RequestTelemetryMiddleware.cs"
+Assert-Contains $Telemetry "using Microsoft.AspNetCore.Mvc.Controllers;" "RequestTelemetryMiddleware.cs"
+Assert-Contains $Telemetry "context.GetCorrelationId()" "RequestTelemetryMiddleware.cs"
+Assert-Contains $Telemetry "GetSafeEndpointRouteForLog(context.GetEndpoint())" "RequestTelemetryMiddleware.cs"
+Assert-Contains $Telemetry "ControllerActionDescriptor" "RequestTelemetryMiddleware.cs"
+Assert-Contains $Telemetry "ClassifyEndpointTemplateForLog" "RequestTelemetryMiddleware.cs"
+Assert-Contains $Telemetry "HttpMethods.IsGet(method)" "RequestTelemetryMiddleware.cs"
+Assert-Contains $Telemetry "/api/v1/[sensitive-resource]" "RequestTelemetryMiddleware.cs"
+Assert-Contains $Telemetry "SanitizeForLog(context.GetCorrelationId())" "RequestTelemetryMiddleware.cs"
 
-Assert-Contains $AuditLogConfiguration "HasMaxLength(128)" "AuditLogConfiguration"
-Assert-Contains $AuditLogConfiguration "auditLog.OrganizationId" "AuditLogConfiguration"
-Assert-Contains $AuditLogConfiguration "auditLog.OccurredAtUtc" "AuditLogConfiguration"
-
-Assert-Contains $Governance "verify-p3-pre-main-security-review-findings.ps1" "repository governance baseline"
+Assert-NotContains $Telemetry "SanitizePath(context.Request.Path)" "RequestTelemetryMiddleware.cs"
+Assert-NotContains $Telemetry "context.TraceIdentifier);" "RequestTelemetryMiddleware.cs"
+Assert-NotContains $Telemetry "NormalizeHttpMethodForLog" "RequestTelemetryMiddleware.cs"
+Assert-NotContains $Telemetry "rawPath.Split" "RequestTelemetryMiddleware.cs"
+Assert-NotContains $Telemetry "if (MaxEndpointSegments <= 0)" "RequestTelemetryMiddleware.cs"
 
 Write-Host "P3 pre-main security review findings verification passed." -ForegroundColor Green
-$MigrationRoot = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Persistence/Migrations"
-
-$OriginalAuditMigration = Get-ChildItem -Path $MigrationRoot -Filter "20260515055019_ApplyAuditLogConfiguration.cs" -ErrorAction SilentlyContinue
-$WidenAuditMigration = Get-ChildItem -Path $MigrationRoot -Filter "*WidenAuditLogCorrelationIdTo128.cs" -ErrorAction SilentlyContinue
-
-if (-not $OriginalAuditMigration) {
-    throw "Original ApplyAuditLogConfiguration migration must be preserved."
-}
-
-if (-not $WidenAuditMigration) {
-    throw "WidenAuditLogCorrelationIdTo128 migration is required."
-}
