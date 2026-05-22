@@ -26,6 +26,9 @@ Required evidence:
 - deployment owner assignment.
 - rollback owner assignment.
 - support owner assignment.
+- security owner assignment.
+- privacy owner assignment.
+- data owner assignment.
 - communication plan.
 - stakeholder notification plan.
 - training completion evidence.
@@ -34,6 +37,7 @@ Required evidence:
 - final backup checkpoint plan.
 - rollback checkpoint plan.
 - incident command plan.
+- go live risk register.
 - go live readiness blockers.
 - final go live decision evidence.
 
