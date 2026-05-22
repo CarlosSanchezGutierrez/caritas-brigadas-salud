@@ -326,4 +326,18 @@ $ForbiddenTokens = @(
 
 foreach ($Token in $ForbiddenTokens) { Assert-DoesNotContainToken -Content $AllDocumentationContent -Token $Token }
 
+
+# P3.38 Codex change release management runbook template regression checks
+$P338RunbookContent = Read-RepoText -RelativePath "docs/runbooks/P3_38_BACKEND_PRODUCTION_READINESS_DECISION_REVIEW_RUNBOOK.md"
+$P338TemplateContent = Read-RepoText -RelativePath "docs/operations/templates/P3_38_BACKEND_PRODUCTION_READINESS_DECISION_REVIEW_TEMPLATE.md"
+
+Assert-ContainsToken -Content $P338RunbookContent -Token "change management acceptance evidence"
+Assert-ContainsToken -Content $P338RunbookContent -Token "release management acceptance evidence"
+Assert-ContainsToken -Content $P338RunbookContent -Token "change management acceptance evidence is required"
+Assert-ContainsToken -Content $P338RunbookContent -Token "release management acceptance evidence is required"
+
+Assert-ContainsToken -Content $P338TemplateContent -Token "change management acceptance evidence"
+Assert-ContainsToken -Content $P338TemplateContent -Token "release management acceptance evidence"
+Assert-ContainsToken -Content $P338TemplateContent -Token "change management acceptance evidence is required"
+Assert-ContainsToken -Content $P338TemplateContent -Token "release management acceptance evidence is required"
 Write-Host "P3.38 backend production readiness decision review boundary verifier passed from repo root: $RepoRoot"

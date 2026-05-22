@@ -53,21 +53,23 @@ Required scenarios:
 35. database operational acceptance evidence is required.
 36. backup recovery acceptance evidence is required.
 37. incident response acceptance evidence is required.
-38. access control acceptance evidence is required.
-39. audit trail acceptance evidence is required.
-40. data governance acceptance evidence is required.
-41. security acceptance evidence is required.
-42. privacy acceptance evidence is required.
-43. residual risk acceptance evidence is required.
-44. evidence inventory evidence is required.
-45. evidence completeness evidence is required.
-46. evidence traceability evidence is required.
-47. evidence sanitization evidence is required.
-48. mobile release channel decision input evidence is required for mobile.
-49. device fleet decision input evidence is required for mobile.
-50. offline sync decision input evidence is required for mobile.
-51. conflict resolution decision input evidence is required for mobile.
-52. backend production readiness decision blockers are required.
+38. change management acceptance evidence is required.
+39. release management acceptance evidence is required.
+40. access control acceptance evidence is required.
+41. audit trail acceptance evidence is required.
+42. data governance acceptance evidence is required.
+43. security acceptance evidence is required.
+44. privacy acceptance evidence is required.
+45. residual risk acceptance evidence is required.
+46. evidence inventory evidence is required.
+47. evidence completeness evidence is required.
+48. evidence traceability evidence is required.
+49. evidence sanitization evidence is required.
+50. mobile release channel decision input evidence is required for mobile.
+51. device fleet decision input evidence is required for mobile.
+52. offline sync decision input evidence is required for mobile.
+53. conflict resolution decision input evidence is required for mobile.
+54. backend production readiness decision blockers are required.
 
 ## Failure handling
 
