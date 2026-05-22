@@ -133,11 +133,11 @@ $ForbiddenTokens = @(
     "Cloud is required",
     "Azure is required",
     "AWS is required",
-    "direct mobile write to SQL Server is allowed",
-    "unauthenticated API access is allowed",
+    "mobile clients may write directly to SQL Server",
+    "protected resources allow unauthenticated API access",
     "audit bypass allowed",
     "silent overwrite allowed",
-    "unrestricted patient-level exports are allowed",
+    "patient-level exports are unrestricted",
     "offline sync can bypass audit is allowed",
     "production ready"
 )
