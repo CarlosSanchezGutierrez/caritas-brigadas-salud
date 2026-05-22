@@ -19,8 +19,11 @@ Deploy Cáritas Brigadas de Salud API to a real environment with auditable evide
 Do not store values here. Store only evidence references.
 
 - `ASPNETCORE_ENVIRONMENT`
-- `ConnectionStrings__CaritasDatabase`
-- `Cors__AllowedOrigins`
+- `ConnectionStrings__SqlServer`
+- `Cors__AllowedOrigins__0`
+- `Cors__AllowedOrigins__1`
+
+Use indexed entries for CORS origins because the API reads Cors:AllowedOrigins as a string array. Add more origins as `Cors__AllowedOrigins__2`, `Cors__AllowedOrigins__3`, and so on.
 - `Security__RateLimiting__Enabled`
 - `Security__RateLimiting__PermitLimit`
 - `Security__RateLimiting__WindowMinutes`

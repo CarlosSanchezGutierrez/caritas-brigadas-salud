@@ -58,6 +58,9 @@ Assert-Contains $Register "Backend production readiness: BLOCKED_PENDING_REAL_EV
 
 Assert-Contains $DeploymentRunbook "CodeQL clean" "Production deployment runbook"
 Assert-Contains $DeploymentRunbook "SQL Server target available" "Production deployment runbook"
+Assert-Contains $DeploymentRunbook "ConnectionStrings__SqlServer" "Production deployment runbook"
+Assert-Contains $DeploymentRunbook "Cors__AllowedOrigins__0" "Production deployment runbook"
+Assert-Contains $DeploymentRunbook "Cors__AllowedOrigins__1" "Production deployment runbook"
 Assert-Contains $DeploymentRunbook "Minimum smoke tests" "Production deployment runbook"
 
 Assert-Contains $RollbackRunbook "Application rollback" "Production rollback runbook"
