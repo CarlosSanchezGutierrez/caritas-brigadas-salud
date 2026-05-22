@@ -287,7 +287,6 @@ app.MapGet("/", (HttpContext httpContext) =>
 .Produces<ApiResponse<object>>(StatusCodes.Status200OK);
 
 app.Run();
-
 static bool IsValidKnownNetworkPrefixLength(IPAddress prefix, int prefixLength)
 {
     return prefix.AddressFamily switch
