@@ -1,17 +1,44 @@
 $ErrorActionPreference = "Stop"
 
-function Assert-FileExists {
-    param([Parameter(Mandatory = $true)][string]$Path)
+$ScriptPath = if (-not [string]::IsNullOrWhiteSpace($PSCommandPath)) {
+    $PSCommandPath
+}
+elseif ($MyInvocation.MyCommand.Path) {
+    $MyInvocation.MyCommand.Path
+}
+else {
+    throw "Unable to resolve script path."
+}
 
-    if (-not (Test-Path $Path)) {
-        throw "Missing required file: $Path"
+$ScriptDirectory = Split-Path -Parent $ScriptPath
+$RepoRoot = Resolve-Path (Join-Path $ScriptDirectory "..")
+
+function Resolve-RepoPath {
+    param([Parameter(Mandatory = $true)][string]$RelativePath)
+
+    return Join-Path -Path $RepoRoot -ChildPath $RelativePath
+}
+
+function Assert-FileExists {
+    param([Parameter(Mandatory = $true)][string]$RelativePath)
+
+    $absolutePath = Resolve-RepoPath -RelativePath $RelativePath
+
+    if (-not (Test-Path $absolutePath)) {
+        throw "Missing required file: $RelativePath resolved to $absolutePath"
     }
 }
 
-function Read-Text {
-    param([Parameter(Mandatory = $true)][string]$Path)
+function Read-RepoText {
+    param([Parameter(Mandatory = $true)][string]$RelativePath)
 
-    return [System.IO.File]::ReadAllText((Resolve-Path $Path))
+    $absolutePath = Resolve-RepoPath -RelativePath $RelativePath
+
+    if (-not (Test-Path $absolutePath)) {
+        throw "Cannot read missing file: $RelativePath resolved to $absolutePath"
+    }
+
+    return [System.IO.File]::ReadAllText($absolutePath)
 }
 
 function Assert-ContainsToken {
@@ -48,7 +75,7 @@ $RequiredFiles = @(
 )
 
 foreach ($file in $RequiredFiles) {
-    Assert-FileExists $file
+    Assert-FileExists -RelativePath $file
 }
 
 $DocumentationFiles = $RequiredFiles | Where-Object { $_ -like "docs/*" }
@@ -56,7 +83,7 @@ $AllDocumentationContent = ""
 
 foreach ($file in $DocumentationFiles) {
     $AllDocumentationContent += "`n--- FILE: $file ---`n"
-    $AllDocumentationContent += Read-Text $file
+    $AllDocumentationContent += Read-RepoText -RelativePath $file
 }
 
 $RequiredTokens = @(
@@ -106,4 +133,4 @@ foreach ($token in $ForbiddenTokens) {
     Assert-DoesNotContainToken -Content $AllDocumentationContent -Token $token
 }
 
-Write-Host "P3.8 SQL Server on-prem operational evidence baseline verifier passed."
+Write-Host "P3.8 SQL Server on-prem operational evidence baseline verifier passed from repo root: $RepoRoot"
