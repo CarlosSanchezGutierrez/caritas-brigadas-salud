@@ -1,11 +1,15 @@
 using System.Diagnostics;
+using System.Text;
 using Caritas.Brigadas.Api.Extensions;
+using Microsoft.AspNetCore.Mvc.Controllers;
 
 namespace Caritas.Brigadas.Api.Middleware;
 
 public sealed class RequestTelemetryMiddleware
 {
-    private static readonly string[] SensitivePathSegments =
+    private const int MaxLogValueLength = 128;
+
+    private static readonly string[] SensitiveEndpointTokens =
     [
         "patients",
         "patient-visits",
@@ -31,16 +35,16 @@ public sealed class RequestTelemetryMiddleware
         ArgumentNullException.ThrowIfNull(context);
 
         var stopwatch = Stopwatch.StartNew();
-        var httpMethod = SanitizeForLog(NormalizeHttpMethodForLog(context.Request.Method));
-        var sanitizedPath = SanitizePath(context.Request.Path);
-        var correlationId = context.GetCorrelationId();
+        var httpMethod = GetSafeHttpMethodForLog(context.Request.Method);
+        var endpointRoute = GetSafeEndpointRouteForLog(context.GetEndpoint());
+        var correlationId = SanitizeForLog(context.GetCorrelationId());
 
         var scopeProperties = new Dictionary<string, object?>
         {
             ["CorrelationId"] = correlationId,
             ["RequestId"] = context.TraceIdentifier,
             ["HttpMethod"] = httpMethod,
-            ["EndpointRoute"] = sanitizedPath,
+            ["EndpointRoute"] = endpointRoute,
             ["StatusCode"] = 0,
             ["ElapsedMilliseconds"] = 0
         };
@@ -74,7 +78,7 @@ public sealed class RequestTelemetryMiddleware
                     capturedException,
                     "HTTP request failed {HttpMethod} {EndpointRoute} with {StatusCode} in {ElapsedMilliseconds} ms.",
                     httpMethod,
-                    sanitizedPath,
+                    endpointRoute,
                     statusCode,
                     elapsedMilliseconds);
             }
@@ -84,7 +88,7 @@ public sealed class RequestTelemetryMiddleware
                     "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
                     statusCode,
                     httpMethod,
-                    sanitizedPath,
+                    endpointRoute,
                     elapsedMilliseconds);
             }
             else if (statusCode >= StatusCodes.Status400BadRequest)
@@ -93,7 +97,7 @@ public sealed class RequestTelemetryMiddleware
                     "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
                     statusCode,
                     httpMethod,
-                    sanitizedPath,
+                    endpointRoute,
                     elapsedMilliseconds);
             }
             else
@@ -102,33 +106,143 @@ public sealed class RequestTelemetryMiddleware
                     "HTTP request responded {StatusCode} for {HttpMethod} {EndpointRoute} in {ElapsedMilliseconds} ms.",
                     statusCode,
                     httpMethod,
-                    sanitizedPath,
+                    endpointRoute,
                     elapsedMilliseconds);
             }
         }
     }
 
-    private static string NormalizeHttpMethodForLog(string? method)
+    private static string GetSafeHttpMethodForLog(string? method)
     {
         if (string.IsNullOrWhiteSpace(method))
         {
             return "UNKNOWN";
         }
 
-        var normalizedMethod = method.Trim().ToUpperInvariant();
+        if (HttpMethods.IsGet(method))
+        {
+            return "GET";
+        }
 
-        return normalizedMethod is "GET"
-            or "POST"
-            or "PUT"
-            or "PATCH"
-            or "DELETE"
-            or "HEAD"
-            or "OPTIONS"
-            or "TRACE"
-            or "CONNECT"
-            ? normalizedMethod
-            : "UNKNOWN";
+        if (HttpMethods.IsPost(method))
+        {
+            return "POST";
+        }
+
+        if (HttpMethods.IsPut(method))
+        {
+            return "PUT";
+        }
+
+        if (HttpMethods.IsPatch(method))
+        {
+            return "PATCH";
+        }
+
+        if (HttpMethods.IsDelete(method))
+        {
+            return "DELETE";
+        }
+
+        if (HttpMethods.IsHead(method))
+        {
+            return "HEAD";
+        }
+
+        if (HttpMethods.IsOptions(method))
+        {
+            return "OPTIONS";
+        }
+
+        if (HttpMethods.IsTrace(method))
+        {
+            return "TRACE";
+        }
+
+        if (HttpMethods.IsConnect(method))
+        {
+            return "CONNECT";
+        }
+
+        return "UNKNOWN";
     }
+
+    private static string GetSafeEndpointRouteForLog(Endpoint? endpoint)
+    {
+        if (endpoint is null)
+        {
+            return "/[unmatched-endpoint]";
+        }
+
+        var controllerAction = endpoint.Metadata.GetMetadata<ControllerActionDescriptor>();
+        var routeTemplate = controllerAction?.AttributeRouteInfo?.Template;
+
+        if (string.IsNullOrWhiteSpace(routeTemplate))
+        {
+            return "/[mapped-endpoint]";
+        }
+
+        return ClassifyEndpointTemplateForLog(routeTemplate);
+    }
+
+    private static string ClassifyEndpointTemplateForLog(string routeTemplate)
+    {
+        foreach (var sensitiveToken in SensitiveEndpointTokens)
+        {
+            if (routeTemplate.Contains(sensitiveToken, StringComparison.OrdinalIgnoreCase))
+            {
+                return "/api/v1/[sensitive-resource]";
+            }
+        }
+
+        if (routeTemplate.Contains("health", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/health";
+        }
+
+        if (routeTemplate.Contains("reports", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/organizations/[id]/reports/[segment]";
+        }
+
+        if (routeTemplate.Contains("audit-logs", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/organizations/[id]/audit-logs";
+        }
+
+        if (routeTemplate.Contains("organizations", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/organizations/[id]";
+        }
+
+        if (routeTemplate.Contains("users", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/users/[id]";
+        }
+
+        if (routeTemplate.Contains("roles", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/roles";
+        }
+
+        if (routeTemplate.Contains("permissions", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/permissions";
+        }
+
+        if (routeTemplate.Contains("auth", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/auth/[segment]";
+        }
+
+        if (routeTemplate.Contains("me", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/api/v1/me";
+        }
+
+        return "/api/v1/[endpoint]";
+    }
+
     private static string SanitizeForLog(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -136,29 +250,30 @@ public sealed class RequestTelemetryMiddleware
             return "UNKNOWN";
         }
 
-        var sanitized = string.Concat(value.Where(static character => !char.IsControl(character)));
+        var builder = new StringBuilder(capacity: Math.Min(value.Length, MaxLogValueLength));
+
+        foreach (var character in value.Trim())
+        {
+            if (builder.Length >= MaxLogValueLength)
+            {
+                break;
+            }
+
+            if (char.IsLetterOrDigit(character)
+                || character is '-' or '_' or '.' or ':' or '[' or ']')
+            {
+                builder.Append(character);
+            }
+            else if (!char.IsControl(character))
+            {
+                builder.Append('_');
+            }
+        }
+
+        var sanitized = builder.ToString().Trim();
 
         return string.IsNullOrWhiteSpace(sanitized)
             ? "UNKNOWN"
             : sanitized;
-    }
-    private static string SanitizePath(PathString path)
-    {
-        var rawPath = path.Value;
-
-        if (string.IsNullOrWhiteSpace(rawPath))
-        {
-            return "/";
-        }
-
-        foreach (var segment in SensitivePathSegments)
-        {
-            if (rawPath.Contains(segment, StringComparison.OrdinalIgnoreCase))
-            {
-                return "/api/v1/[sensitive-resource]";
-            }
-        }
-
-        return SanitizeForLog(rawPath);
     }
 }

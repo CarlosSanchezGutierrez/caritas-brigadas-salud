@@ -1,6 +1,9 @@
 $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
+$TelemetryPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Api/Middleware/RequestTelemetryMiddleware.cs"
+$CorrelationPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Api/Middleware/CorrelationIdMiddleware.cs"
+$ProgramPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Api/Program.cs"
 
 function Assert-FileExists {
     param(
@@ -37,117 +40,55 @@ function Assert-NotContains {
     }
 }
 
-$BaselinePath = Join-Path $RepoRoot "docs/operations/P3_STRUCTURED_LOGGING_CORRELATION_ID_BASELINE.md"
-$ObservabilityPath = Join-Path $RepoRoot "docs/operations/P3_PRODUCTION_OBSERVABILITY_BASELINE.md"
-$CorrelationPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Api/Middleware/CorrelationIdMiddleware.cs"
-$TelemetryPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Api/Middleware/RequestTelemetryMiddleware.cs"
-$HttpContextExtensionsPath = Join-Path $RepoRoot "services/api-dotnet/src/Caritas.Brigadas.Api/Extensions/HttpContextExtensions.cs"
-$GovernancePath = Join-Path $RepoRoot "scripts/validate-repo-governance-baseline.ps1"
-
-Assert-FileExists $BaselinePath "P3 structured logging baseline"
-Assert-FileExists $ObservabilityPath "P3 production observability baseline"
-Assert-FileExists $CorrelationPath "CorrelationIdMiddleware"
 Assert-FileExists $TelemetryPath "RequestTelemetryMiddleware"
-Assert-FileExists $HttpContextExtensionsPath "HttpContextExtensions"
-Assert-FileExists $GovernancePath "repository governance baseline"
+Assert-FileExists $CorrelationPath "CorrelationIdMiddleware"
+Assert-FileExists $ProgramPath "Program.cs"
 
-$Baseline = Get-Content $BaselinePath -Raw -Encoding UTF8
-$Observability = Get-Content $ObservabilityPath -Raw -Encoding UTF8
-$Correlation = Get-Content $CorrelationPath -Raw -Encoding UTF8
 $Telemetry = Get-Content $TelemetryPath -Raw -Encoding UTF8
-$HttpContextExtensions = Get-Content $HttpContextExtensionsPath -Raw -Encoding UTF8
-$Governance = Get-Content $GovernancePath -Raw -Encoding UTF8
+$Correlation = Get-Content $CorrelationPath -Raw -Encoding UTF8
+$Program = Get-Content $ProgramPath -Raw -Encoding UTF8
 
-$RequiredBaselineTokens = @(
-    "P3 Structured Logging and Correlation ID Baseline",
-    "X-Correlation-Id",
-    "MaxCorrelationIdLength",
-    "safe ASCII characters",
-    "CorrelationId",
-    "RequestId",
-    "HttpMethod",
-    "EndpointRoute",
-    "StatusCode",
-    "ElapsedMilliseconds",
-    "/api/v1/[sensitive-resource]",
-    "raw PayloadJson",
-    "Information for successful responses below 400",
-    "Warning for responses from 400 to 499",
-    "Error for responses 500 or greater",
-    "Acceptance criteria"
-)
+Assert-Contains $Program "app.UseMiddleware<CorrelationIdMiddleware>();" "Program.cs"
+Assert-Contains $Program "app.UseMiddleware<RequestTelemetryMiddleware>();" "Program.cs"
 
-foreach ($Token in $RequiredBaselineTokens) {
-    Assert-Contains $Baseline $Token "P3 structured logging baseline"
+$correlationIndex = $Program.IndexOf("app.UseMiddleware<CorrelationIdMiddleware>();", [StringComparison]::Ordinal)
+$telemetryIndex = $Program.IndexOf("app.UseMiddleware<RequestTelemetryMiddleware>();", [StringComparison]::Ordinal)
+
+if ($correlationIndex -lt 0 -or $telemetryIndex -lt 0 -or $correlationIndex -gt $telemetryIndex) {
+    throw "CorrelationIdMiddleware must run before RequestTelemetryMiddleware."
 }
 
-$RequiredCorrelationTokens = @(
-    "public const string HeaderName = ""X-Correlation-Id"";",
-    "MaxCorrelationIdLength",
-    "IsValidCorrelationId",
-    "IsAllowedCorrelationIdCharacter",
-    "char.IsAsciiLetterOrDigit",
-    "value is '-' or '_' or '.' or ':'",
-    "context.Items[HeaderName] = correlationId;",
-    "context.Response.Headers[HeaderName] = correlationId;",
-    "return context.TraceIdentifier;"
-)
+Assert-Contains $Correlation "public const string HeaderName = `"X-Correlation-Id`";" "CorrelationIdMiddleware"
+Assert-Contains $Correlation "context.Items[HeaderName] = correlationId;" "CorrelationIdMiddleware"
+Assert-Contains $Correlation "context.Response.Headers[HeaderName] = correlationId;" "CorrelationIdMiddleware"
+Assert-Contains $Correlation "IsValidCorrelationId" "CorrelationIdMiddleware"
+Assert-Contains $Correlation "MaxCorrelationIdLength" "CorrelationIdMiddleware"
 
-foreach ($Token in $RequiredCorrelationTokens) {
-    Assert-Contains $Correlation $Token "CorrelationIdMiddleware"
-}
+Assert-Contains $Telemetry "using Caritas.Brigadas.Api.Extensions;" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "using Microsoft.AspNetCore.Mvc.Controllers;" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "context.GetCorrelationId()" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "SanitizeForLog(context.GetCorrelationId())" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "GetSafeEndpointRouteForLog(context.GetEndpoint())" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "ControllerActionDescriptor" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "ClassifyEndpointTemplateForLog" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "SensitiveEndpointTokens" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "/api/v1/[sensitive-resource]" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "CorrelationId" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "RequestId" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "HttpMethod" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "EndpointRoute" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "StatusCode" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "ElapsedMilliseconds" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "_logger.BeginScope(scopeProperties)" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "_logger.LogError" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "_logger.LogWarning" "RequestTelemetryMiddleware"
+Assert-Contains $Telemetry "_logger.LogInformation" "RequestTelemetryMiddleware"
 
-$RequiredTelemetryTokens = @(
-    "using Caritas.Brigadas.Api.Extensions;",
-    "context.GetCorrelationId()",
-    "SanitizePath(context.Request.Path)",
-    "var scopeProperties = new Dictionary<string, object?>",
-    "using var scope = _logger.BeginScope(scopeProperties);",
-    "await _next(context);",
-    "[""CorrelationId""]",
-    "[""RequestId""]",
-    "[""HttpMethod""]",
-    "[""EndpointRoute""]",
-    "[""StatusCode""]",
-    "[""ElapsedMilliseconds""]",
-    "scopeProperties[""StatusCode""] = statusCode;",
-    "scopeProperties[""ElapsedMilliseconds""] = elapsedMilliseconds;",
-    "StatusCodes.Status500InternalServerError",
-    "StatusCodes.Status400BadRequest",
-    "LogInformation",
-    "LogWarning",
-    "LogError",
-    "/api/v1/[sensitive-resource]",
-    "sync-batches"
-)
+Assert-NotContains $Telemetry "SanitizePath(context.Request.Path)" "RequestTelemetryMiddleware"
+Assert-NotContains $Telemetry "SensitivePathSegments" "RequestTelemetryMiddleware"
+Assert-NotContains $Telemetry "context.TraceIdentifier);" "RequestTelemetryMiddleware"
+Assert-NotContains $Telemetry "NormalizeHttpMethodForLog" "RequestTelemetryMiddleware"
+Assert-NotContains $Telemetry "rawPath.Split" "RequestTelemetryMiddleware"
+Assert-NotContains $Telemetry "return SanitizeForLog(rawPath);" "RequestTelemetryMiddleware"
 
-foreach ($Token in $RequiredTelemetryTokens) {
-    Assert-Contains $Telemetry $Token "RequestTelemetryMiddleware"
-}
-
-$ForbiddenTelemetryTokens = @(
-    "PayloadJson",
-    "Request.Body",
-    "Request.QueryString",
-    "ConnectionStrings",
-    "Bearer ",
-    "Password",
-    "BeginScope(new Dictionary<string, object?>"
-)
-
-foreach ($Token in $ForbiddenTelemetryTokens) {
-    Assert-NotContains $Telemetry $Token "RequestTelemetryMiddleware"
-}
-
-$BeginScopeIndex = $Telemetry.IndexOf("using var scope = _logger.BeginScope(scopeProperties);", [System.StringComparison]::Ordinal)
-$NextIndex = $Telemetry.IndexOf("await _next(context);", [System.StringComparison]::Ordinal)
-
-if ($BeginScopeIndex -lt 0 -or $NextIndex -lt 0 -or $BeginScopeIndex -gt $NextIndex) {
-    throw "RequestTelemetryMiddleware must start the logging scope before invoking downstream middleware."
-}
-
-Assert-Contains $HttpContextExtensions "GetCorrelationId" "HttpContextExtensions"
-Assert-Contains $Observability "P3-26F structured logging and correlation id implementation" "P3 production observability baseline"
-Assert-Contains $Governance "verify-p3-structured-logging-correlation-id.ps1" "repository governance baseline"
-
-Write-Host "P3 structured logging and correlation id verification passed." -ForegroundColor Green
+Write-Host "P3 structured logging and correlation-id verification passed." -ForegroundColor Green

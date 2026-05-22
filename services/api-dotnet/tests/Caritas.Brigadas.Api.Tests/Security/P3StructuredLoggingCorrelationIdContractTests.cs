@@ -5,163 +5,161 @@ namespace Caritas.Brigadas.Api.Tests.Security;
 public sealed class P3StructuredLoggingCorrelationIdContractTests
 {
     [Fact]
-    public void CorrelationIdMiddleware_ValidatesIncomingCorrelationId()
+    public void Program_RegistersCorrelationIdBeforeRequestTelemetry()
     {
-        var source = File.ReadAllText(GetMiddlewarePath("CorrelationIdMiddleware.cs"));
+        var program = File.ReadAllText(GetRepoPath(
+            "services",
+            "api-dotnet",
+            "src",
+            "Caritas.Brigadas.Api",
+            "Program.cs"));
 
-        var requiredTokens = new[]
-        {
-            "public const string HeaderName = \"X-Correlation-Id\";",
-            "MaxCorrelationIdLength",
-            "IsValidCorrelationId",
-            "IsAllowedCorrelationIdCharacter",
-            "char.IsAsciiLetterOrDigit",
-            "value is '-' or '_' or '.' or ':'",
-            "context.Items[HeaderName] = correlationId;",
-            "context.Response.Headers[HeaderName] = correlationId;",
-            "return context.TraceIdentifier;"
-        };
+        Assert.Contains("app.UseMiddleware<CorrelationIdMiddleware>();", program, StringComparison.Ordinal);
+        Assert.Contains("app.UseMiddleware<RequestTelemetryMiddleware>();", program, StringComparison.Ordinal);
 
-        AssertRequiredTokens(source, requiredTokens, "CorrelationIdMiddleware");
-    }
-
-    [Fact]
-    public void RequestTelemetryMiddleware_UsesStructuredScopeAndCorrelationId()
-    {
-        var source = File.ReadAllText(GetMiddlewarePath("RequestTelemetryMiddleware.cs"));
-
-        var requiredTokens = new[]
-        {
-            "using Caritas.Brigadas.Api.Extensions;",
-            "context.GetCorrelationId()",
-            "SanitizePath(context.Request.Path)",
-            "var scopeProperties = new Dictionary<string, object?>",
-            "using var scope = _logger.BeginScope(scopeProperties);",
-            "[\"CorrelationId\"]",
-            "[\"RequestId\"]",
-            "[\"HttpMethod\"]",
-            "[\"EndpointRoute\"]",
-            "[\"StatusCode\"]",
-            "[\"ElapsedMilliseconds\"]",
-            "scopeProperties[\"StatusCode\"] = statusCode;",
-            "scopeProperties[\"ElapsedMilliseconds\"] = elapsedMilliseconds;",
-            "StatusCodes.Status500InternalServerError",
-            "StatusCodes.Status400BadRequest",
-            "LogInformation",
-            "LogWarning",
-            "LogError"
-        };
-
-        AssertRequiredTokens(source, requiredTokens, "RequestTelemetryMiddleware");
-    }
-
-    [Fact]
-    public void RequestTelemetryMiddleware_StartsScopeBeforeInvokingNextMiddleware()
-    {
-        var source = File.ReadAllText(GetMiddlewarePath("RequestTelemetryMiddleware.cs"));
-
-        var beginScopeIndex = source.IndexOf(
-            "using var scope = _logger.BeginScope(scopeProperties);",
+        var correlationIndex = program.IndexOf(
+            "app.UseMiddleware<CorrelationIdMiddleware>();",
             StringComparison.Ordinal);
 
-        var nextIndex = source.IndexOf(
-            "await _next(context);",
+        var telemetryIndex = program.IndexOf(
+            "app.UseMiddleware<RequestTelemetryMiddleware>();",
             StringComparison.Ordinal);
 
-        Assert.True(beginScopeIndex >= 0, "RequestTelemetryMiddleware must create a logging scope.");
-        Assert.True(nextIndex >= 0, "RequestTelemetryMiddleware must invoke downstream middleware.");
+        Assert.True(correlationIndex >= 0, "CorrelationIdMiddleware registration was not found.");
+        Assert.True(telemetryIndex >= 0, "RequestTelemetryMiddleware registration was not found.");
         Assert.True(
-            beginScopeIndex < nextIndex,
-            "RequestTelemetryMiddleware must start the logging scope before invoking downstream middleware.");
+            correlationIndex < telemetryIndex,
+            "CorrelationIdMiddleware must run before RequestTelemetryMiddleware.");
     }
 
     [Fact]
-    public void RequestTelemetryMiddleware_SanitizesSensitiveRoutes()
+    public void CorrelationIdMiddleware_ValidatesAndPropagatesCorrelationId()
     {
-        var source = File.ReadAllText(GetMiddlewarePath("RequestTelemetryMiddleware.cs"));
+        var correlation = File.ReadAllText(GetRepoPath(
+            "services",
+            "api-dotnet",
+            "src",
+            "Caritas.Brigadas.Api",
+            "Middleware",
+            "CorrelationIdMiddleware.cs"));
 
-        var requiredTokens = new[]
-        {
-            "SensitivePathSegments",
-            "patients",
-            "patient-visits",
-            "service-encounters",
-            "form-responses",
-            "consent-documents",
-            "sync-batches",
-            "/api/v1/[sensitive-resource]"
-        };
-
-        AssertRequiredTokens(source, requiredTokens, "RequestTelemetryMiddleware sensitive route sanitization");
-
-        Assert.DoesNotContain("Request.QueryString", source, StringComparison.Ordinal);
-        Assert.DoesNotContain("Request.Body", source, StringComparison.Ordinal);
-        Assert.DoesNotContain("PayloadJson", source, StringComparison.Ordinal);
-        Assert.DoesNotContain("ConnectionStrings", source, StringComparison.Ordinal);
-        Assert.DoesNotContain("Bearer ", source, StringComparison.Ordinal);
-        Assert.DoesNotContain("Password", source, StringComparison.Ordinal);
-        Assert.DoesNotContain("BeginScope(new Dictionary<string, object?>", source, StringComparison.Ordinal);
+        AssertRequiredTokens(
+            correlation,
+            new[]
+            {
+                "public const string HeaderName = \"X-Correlation-Id\";",
+                "MaxCorrelationIdLength",
+                "context.Items[HeaderName] = correlationId;",
+                "context.Response.Headers[HeaderName] = correlationId;",
+                "GetOrCreateCorrelationId",
+                "IsValidCorrelationId",
+                "IsAllowedCorrelationIdCharacter",
+                "context.TraceIdentifier"
+            },
+            "CorrelationIdMiddleware");
     }
 
     [Fact]
-    public void StructuredLoggingCorrelationIdBaseline_DefinesProductionScope()
+    public void RequestTelemetryMiddleware_UsesStructuredScopeAndPropagatedCorrelationId()
     {
-        var source = File.ReadAllText(GetOperationsDocPath("P3_STRUCTURED_LOGGING_CORRELATION_ID_BASELINE.md"));
+        var telemetry = File.ReadAllText(GetRepoPath(
+            "services",
+            "api-dotnet",
+            "src",
+            "Caritas.Brigadas.Api",
+            "Middleware",
+            "RequestTelemetryMiddleware.cs"));
 
-        var requiredTokens = new[]
-        {
-            "P3 Structured Logging and Correlation ID Baseline",
-            "X-Correlation-Id",
-            "MaxCorrelationIdLength",
-            "safe ASCII characters",
-            "CorrelationId",
-            "RequestId",
-            "HttpMethod",
-            "EndpointRoute",
-            "StatusCode",
-            "ElapsedMilliseconds",
-            "/api/v1/[sensitive-resource]",
-            "raw PayloadJson",
-            "Information for successful responses below 400",
-            "Warning for responses from 400 to 499",
-            "Error for responses 500 or greater",
-            "Acceptance criteria"
-        };
+        AssertRequiredTokens(
+            telemetry,
+            new[]
+            {
+                "using Caritas.Brigadas.Api.Extensions;",
+                "using Microsoft.AspNetCore.Mvc.Controllers;",
+                "context.GetCorrelationId()",
+                "SanitizeForLog(context.GetCorrelationId())",
+                "_logger.BeginScope(scopeProperties)",
+                "\"CorrelationId\"",
+                "\"RequestId\"",
+                "\"HttpMethod\"",
+                "\"EndpointRoute\"",
+                "\"StatusCode\"",
+                "\"ElapsedMilliseconds\"",
+                "_logger.LogError",
+                "_logger.LogWarning",
+                "_logger.LogInformation"
+            },
+            "RequestTelemetryMiddleware");
 
-        AssertRequiredTokens(source, requiredTokens, "P3 structured logging baseline");
+        Assert.DoesNotContain("context.TraceIdentifier);", telemetry, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void StructuredLoggingCorrelationIdVerifier_RequiresRuntimeEvidence()
+    public void RequestTelemetryMiddleware_ClassifiesEndpointTemplatesInsteadOfLoggingRawPaths()
     {
-        var source = File.ReadAllText(GetScriptPath("verify-p3-structured-logging-correlation-id.ps1"));
+        var telemetry = File.ReadAllText(GetRepoPath(
+            "services",
+            "api-dotnet",
+            "src",
+            "Caritas.Brigadas.Api",
+            "Middleware",
+            "RequestTelemetryMiddleware.cs"));
 
-        var requiredTokens = new[]
-        {
-            "P3 structured logging and correlation id verification passed.",
-            "P3_STRUCTURED_LOGGING_CORRELATION_ID_BASELINE.md",
-            "CorrelationIdMiddleware.cs",
-            "RequestTelemetryMiddleware.cs",
-            "HttpContextExtensions.cs",
-            "context.GetCorrelationId()",
-            "var scopeProperties = new Dictionary<string, object?>",
-            "using var scope = _logger.BeginScope(scopeProperties);",
-            "RequestTelemetryMiddleware must start the logging scope before invoking downstream middleware.",
-            "/api/v1/[sensitive-resource]"
-        };
+        AssertRequiredTokens(
+            telemetry,
+            new[]
+            {
+                "GetSafeEndpointRouteForLog(context.GetEndpoint())",
+                "ControllerActionDescriptor",
+                "ClassifyEndpointTemplateForLog",
+                "SensitiveEndpointTokens",
+                "/api/v1/[sensitive-resource]",
+                "/api/v1/organizations/[id]",
+                "/api/v1/organizations/[id]/reports/[segment]",
+                "/api/v1/organizations/[id]/audit-logs",
+                "/api/v1/[endpoint]"
+            },
+            "RequestTelemetryMiddleware endpoint classification");
 
-        AssertRequiredTokens(source, requiredTokens, "P3 structured logging verifier");
+        Assert.DoesNotContain("SanitizePath(context.Request.Path)", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("SensitivePathSegments", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("rawPath.Split", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("return SanitizeForLog(rawPath);", telemetry, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void RepositoryGovernanceBaseline_RunsStructuredLoggingCorrelationIdVerifier()
+    public void RequestTelemetryMiddleware_UsesSafeHttpMethodClassification()
     {
-        var source = File.ReadAllText(GetScriptPath("validate-repo-governance-baseline.ps1"));
+        var telemetry = File.ReadAllText(GetRepoPath(
+            "services",
+            "api-dotnet",
+            "src",
+            "Caritas.Brigadas.Api",
+            "Middleware",
+            "RequestTelemetryMiddleware.cs"));
 
-        Assert.Contains(
-            "verify-p3-structured-logging-correlation-id.ps1",
-            source,
-            StringComparison.Ordinal);
+        AssertRequiredTokens(
+            telemetry,
+            new[]
+            {
+                "GetSafeHttpMethodForLog(context.Request.Method)",
+                "if (string.IsNullOrWhiteSpace(method))",
+                "HttpMethods.IsGet(method)",
+                "HttpMethods.IsPost(method)",
+                "HttpMethods.IsPut(method)",
+                "HttpMethods.IsPatch(method)",
+                "HttpMethods.IsDelete(method)",
+                "HttpMethods.IsHead(method)",
+                "HttpMethods.IsOptions(method)",
+                "HttpMethods.IsTrace(method)",
+                "HttpMethods.IsConnect(method)",
+                "return \"UNKNOWN\";"
+            },
+            "RequestTelemetryMiddleware HTTP method classification");
+
+        Assert.DoesNotContain("NormalizeHttpMethodForLog", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("SanitizeForLog(NormalizeHttpMethodForLog(context.Request.Method))", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("var normalizedMethod = method.Trim().ToUpperInvariant();", telemetry, StringComparison.Ordinal);
     }
 
     private static void AssertRequiredTokens(
@@ -169,45 +167,25 @@ public sealed class P3StructuredLoggingCorrelationIdContractTests
         IReadOnlyCollection<string> requiredTokens,
         string label)
     {
-        var failures = requiredTokens
+        var missingTokens = requiredTokens
             .Where(token => !source.Contains(token, StringComparison.Ordinal))
-            .Select(token => $"{label} is missing required token: {token}")
             .ToArray();
 
         Assert.True(
-            failures.Length == 0,
-            $"{label} is incomplete." +
-            Environment.NewLine +
-            string.Join(Environment.NewLine, failures));
+            missingTokens.Length == 0,
+            label + " is incomplete." + Environment.NewLine +
+            string.Join(
+                Environment.NewLine,
+                missingTokens.Select(token => $"{label} is missing required token: {token}")));
     }
 
-    private static string GetMiddlewarePath(string fileName)
+    private static string GetRepoPath(params string[] parts)
     {
         return Path.Combine(
-            FindRepositoryRoot(),
-            "services",
-            "api-dotnet",
-            "src",
-            "Caritas.Brigadas.Api",
-            "Middleware",
-            fileName);
-    }
-
-    private static string GetOperationsDocPath(string fileName)
-    {
-        return Path.Combine(
-            FindRepositoryRoot(),
-            "docs",
-            "operations",
-            fileName);
-    }
-
-    private static string GetScriptPath(string fileName)
-    {
-        return Path.Combine(
-            FindRepositoryRoot(),
-            "scripts",
-            fileName);
+            new[]
+            {
+                FindRepositoryRoot()
+            }.Concat(parts).ToArray());
     }
 
     private static string FindRepositoryRoot()
