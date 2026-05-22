@@ -21,6 +21,11 @@ public sealed class P35MainPromotionSecurityBlockerTests
         Assert.Contains("IPAddress.TryParse", program, StringComparison.Ordinal);
         Assert.Contains("options.KnownIPNetworks.Add", program, StringComparison.Ordinal);
         Assert.Contains("new System.Net.IPNetwork", program, StringComparison.Ordinal);
+        Assert.Contains("IsValidKnownNetworkPrefixLength(prefix, prefixLength)", program, StringComparison.Ordinal);
+        Assert.Contains("AddressFamily.InterNetwork", program, StringComparison.Ordinal);
+        Assert.Contains("AddressFamily.InterNetworkV6", program, StringComparison.Ordinal);
+        Assert.Contains("prefixLength is >= 0 and <= 32", program, StringComparison.Ordinal);
+        Assert.Contains("prefixLength is >= 0 and <= 128", program, StringComparison.Ordinal);
     }
 
     [Fact]

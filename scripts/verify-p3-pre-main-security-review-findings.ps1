@@ -55,6 +55,12 @@ Assert-NotContains $Program "Microsoft.AspNetCore.HttpOverrides.IPNetwork" "Prog
 Assert-NotContains $Program "options.KnownNetworks" "Program.cs"
 Assert-Contains $Program "ReverseProxy:ForwardedHeaders:KnownProxies" "Program.cs"
 Assert-Contains $Program "ReverseProxy:ForwardedHeaders:KnownIPNetworks" "Program.cs"
+Assert-Contains $Program "prefixLength is >= 0 and <= 128" "Program.cs"
+Assert-Contains $Program "prefixLength is >= 0 and <= 32" "Program.cs"
+Assert-Contains $Program "AddressFamily.InterNetworkV6" "Program.cs"
+Assert-Contains $Program "AddressFamily.InterNetwork" "Program.cs"
+Assert-Contains $Program "IsValidKnownNetworkPrefixLength(prefix, prefixLength)" "Program.cs"
+Assert-Contains $Program "new System.Net.IPNetwork" "Program.cs"
 Assert-Contains $Program "new System.Net.IPNetwork(prefix, prefixLength)" "Program.cs"
 
 if ($AuthHeaders -match 'if\s*\(\s*AUTH_MODE\s*===\s*["'']oidc["'']\s*\)\s*\{\s*return\s*\{\s*\}\s*;') {

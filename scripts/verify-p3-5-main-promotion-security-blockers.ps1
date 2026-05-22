@@ -53,6 +53,11 @@ Assert-Contains $Program "ReverseProxy:ForwardedHeaders:KnownIPNetworks" "Progra
 Assert-Contains $Program "IPAddress.TryParse" "Program.cs"
 Assert-Contains $Program "options.KnownIPNetworks.Add" "Program.cs"
 Assert-Contains $Program "new System.Net.IPNetwork" "Program.cs"
+Assert-Contains $Program "IsValidKnownNetworkPrefixLength(prefix, prefixLength)" "Program.cs"
+Assert-Contains $Program "AddressFamily.InterNetwork" "Program.cs"
+Assert-Contains $Program "AddressFamily.InterNetworkV6" "Program.cs"
+Assert-Contains $Program "prefixLength is >= 0 and <= 32" "Program.cs"
+Assert-Contains $Program "prefixLength is >= 0 and <= 128" "Program.cs"
 
 if ($AuthHeaders -match 'if\s*\(\s*AUTH_MODE\s*===\s*["'']oidc["'']\s*\)\s*\{\s*return\s*\{\s*\}\s*;') {
     throw "auth-headers.ts still returns an unconditional empty header object in OIDC mode."

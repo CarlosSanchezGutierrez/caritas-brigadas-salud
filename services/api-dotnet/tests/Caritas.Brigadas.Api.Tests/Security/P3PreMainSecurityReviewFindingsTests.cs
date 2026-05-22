@@ -20,6 +20,11 @@ public sealed class P3PreMainSecurityReviewFindingsTests
         Assert.DoesNotContain("options.KnownNetworks", program, StringComparison.Ordinal);
         Assert.Contains("ReverseProxy:ForwardedHeaders:KnownProxies", program, StringComparison.Ordinal);
         Assert.Contains("ReverseProxy:ForwardedHeaders:KnownIPNetworks", program, StringComparison.Ordinal);
+        Assert.Contains("IsValidKnownNetworkPrefixLength(prefix, prefixLength)", program, StringComparison.Ordinal);
+        Assert.Contains("AddressFamily.InterNetwork", program, StringComparison.Ordinal);
+        Assert.Contains("AddressFamily.InterNetworkV6", program, StringComparison.Ordinal);
+        Assert.Contains("prefixLength is >= 0 and <= 32", program, StringComparison.Ordinal);
+        Assert.Contains("prefixLength is >= 0 and <= 128", program, StringComparison.Ordinal);
         Assert.Contains("new System.Net.IPNetwork(prefix, prefixLength)", program, StringComparison.Ordinal);
     }
 
