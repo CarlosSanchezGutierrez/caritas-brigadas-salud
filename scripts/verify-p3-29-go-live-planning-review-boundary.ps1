@@ -112,4 +112,38 @@ $ForbiddenTokens = @(
 
 foreach ($Token in $ForbiddenTokens) { Assert-DoesNotContainToken -Content $AllDocumentationContent -Token $Token }
 
+
+# P3.29 file-specific regression checks
+$P329FileSpecificTokens = @{
+    "docs/qa/P3_29_GO_LIVE_PLANNING_DECISION_MATRIX.md" = @(
+        "approved production readiness review entry reference",
+        "approved pilot evidence review reference",
+        "approved release candidate reference"
+    );
+    "docs/web/P3_29_WEB_GO_LIVE_PLANNING_REVIEW.md" = @(
+        "security owner assignment",
+        "privacy owner assignment",
+        "data owner assignment",
+        "go live risk register"
+    );
+    "docs/mobile/P3_29_IOS_GO_LIVE_PLANNING_REVIEW.md" = @(
+        "security owner assignment",
+        "privacy owner assignment",
+        "data owner assignment",
+        "go live risk register"
+    );
+    "docs/mobile/P3_29_ANDROID_GO_LIVE_PLANNING_REVIEW.md" = @(
+        "security owner assignment",
+        "privacy owner assignment",
+        "data owner assignment",
+        "go live risk register"
+    )
+}
+
+foreach ($Entry in $P329FileSpecificTokens.GetEnumerator()) {
+    $FileContent = Read-RepoText -RelativePath $Entry.Key
+    foreach ($Token in $Entry.Value) {
+        Assert-ContainsToken -Content $FileContent -Token $Token
+    }
+}
 Write-Host "P3.29 go live planning review boundary verifier passed from repo root: $RepoRoot"

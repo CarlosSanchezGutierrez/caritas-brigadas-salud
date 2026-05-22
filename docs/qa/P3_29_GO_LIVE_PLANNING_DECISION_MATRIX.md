@@ -15,6 +15,9 @@ Go live planning decision matrix status: BLOCKED_PENDING_REAL_EVIDENCE
 | Evidence area | Web | iOS | Android |
 |---|---|---|---|
 | approved production readiness review execution reference | required | required | required |
+| approved production readiness review entry reference | required | required | required |
+| approved pilot evidence review reference | required | required | required |
+| approved release candidate reference | required | required | required |
 | production readiness decision evidence | required | required | required |
 | artifact reference | required | required | required |
 | deployed commit SHA | required | required | required |
