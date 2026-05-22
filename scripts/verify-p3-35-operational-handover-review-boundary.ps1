@@ -262,4 +262,87 @@ $ForbiddenTokens = @(
 
 foreach ($Token in $ForbiddenTokens) { Assert-DoesNotContainToken -Content $AllDocumentationContent -Token $Token }
 
+
+# P3.35 Codex full client required evidence regression checks
+$P335WebContent = Read-RepoText -RelativePath "docs/web/P3_35_WEB_OPERATIONAL_HANDOVER_REVIEW.md"
+$P335IosContent = Read-RepoText -RelativePath "docs/mobile/P3_35_IOS_OPERATIONAL_HANDOVER_REVIEW.md"
+$P335AndroidContent = Read-RepoText -RelativePath "docs/mobile/P3_35_ANDROID_OPERATIONAL_HANDOVER_REVIEW.md"
+
+$P335CommonClientRequiredTokens = @(
+    "approved stabilization review reference",
+    "approved hypercare monitoring review reference",
+    "approved deployment execution review reference",
+    "approved deployment execution planning reference",
+    "approved final go live authorization review reference",
+    "approved go live planning review reference",
+    "approved production readiness review execution reference",
+    "approved release candidate reference",
+    "environment name",
+    "deployed commit SHA",
+    "artifact reference",
+    "API contract version",
+    "OpenAPI artifact reference",
+    "operational handover package evidence",
+    "ownership transfer evidence",
+    "support model evidence",
+    "support roster evidence",
+    "escalation path evidence",
+    "runbook acceptance evidence",
+    "knowledge transfer completion evidence",
+    "service level baseline evidence",
+    "monitoring ownership evidence",
+    "alert response ownership evidence",
+    "incident management handover evidence",
+    "change management handover evidence",
+    "release management handover evidence",
+    "backup ownership evidence",
+    "recovery ownership evidence",
+    "access control handover evidence",
+    "audit trail ownership evidence",
+    "data governance handover evidence",
+    "security ownership handover evidence",
+    "privacy ownership handover evidence",
+    "residual risk ownership evidence",
+    "open incident acceptance evidence",
+    "open defect acceptance evidence",
+    "known limitation acceptance evidence",
+    "operational acceptance decision evidence",
+    "operational handover readiness blockers",
+    "operational handover review state",
+    "request id",
+    "correlation id",
+    "organization id",
+    "authorization role",
+    "endpoint id",
+    "standard error envelope",
+    "audit trail reference",
+    "support diagnostic evidence",
+    "monitoring evidence",
+    "alerting evidence",
+    "evidence sanitization status"
+)
+
+foreach ($Token in $P335CommonClientRequiredTokens) {
+    Assert-ContainsToken -Content $P335WebContent -Token $Token
+    Assert-ContainsToken -Content $P335IosContent -Token $Token
+    Assert-ContainsToken -Content $P335AndroidContent -Token $Token
+}
+
+$P335MobileRequiredTokens = @(
+    "mobile release channel ownership evidence",
+    "device fleet ownership evidence",
+    "offline sync ownership evidence",
+    "conflict resolution ownership evidence",
+    "device id",
+    "idempotency key",
+    "client operation id",
+    "sync status",
+    "server acknowledgment",
+    "conflict id"
+)
+
+foreach ($Token in $P335MobileRequiredTokens) {
+    Assert-ContainsToken -Content $P335IosContent -Token $Token
+    Assert-ContainsToken -Content $P335AndroidContent -Token $Token
+}
 Write-Host "P3.35 operational handover review boundary verifier passed from repo root: $RepoRoot"
