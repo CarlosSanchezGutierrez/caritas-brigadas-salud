@@ -61,10 +61,14 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
             continue;
         }
 
+        if (!IsValidKnownNetworkPrefixLength(prefix, prefixLength))
+        {
+            continue;
+        }
+
         options.KnownIPNetworks.Add(new System.Net.IPNetwork(prefix, prefixLength));
     }
 });
-
 if (builder.Environment.IsDevelopment())
 {
     builder.Configuration.AddJsonFile(
