@@ -67,8 +67,4 @@
 
 Do not change global status to ready until every evidence row has a real reference.
 
-Every required evidence item listed in 
-`
-P3_6_PRODUCTION_EVIDENCE_IMPLEMENTATION.md
-`
- must have a corresponding row in this register.
+Every required evidence item listed in `P3_6_PRODUCTION_EVIDENCE_IMPLEMENTATION.md` must have a corresponding row in this register.

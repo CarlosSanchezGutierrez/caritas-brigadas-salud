@@ -29,8 +29,12 @@ Use indexed entries for CORS origins because the API reads Cors:AllowedOrigins a
 - `Security__RateLimiting__WindowMinutes`
 - `Security__RateLimiting__QueueLimit`
 - `Security__MaxRequestBodyBytes`
-- `ReverseProxy__ForwardedHeaders__KnownProxies`
-- `ReverseProxy__ForwardedHeaders__KnownIPNetworks`
+- `ReverseProxy__ForwardedHeaders__KnownProxies__0`
+- `ReverseProxy__ForwardedHeaders__KnownProxies__1`
+- `ReverseProxy__ForwardedHeaders__KnownIPNetworks__0`
+- `ReverseProxy__ForwardedHeaders__KnownIPNetworks__1`
+
+Use indexed entries for forwarded-header allowlists because the API reads ReverseProxy:ForwardedHeaders:KnownProxies and ReverseProxy:ForwardedHeaders:KnownIPNetworks as string arrays. Add more entries as `ReverseProxy__ForwardedHeaders__KnownProxies__2` and `ReverseProxy__ForwardedHeaders__KnownIPNetworks__2`, and so on.
 - Authentication/OIDC provider variables.
 
 ## Procedure
