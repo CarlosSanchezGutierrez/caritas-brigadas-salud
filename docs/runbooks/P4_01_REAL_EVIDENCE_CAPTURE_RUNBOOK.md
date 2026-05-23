@@ -10,25 +10,30 @@ Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE
 
 ## Collector
 
-The P4.1 real evidence collector is scripts/p4/collect-p4-01-real-evidence-baseline.ps1.
+The P4.1 real evidence collector is `scripts/p4/collect-p4-01-real-evidence-baseline.ps1`.
 
-The evidence output root is artifacts/p4/p4-01-real-evidence-baseline.
+The evidence output root is `artifacts/p4/p4-01-real-evidence-baseline`.
 
-The collector writes manifest.json.
+The collector writes `manifest.json`.
 
 ## Standard command
 
-`powershell
-powershell -ExecutionPolicy Bypass -File scripts/p4/collect-p4-01-real-evidence-baseline.ps1
-`",
-        ",
-        
+Run this from an existing PowerShell or pwsh session at the repository root:
 
-`powershell
-powershell -ExecutionPolicy Bypass -File scripts/p4/collect-p4-01-real-evidence-baseline.ps1 -ApiBaseUrl "https://localhost:7044"
-`",
-        ",
-        
+```powershell
+& "scripts/p4/collect-p4-01-real-evidence-baseline.ps1"
+```
+
+## Optional API health command
+
+Run this only when the API is already running:
+
+```powershell
+& "scripts/p4/collect-p4-01-real-evidence-baseline.ps1" -ApiBaseUrl "https://localhost:7044"
+```
+
+## Required evidence
+
 - P4.1 Real Evidence Execution Baseline.
 - Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE.
 - SQL Server is the operational source of truth.
@@ -89,10 +94,14 @@ powershell -ExecutionPolicy Bypass -File scripts/p4/collect-p4-01-real-evidence-
 
 ## Security rule
 
-The collector must never print ConnectionStrings__SqlServer value. It may only report whether the key is present or missing.
+The collector must never print the `ConnectionStrings__SqlServer` value. It may only report whether the key is present or missing.
+
+## Host compatibility rule
+
+The collector must invoke verifier scripts through the current PowerShell host by calling the script path directly. It must not shell out to a hard-coded `powershell` executable for required verifier steps.
 
 ## Failure handling
 
-If a required command fails, the collector must write the command exit code, keep the manifest.json, classify blockers, and fail the run.
+If a required command fails, the collector must write the command exit code, keep the `manifest.json`, classify blockers, and fail the run.
 
 Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE
