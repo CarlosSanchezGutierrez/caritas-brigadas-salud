@@ -176,8 +176,8 @@ else {
     Add-Result -Name "dotnet test evidence" -Status "failed" -ExitCode 1 -LogPath $NoDotnetPath -Required $true -Blocker "No .NET target found."
 }
 
-Invoke-EvidenceStep -Name "P3 governance verifier evidence" -Command { powershell -ExecutionPolicy Bypass -File "scripts/verify-p3-43-final-production-governance-evidence-index.ps1" } -Required $true
-Invoke-EvidenceStep -Name "P4 verifier evidence" -Command { powershell -ExecutionPolicy Bypass -File "scripts/verify-p4-01-real-evidence-execution-baseline.ps1" } -Required $true
+Invoke-EvidenceStep -Name "P3 governance verifier evidence" -Command { & (Join-Path $RepoRoot "scripts/verify-p3-43-final-production-governance-evidence-index.ps1") } -Required $true
+Invoke-EvidenceStep -Name "P4 verifier evidence" -Command { & (Join-Path $RepoRoot "scripts/verify-p4-01-real-evidence-execution-baseline.ps1") } -Required $true
 
 $SqlServerConfigPresence = if ([string]::IsNullOrWhiteSpace($env:ConnectionStrings__SqlServer)) { "ConnectionStrings__SqlServer missing" } else { "ConnectionStrings__SqlServer present but value redacted" }
 $SqlServerPresencePath = Join-Path $EvidenceDir "sql-server-configuration-presence-evidence.log"
