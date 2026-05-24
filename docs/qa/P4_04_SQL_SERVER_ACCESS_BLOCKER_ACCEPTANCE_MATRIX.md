@@ -38,7 +38,7 @@ Reject P4.4 closure if any of the following happens:
 - A fake local-only connection string is used as institutional evidence.
 - SQL Server ownership is not identified.
 - Runtime and migration permission boundaries are mixed without approval.
-- Backend production readiness is approved prematurely.
+- Backend readiness approval is granted prematurely.
 - Mobile clients are allowed to write directly to SQL Server.
 - Frontend clients are allowed to bypass the API.
 - Cloud dependency is introduced as mandatory.

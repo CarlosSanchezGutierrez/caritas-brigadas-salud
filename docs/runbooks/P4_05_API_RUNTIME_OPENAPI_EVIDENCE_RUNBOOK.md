@@ -32,11 +32,11 @@ Use this when a local API startup attempt is appropriate:
 
 ## Expected health endpoint
 
-/api/v1/health
+/health/live
 
 ## OpenAPI endpoint candidates
 
-/swagger/v1/swagger.json
+/openapi/v1/openapi.json
 /openapi/v1.json
 /openapi.json
 /swagger.json
@@ -66,3 +66,7 @@ Reference P4.4 Real Environment SQL Server Access Blocker when SQL Server access
 - No client may bypass the API.
 - SQL Server remains the operational source of truth.
 - Backend production readiness remains BLOCKED_PENDING_REAL_EVIDENCE.
+
+## P4.6 route alignment note
+
+The API exposes /health/live for liveness evidence and /health/ready for readiness evidence. Readiness may depend on SQL Server access and must preserve the P4.4 institutional SQL Server blocker when SQL access is unavailable.

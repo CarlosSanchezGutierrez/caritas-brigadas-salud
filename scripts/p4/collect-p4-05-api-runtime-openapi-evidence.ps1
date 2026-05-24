@@ -109,6 +109,7 @@ function Invoke-OptionalEvidenceStep {
 try {
     Write-TextFile -Path (Join-Path $EvidenceDir "README.txt") -Content @"
 P4.5 API Runtime and OpenAPI Evidence
+P4.6 API Route Evidence Alignment Applied
 Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE
 SQL Server is the operational source of truth.
 Sanitized evidence only.
@@ -155,13 +156,23 @@ Sanitized evidence only.
     }
 
     if (-not [string]::IsNullOrWhiteSpace($ApiBaseUrl)) {
-        $HealthUrl = $ApiBaseUrl.TrimEnd("/") + "/api/v1/health"
-        Invoke-OptionalEvidenceStep -Name "API health check evidence" -Command {
-            Invoke-WebRequest -Uri $HealthUrl -UseBasicParsing -TimeoutSec 10 | Select-Object StatusCode, Content | Format-List
+        $HealthCandidates = @(
+            "/health/live",
+            "/health/ready"
+        )
+
+        foreach ($Candidate in $HealthCandidates) {
+            $HealthUrl = $ApiBaseUrl.TrimEnd("/") + $Candidate
+            $Name = "API health endpoint evidence " + ($Candidate -replace "[^A-Za-z0-9._-]", "_")
+
+            Invoke-OptionalEvidenceStep -Name $Name -Command {
+                Invoke-WebRequest -Uri $HealthUrl -UseBasicParsing -TimeoutSec 10 | Select-Object StatusCode, Content | Format-List
+            }
         }
 
         $OpenApiCandidates = @(
-            "/swagger/v1/swagger.json",
+            "/openapi/v1/openapi.json",
+            "/swagger",
             "/openapi/v1.json",
             "/openapi.json",
             "/swagger.json"
@@ -196,6 +207,7 @@ Sanitized evidence only.
 
     $Manifest = [pscustomobject]@{
         phase = "P4.5 API Runtime and OpenAPI Evidence"
+        route_alignment = "P4.6 API Route Evidence Alignment"
         backend_production_readiness = "BLOCKED_PENDING_REAL_EVIDENCE"
         sql_server_source_of_truth = $true
         evidence_output_root = $EvidenceDir
@@ -203,6 +215,8 @@ Sanitized evidence only.
         api_project_relative_path = $ApiProjectRelativePath
         api_base_url_provided = -not [string]::IsNullOrWhiteSpace($ApiBaseUrl)
         start_local_api = [bool]$StartLocalApi
+        health_endpoint_candidates = @("/health/live", "/health/ready")
+        openapi_endpoint_candidates = @("/openapi/v1/openapi.json", "/swagger", "/openapi/v1.json", "/openapi.json", "/swagger.json")
         results = $Results
     }
 
@@ -210,7 +224,7 @@ Sanitized evidence only.
     Write-TextFile -Path $ManifestPath -Content ($Manifest | ConvertTo-Json -Depth 20)
 
     Write-Host ""
-    Write-Host "P4.5 API runtime and OpenAPI evidence collection completed."
+    Write-Host "P4.5 API runtime and OpenAPI evidence collection completed with P4.6 route alignment."
     Write-Host ("Manifest: {0}" -f $ManifestPath)
 }
 finally {
