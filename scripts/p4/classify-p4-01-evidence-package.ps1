@@ -91,12 +91,11 @@ function Get-OwnerGroup {
 }
 
 function Get-RemediationType {
-    param(
-        [string]$Category,
-        [string]$Severity
-    )
+    param([string]$Category, [string]$Severity)
 
-    if ($Severity -eq "PASS") { return "none" }
+    if ($Severity -eq "PASS") {
+        return "none"
+    }
 
     switch ($Category) {
         "repository" { return "repository hygiene" }
@@ -123,21 +122,10 @@ function Get-Severity {
     $SafeStatus = if ($null -eq $Status) { "" } else { $Status.ToLowerInvariant() }
     $SafeBlocker = if ($null -eq $Blocker) { "" } else { $Blocker.Trim() }
 
-    if ($Required -and ($SafeStatus -eq "failed" -or $ExitCode -ne 0)) {
-        return "P0"
-    }
-
-    if ($Required -and ($SafeStatus -match "skipped|blocker" -or -not [string]::IsNullOrWhiteSpace($SafeBlocker))) {
-        return "P1"
-    }
-
-    if (-not $Required -and ($SafeStatus -match "skipped|failed|blocker" -or -not [string]::IsNullOrWhiteSpace($SafeBlocker))) {
-        return "P2"
-    }
-
-    if ($SafeStatus -match "passed|captured") {
-        return "PASS"
-    }
+    if ($Required -and ($SafeStatus -eq "failed" -or $ExitCode -ne 0)) { return "P0" }
+    if ($Required -and ($SafeStatus -match "skipped|blocker" -or -not [string]::IsNullOrWhiteSpace($SafeBlocker))) { return "P1" }
+    if (-not $Required -and ($SafeStatus -match "skipped|failed|blocker" -or -not [string]::IsNullOrWhiteSpace($SafeBlocker))) { return "P2" }
+    if ($SafeStatus -match "passed|captured") { return "PASS" }
 
     return "UNKNOWN"
 }
@@ -163,6 +151,12 @@ if ($null -eq $Manifest.results) {
     throw "Manifest is missing results."
 }
 
+$ManifestResults = @($Manifest.results)
+
+if ($ManifestResults.Count -eq 0) {
+    throw "Manifest results array is empty."
+}
+
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
     $OutputDirectory = Split-Path -Parent $ResolvedManifestPath
 }
@@ -174,18 +168,20 @@ else {
 
 $ClassifiedItems = New-Object System.Collections.Generic.List[object]
 
-foreach ($Result in @($Manifest.results)) {
+foreach ($Result in $ManifestResults) {
     $Name = Convert-ToSafeText ([string]$Result.name)
     $Status = Convert-ToSafeText ([string]$Result.status)
     $Blocker = Convert-ToSafeText ([string]$Result.blocker)
     $LogPath = Convert-ToSafeText ([string]$Result.log_path)
 
     $ExitCode = 0
+
     if ($null -ne $Result.exit_code) {
         $ExitCode = [int]$Result.exit_code
     }
 
     $Required = $false
+
     if ($null -ne $Result.required) {
         $Required = [bool]$Result.required
     }
@@ -194,6 +190,21 @@ foreach ($Result in @($Manifest.results)) {
     $Severity = Get-Severity -Status $Status -Required $Required -ExitCode $ExitCode -Blocker $Blocker
     $OwnerGroup = Get-OwnerGroup -Category $Category
     $RemediationType = Get-RemediationType -Category $Category -Severity $Severity
+
+    $ClassifierDecision = "unknown classification"
+
+    if ($Severity -eq "PASS") {
+        $ClassifierDecision = "accepted evidence"
+    }
+    elseif ($Severity -eq "P0") {
+        $ClassifierDecision = "required blocker"
+    }
+    elseif ($Severity -eq "P1") {
+        $ClassifierDecision = "blocker candidate"
+    }
+    elseif ($Severity -eq "P2") {
+        $ClassifierDecision = "optional evidence gap"
+    }
 
     $ClassifiedItems.Add([pscustomobject]@{
         evidence_name = $Name
@@ -207,7 +218,7 @@ foreach ($Result in @($Manifest.results)) {
         remediation_type = $RemediationType
         source_log_path = $LogPath
         evidence_source = $ResolvedManifestPath
-        classifier_decision = if ($Severity -eq "PASS") { "accepted evidence" } elseif ($Severity -eq "P0") { "required blocker" } elseif ($Severity -eq "P1") { "blocker candidate" } elseif ($Severity -eq "P2") { "optional evidence gap" } else { "unknown classification" }
+        classifier_decision = $ClassifierDecision
         sanitized_evidence_only = $true
         backend_production_readiness = "BLOCKED_PENDING_REAL_EVIDENCE"
     }) | Out-Null
@@ -237,14 +248,15 @@ $MarkdownLines.Add("# P4.2 Real Evidence Blocker Backlog") | Out-Null
 $MarkdownLines.Add("") | Out-Null
 $MarkdownLines.Add("Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE") | Out-Null
 $MarkdownLines.Add("") | Out-Null
-$MarkdownLines.Add("Source manifest: `$ResolvedManifestPath") | Out-Null
+$MarkdownLines.Add("Source manifest: $ResolvedManifestPath") | Out-Null
 $MarkdownLines.Add("") | Out-Null
 $MarkdownLines.Add("| Severity | Category | Evidence | Status | Exit code | Owner | Remediation | Blocker |") | Out-Null
 $MarkdownLines.Add("|---|---|---|---|---:|---|---|---|") | Out-Null
 
 foreach ($Item in $ClassifiedItems | Sort-Object blocker_severity, blocker_category, evidence_name) {
     $BlockerText = if ([string]::IsNullOrWhiteSpace($Item.blocker_text)) { "" } else { $Item.blocker_text.Replace("|", "/") }
-    $MarkdownLines.Add("| $($Item.blocker_severity) | $($Item.blocker_category) | $($Item.evidence_name.Replace("|", "/")) | $($Item.original_status) | $($Item.command_exit_code) | $($Item.blocker_owner_group) | $($Item.remediation_type) | $BlockerText |") | Out-Null
+    $EvidenceName = $Item.evidence_name.Replace("|", "/")
+    $MarkdownLines.Add("| $($Item.blocker_severity) | $($Item.blocker_category) | $EvidenceName | $($Item.original_status) | $($Item.command_exit_code) | $($Item.blocker_owner_group) | $($Item.remediation_type) | $BlockerText |") | Out-Null
 }
 
 $MarkdownLines.Add("") | Out-Null
