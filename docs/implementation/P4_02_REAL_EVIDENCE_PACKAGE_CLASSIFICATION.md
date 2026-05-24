@@ -8,7 +8,7 @@ P4.2 does not approve backend production readiness.
 
 P4.2 does not replace the P4.1 collector.
 
-P4.2 consumes the P4.1 `manifest.json` and produces a deterministic classification report.
+P4.2 consumes the P4.1 manifest.json and produces a deterministic classification report.
 
 ## Status
 
