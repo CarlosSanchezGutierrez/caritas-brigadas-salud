@@ -16,7 +16,7 @@ Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE
 | API project path evidence | Yes | technical owner | The project path resolves to services/api-dotnet/src/Caritas.Brigadas.Api/Caritas.Brigadas.Api.csproj. |
 | ApiBaseUrl evidence | Yes | operations owner | ApiBaseUrl is explicitly provided or discovered from a controlled local run. |
 | API startup attempt evidence | Yes | operations owner | Startup attempt is logged with sanitized output. |
-| API health endpoint evidence | Yes | operations owner | /api/v1/health returns a successful HTTP response. |
+| API health endpoint evidence | Yes | operations owner | /health/live returns a successful HTTP response. |
 | Sanitized logs | Yes | security owner | Logs do not expose secrets or connection string values. |
 | SQL dependency boundary | Yes | data owner | If startup fails due to SQL Server access, evidence references the P4.4 blocker. |
 
@@ -50,3 +50,9 @@ Reject P4.5 closure if any of the following happens:
 P4.5 may close the P2 gaps only through real runtime or contract evidence.
 
 If SQL Server access is still unavailable, P4.5 must preserve the P2 blockers and reference P4.4 rather than fabricating successful runtime evidence.
+
+## P4.6 route alignment note
+
+The API exposes /health/live for liveness evidence and /health/ready for readiness evidence. Readiness may depend on SQL Server access and must preserve the P4.4 institutional SQL Server blocker when SQL access is unavailable.
+
+Swagger UI may be available at /swagger in development when Swagger is enabled.
