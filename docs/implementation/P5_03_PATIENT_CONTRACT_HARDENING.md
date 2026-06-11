@@ -4,13 +4,23 @@ Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE
 
 ## Purpose
 
-P5.3 hardens the patient API contract for the real patient workflow.
+P5.3 hardens the existing patient API contract for offline-first patient creation, source brigade traceability, and longitudinal patient history readiness.
 
-This PR moves beyond readiness inventory by adding explicit patient contract fields required for offline-first creation, source brigade traceability, flexible identity capture, and later longitudinal patient history linkage.
+## Existing backend surface
+
+The backend already contains:
+
+- Patient domain entity.
+- PatientsController.
+- Patient read repository.
+- Patient write repository.
+- CreatePatientRequest.
+- PatientSummaryDto.
+- Patient DbSet and EF configuration.
 
 ## Scope
 
-P5.3 updates patient contracts with:
+P5.3 adds explicit patient contract fields for:
 
 - SourceBrigadeId.
 - LocalPatientId.
@@ -19,31 +29,17 @@ P5.3 updates patient contracts with:
 - SyncStatus.
 - DataCaptureSource.
 
-P5.3 also adds a contract readiness marker for:
-
-- patient core required for final system.
-- offline-first required for final system.
-- longitudinal history required for final system.
-- dashboards required for final system.
-- analytics required for final system.
-
-## Why this matters
-
-A field brigades system cannot depend on perfect online connectivity.
-
-Patient creation must support retry-safe and sync-safe client operations before the mobile and web clients are implemented.
+P5.3 also adds PatientContractReadiness as a contract-level marker for final system requirements.
 
 ## Boundary
 
-P5.3 does not close persistence, migration, endpoint behavior, SQL Server access, or production readiness.
+P5.3 does not close persistence, migration, endpoint behavior, idempotency enforcement, SQL Server access, offline sync, dashboards, analytics, longitudinal history, or production readiness.
 
-P5.3 prepares the contract layer so P5.4 and later PRs can implement persistence, endpoint behavior, idempotency enforcement, audit, and sync behavior without breaking clients.
-
-## Required future implementation
+## Required next implementation
 
 The next practical patient PRs must cover:
 
-- patient persistence mapping for the new contract fields when required.
+- persistence mapping for new offline/source fields.
 - idempotency enforcement.
 - source brigade linkage.
 - patient write audit.
