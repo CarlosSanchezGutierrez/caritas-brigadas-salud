@@ -78,6 +78,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Rfc).HasMaxLength(20);
             entity.Property(x => x.Email).HasMaxLength(200);
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => x.Name);
         });
 
@@ -89,6 +94,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Email).HasMaxLength(200);
             entity.Property(x => x.Username).HasMaxLength(100);
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.OrganizationId, x.Email });
             entity.HasIndex(x => new { x.OrganizationId, x.Username });
 
@@ -105,6 +115,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Code).HasMaxLength(100).IsRequired();
             entity.Property(x => x.Name).HasMaxLength(150).IsRequired();
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.OrganizationId, x.Code }).IsUnique();
 
             entity.HasOne<Organization>()
@@ -130,6 +145,11 @@ public sealed class CaritasDbContext : DbContext
             ConfigureEntity(entity);
             entity.ToTable("user_roles", "core");
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.OrganizationId, x.UserId, x.RoleId });
 
             entity.HasOne<Organization>()
@@ -184,6 +204,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Name).HasMaxLength(200).IsRequired();
             entity.Property(x => x.Category).HasMaxLength(100).IsRequired();
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.OrganizationId, x.Code }).IsUnique();
 
             entity.HasOne<Organization>()
@@ -203,6 +228,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Municipality).HasMaxLength(150).IsRequired();
             entity.Property(x => x.Colony).HasMaxLength(150);
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.OrganizationId, x.Municipality, x.Colony });
 
             entity.HasOne<Organization>()
@@ -217,6 +247,11 @@ public sealed class CaritasDbContext : DbContext
             entity.ToTable("mobile_units", "brigades");
             entity.Property(x => x.Name).HasMaxLength(150).IsRequired();
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.OrganizationId, x.Name });
 
             entity.HasOne<Organization>()
@@ -235,6 +270,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Municipality).HasMaxLength(150);
             entity.Property(x => x.Colony).HasMaxLength(150);
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.OrganizationId, x.ScheduledDate });
 
             entity.HasOne<Organization>()
@@ -286,8 +326,18 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Curp).HasMaxLength(30);
             entity.Property(x => x.Phone).HasMaxLength(50);
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.OrganizationId, x.PatientFolio }).IsUnique();
             entity.HasIndex(x => new { x.OrganizationId, x.FullNameNormalized });
+            entity.HasIndex(x => new { x.OrganizationId, x.SourceBrigadeId });
+            entity.HasIndex(x => new { x.OrganizationId, x.LocalPatientId });
+            entity.HasIndex(x => new { x.OrganizationId, x.ClientOperationId });
+            entity.HasIndex(x => new { x.OrganizationId, x.IdempotencyKey });
+            entity.HasIndex(x => new { x.OrganizationId, x.SyncStatus });
 
             entity.HasOne<Organization>()
                 .WithMany()
@@ -378,6 +428,11 @@ public sealed class CaritasDbContext : DbContext
             entity.ToTable("medical_referrals", "clinical");
             entity.Property(x => x.ReferralFolio).HasMaxLength(50).IsRequired();
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.OrganizationId, x.ReferralFolio }).IsUnique();
 
             entity.HasOne<Organization>()
@@ -403,6 +458,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.MedicationName).HasMaxLength(250).IsRequired();
             entity.Property(x => x.ExpirationDate).HasColumnType("date");
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.OrganizationId, x.PatientId });
 
             entity.HasOne<Organization>()
@@ -500,6 +560,11 @@ public sealed class CaritasDbContext : DbContext
             entity.ToTable("form_responses", "forms");
             entity.Property(x => x.ResponseJson).HasColumnType("nvarchar(max)").IsRequired();
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.Property(x => x.SyncStatus).HasConversion<string>().HasMaxLength(50).IsRequired();
             entity.HasIndex(x => new { x.OrganizationId, x.EncounterId });
 
@@ -580,6 +645,11 @@ public sealed class CaritasDbContext : DbContext
             ConfigureAuditable(entity);
             entity.ToTable("media_releases", "documents");
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.OrganizationId, x.PatientId });
 
             entity.HasOne<Organization>()
@@ -606,6 +676,11 @@ public sealed class CaritasDbContext : DbContext
             ConfigureEntity(entity);
             entity.ToTable("sync_batches", "sync");
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.Property(x => x.ErrorSummary).HasMaxLength(4000);
             entity.HasIndex(x => new { x.OrganizationId, x.DeviceId, x.StartedAt });
 
@@ -630,6 +705,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Operation).HasMaxLength(50).IsRequired();
             entity.Property(x => x.PayloadJson).HasColumnType("nvarchar(max)").IsRequired();
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.SyncBatchId, x.LocalEventId }).IsUnique();
             entity.HasIndex(x => new { x.OrganizationId, x.IdempotencyKey }).IsUnique();
 
@@ -665,6 +745,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.ExportType).HasMaxLength(100).IsRequired();
             entity.Property(x => x.FiltersJson).HasColumnType("nvarchar(max)");
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.OrganizationId, x.RequestedAt });
         });
 
@@ -675,6 +760,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Module).HasMaxLength(100).IsRequired();
             entity.Property(x => x.Purpose).HasMaxLength(250).IsRequired();
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.OrganizationId, x.RequestedAt });
         });
 
@@ -686,6 +776,11 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.HashAlgorithm).HasMaxLength(100).IsRequired();
             entity.Property(x => x.PayloadHash).HasMaxLength(256).IsRequired();
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.OrganizationId, x.EntityType, x.EntityId });
         });
     }

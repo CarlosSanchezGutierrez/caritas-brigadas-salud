@@ -121,21 +121,21 @@ $ApiSrcRoot = Join-Path $RepoRoot "services/api-dotnet/src"
 $ApiProjectRelativePath = "services/api-dotnet/src/Caritas.Brigadas.Api/Caritas.Brigadas.Api.csproj"
 $ApiProjectPath = Join-Path $RepoRoot $ApiProjectRelativePath
 
-$ProjectFiles = Get-FilesByPattern -Root $RepoRoot -Patterns @(".sln", ".csproj")
-$SourceFiles = Get-FilesByPattern -Root $ApiRoot -Patterns @(".cs")
-$JsonFiles = Get-FilesByPattern -Root $ApiRoot -Patterns @(".json")
+$ProjectFiles = Get-FilesByPattern -Root $RepoRoot -Patterns @("*.sln", "*.csproj")
+$SourceFiles = Get-FilesByPattern -Root $ApiRoot -Patterns @("*.cs")
+$JsonFiles = Get-FilesByPattern -Root $ApiRoot -Patterns @("*.json")
 $ControllerFiles = Get-MatchingFiles -Root $ApiRoot -Regex "(?i)(Controller.cs|Controllers[\/]|Endpoint|Endpoints[\/])"
 $EndpointFiles = @(Get-ChildItem -Path $ApiRoot -Recurse -File -Include ".cs" -ErrorAction SilentlyContinue | Where-Object {
 $Text = ""
-try { $Text = [System.IO.File]::ReadAllText($.FullName) } catch {}
-$.FullName -match "(?i)(Endpoint|Controller|Route)" -or $Text -match "(MapGet|MapPost|MapPut|MapDelete|MapGroup|Route(|HttpGet|HttpPost|HttpPut|HttpDelete)"
+try { $Text = [System.IO.File]::ReadAllText($_.FullName) } catch {}
+$_.FullName -match "(?i)(Endpoint|Controller|Route)" -or $Text -match "(MapGet|MapPost|MapPut|MapDelete|MapGroup|Route(|HttpGet|HttpPost|HttpPut|HttpDelete)"
 } | Sort-Object FullName -Unique)
 $ContractFiles = Get-MatchingFiles -Root $ApiRoot -Regex "(?i)(Dto|Request|Response|Command|Query|Contract|Payload|Input|Output)"
 $EntityFiles = Get-MatchingFiles -Root $ApiRoot -Regex "(?i)(Entities[\/]|Entity|Domain[\/]|Aggregate|ValueObject)"
 $DbContextFiles = @(Get-ChildItem -Path $ApiRoot -Recurse -File -Include ".cs" -ErrorAction SilentlyContinue | Where-Object {
 $Text = ""
-try { $Text = [System.IO.File]::ReadAllText($.FullName) } catch {}
-$.Name -match "DbContext" -or $Text -match "DbContext|DbSet<"
+try { $Text = [System.IO.File]::ReadAllText($_.FullName) } catch {}
+$_.Name -match "DbContext" -or $Text -match "DbContext|DbSet<"
 } | Sort-Object FullName -Unique)
 $MigrationFiles = Get-MatchingFiles -Root $ApiRoot -Regex "(?i)(Migrations[\/]|Migration)"
 $ConfigurationFiles = Get-MatchingFiles -Root $ApiRoot -Regex "(?i)(Configuration|EntityTypeConfiguration|IEntityTypeConfiguration)"
@@ -208,7 +208,7 @@ tests = To-InventoryRows -Files $TestFiles
 $GapBacklog = "# P5.1 Backend Surface Gap BacklognnBackend production readiness: BLOCKED_PENDING_REAL_EVIDENCEnn"
 
 if ($MissingDomains.Count -eq 0) {
-$GapBacklog += "No missing mandatory backend domains were detected by keyword inventory. This does not prove functional completeness.n" } else { $GapBacklog += "Detected missing or weak backend domains requiring functional closure:n`n"
+$GapBacklog += "No missing mandatory backend domains were detected by keyword inventory. This does not prove functional completeness.`n" } else { $GapBacklog += "Detected missing or weak backend domains requiring functional closure:n`n"
 
 foreach ($Domain in $MissingDomains) {
     $GapBacklog += "- " + $Domain.label + " | key: " + $Domain.key + " | next action: inspect and implement required backend surface.`n"
@@ -216,12 +216,12 @@ foreach ($Domain in $MissingDomains) {
 
 }
 
-$GapBacklog += "nMandatory future PR groups:n"
-$GapBacklog += "- P5.2 patient core.n" $GapBacklog += "- P5.3 brigade and service availability.n"
-$GapBacklog += "- P5.4 clinical encounters.n" $GapBacklog += "- P5.5 consent and privacy.n"
-$GapBacklog += "- P5.6 longitudinal history.n" $GapBacklog += "- P5.7 clinical audit proof.n"
-$GapBacklog += "- P5.8 reports and exports.n" $GapBacklog += "- P6 offline-first synchronization.n"
-$GapBacklog += "- P7 dashboards and analytics.n" $GapBacklog += "- P8 institutional production readiness.n"
+$GapBacklog += "`nMandatory future PR groups:`n"
+$GapBacklog += "- P5.2 patient core.`n"`n$GapBacklog += "- P5.3 brigade and service availability.`n"
+$GapBacklog += "- P5.4 clinical encounters.`n"`n$GapBacklog += "- P5.5 consent and privacy.`n"
+$GapBacklog += "- P5.6 longitudinal history.`n"`n$GapBacklog += "- P5.7 clinical audit proof.`n"
+$GapBacklog += "- P5.8 reports and exports.`n"`n$GapBacklog += "- P6 offline-first synchronization.`n"
+$GapBacklog += "- P7 dashboards and analytics.`n"`n$GapBacklog += "- P8 institutional production readiness.`n"
 
 $Summary = "# P5.1 Backend Surface Summarynn"
 $Summary += "Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCEnn"
