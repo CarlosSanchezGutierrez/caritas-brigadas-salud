@@ -1,15 +1,27 @@
-﻿using Caritas.Brigadas.Application.Patients;
+using Caritas.Brigadas.Application.Patients;
 using Caritas.Brigadas.Contracts.Patients;
 using Caritas.Brigadas.Domain.Common;
 using Caritas.Brigadas.Domain.Entities;
 using Caritas.Brigadas.Domain.Enums;
 using Caritas.Brigadas.Infrastructure.Persistence;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace Caritas.Brigadas.Infrastructure.Patients;
 
 public sealed class PatientWriteRepository : IPatientWriteRepository
 {
+    private const string IdempotencyKeyUniqueIndexName = "IX_patients_OrganizationId_IdempotencyKey_UQ";
+    private const string ClientOperationIdUniqueIndexName = "IX_patients_OrganizationId_ClientOperationId_UQ";
+    private const string LocalPatientUniqueIndexName = "IX_patients_OrganizationId_SourceBrigadeId_LocalPatientId_UQ";
+
+    private static readonly string[] PatientCreateIdempotencyUniqueIndexNames =
+    [
+        IdempotencyKeyUniqueIndexName,
+        ClientOperationIdUniqueIndexName,
+        LocalPatientUniqueIndexName
+    ];
+
     private readonly CaritasDbContext _dbContext;
 
     public PatientWriteRepository(CaritasDbContext dbContext)
@@ -22,6 +34,25 @@ public sealed class PatientWriteRepository : IPatientWriteRepository
         CreatePatientRequest request,
         CancellationToken cancellationToken = default)
     {
+        if (organizationId == Guid.Empty)
+        {
+            throw new DomainException("Organization id is required.");
+        }
+
+        ArgumentNullException.ThrowIfNull(request);
+
+        ValidateCreateRequest(request);
+
+        var existingIdempotentPatient = await FindExistingIdempotentPatientAsync(
+            organizationId,
+            request,
+            cancellationToken);
+
+        if (existingIdempotentPatient is not null)
+        {
+            return ToSummary(existingIdempotentPatient);
+        }
+
         var organizationExists = await _dbContext.Organizations
             .AsNoTracking()
             .AnyAsync(
@@ -33,6 +64,23 @@ public sealed class PatientWriteRepository : IPatientWriteRepository
         if (!organizationExists)
         {
             throw new KeyNotFoundException("Organization was not found.");
+        }
+
+        if (request.SourceBrigadeId.HasValue)
+        {
+            var sourceBrigadeExists = await _dbContext.Brigades
+                .AsNoTracking()
+                .AnyAsync(
+                    brigade =>
+                        brigade.Id == request.SourceBrigadeId.Value &&
+                        brigade.OrganizationId == organizationId &&
+                        !brigade.IsDeleted,
+                    cancellationToken);
+
+            if (!sourceBrigadeExists)
+            {
+                throw new KeyNotFoundException("Source brigade was not found for the organization.");
+            }
         }
 
         var patientFolio = string.IsNullOrWhiteSpace(request.PatientFolio)
@@ -93,10 +141,260 @@ public sealed class PatientWriteRepository : IPatientWriteRepository
 
         patient.UpdateAdminNotes(request.NotesAdmin);
 
+        patient.UpdateOfflineSourceMetadata(
+            request.SourceBrigadeId,
+            request.LocalPatientId,
+            request.ClientOperationId,
+            request.IdempotencyKey,
+            request.SyncStatus,
+            request.DataCaptureSource);
+
         _dbContext.Patients.Add(patient);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (IsPatientCreateIdempotencyUniqueViolation(exception))
+        {
+            var replayedPatient = await FindExistingIdempotentPatientForUniqueViolationAsync(
+                organizationId,
+                request,
+                exception,
+                cancellationToken);
 
+            if (replayedPatient is not null)
+            {
+                return ToSummary(replayedPatient);
+            }
+
+            throw;
+        }
+
+        return ToSummary(patient);
+    }
+
+
+
+
+    private async Task<Patient?> FindExistingIdempotentPatientForUniqueViolationAsync(
+        Guid organizationId,
+        CreatePatientRequest request,
+        DbUpdateException exception,
+        CancellationToken cancellationToken)
+    {
+        var violatedIndexName = GetPatientCreateIdempotencyUniqueIndexName(exception);
+
+        return violatedIndexName switch
+        {
+            IdempotencyKeyUniqueIndexName => await FindExistingPatientByIdempotencyKeyAsync(
+                organizationId,
+                request,
+                cancellationToken),
+            ClientOperationIdUniqueIndexName => await FindExistingPatientByClientOperationIdAsync(
+                organizationId,
+                request,
+                cancellationToken),
+            LocalPatientUniqueIndexName => await FindExistingPatientByLocalPatientIdAsync(
+                organizationId,
+                request,
+                cancellationToken),
+            _ => null
+        };
+    }
+
+    private async Task<Patient?> FindExistingPatientByIdempotencyKeyAsync(
+        Guid organizationId,
+        CreatePatientRequest request,
+        CancellationToken cancellationToken)
+    {
+        var idempotencyKey = NormalizeOptionalText(request.IdempotencyKey);
+
+        if (string.IsNullOrWhiteSpace(idempotencyKey))
+        {
+            return null;
+        }
+
+        return await _dbContext.Patients
+            .AsNoTracking()
+            .Where(patient =>
+                patient.OrganizationId == organizationId &&
+                !patient.IsDeleted &&
+                patient.IdempotencyKey == idempotencyKey)
+            .OrderBy(patient => patient.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    private async Task<Patient?> FindExistingPatientByClientOperationIdAsync(
+        Guid organizationId,
+        CreatePatientRequest request,
+        CancellationToken cancellationToken)
+    {
+        var clientOperationId = NormalizeOptionalText(request.ClientOperationId);
+
+        if (string.IsNullOrWhiteSpace(clientOperationId))
+        {
+            return null;
+        }
+
+        return await _dbContext.Patients
+            .AsNoTracking()
+            .Where(patient =>
+                patient.OrganizationId == organizationId &&
+                !patient.IsDeleted &&
+                patient.ClientOperationId == clientOperationId)
+            .OrderBy(patient => patient.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    private async Task<Patient?> FindExistingPatientByLocalPatientIdAsync(
+        Guid organizationId,
+        CreatePatientRequest request,
+        CancellationToken cancellationToken)
+    {
+        var localPatientId = NormalizeOptionalText(request.LocalPatientId);
+
+        if (string.IsNullOrWhiteSpace(localPatientId) || !request.SourceBrigadeId.HasValue)
+        {
+            return null;
+        }
+
+        return await _dbContext.Patients
+            .AsNoTracking()
+            .Where(patient =>
+                patient.OrganizationId == organizationId &&
+                !patient.IsDeleted &&
+                patient.SourceBrigadeId == request.SourceBrigadeId.Value &&
+                patient.LocalPatientId == localPatientId)
+            .OrderBy(patient => patient.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    private static bool IsPatientCreateIdempotencyUniqueViolation(DbUpdateException exception)
+    {
+        return GetPatientCreateIdempotencyUniqueIndexName(exception) is not null;
+    }
+
+    private static string? GetPatientCreateIdempotencyUniqueIndexName(DbUpdateException exception)
+    {
+        if (exception.InnerException is not SqlException sqlException)
+        {
+            return null;
+        }
+
+        var isUniqueViolation = false;
+
+        foreach (SqlError error in sqlException.Errors)
+        {
+            if (error.Number is 2601 or 2627)
+            {
+                isUniqueViolation = true;
+                break;
+            }
+        }
+
+        if (!isUniqueViolation)
+        {
+            return null;
+        }
+
+        foreach (var indexName in PatientCreateIdempotencyUniqueIndexNames)
+        {
+            if (sqlException.Message.Contains(indexName, StringComparison.OrdinalIgnoreCase))
+            {
+                return indexName;
+            }
+        }
+
+        return null;
+    }
+    private async Task<Patient?> FindExistingIdempotentPatientAsync(
+        Guid organizationId,
+        CreatePatientRequest request,
+        CancellationToken cancellationToken)
+    {
+        var idempotencyKey = NormalizeOptionalText(request.IdempotencyKey);
+
+        if (!string.IsNullOrWhiteSpace(idempotencyKey))
+        {
+            return await _dbContext.Patients
+                .AsNoTracking()
+                .Where(patient =>
+                    patient.OrganizationId == organizationId &&
+                    !patient.IsDeleted &&
+                    patient.IdempotencyKey == idempotencyKey)
+                .OrderBy(patient => patient.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        var clientOperationId = NormalizeOptionalText(request.ClientOperationId);
+
+        if (!string.IsNullOrWhiteSpace(clientOperationId))
+        {
+            return await _dbContext.Patients
+                .AsNoTracking()
+                .Where(patient =>
+                    patient.OrganizationId == organizationId &&
+                    !patient.IsDeleted &&
+                    patient.ClientOperationId == clientOperationId)
+                .OrderBy(patient => patient.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        var localPatientId = NormalizeOptionalText(request.LocalPatientId);
+
+        if (!string.IsNullOrWhiteSpace(localPatientId) && request.SourceBrigadeId.HasValue)
+        {
+            return await _dbContext.Patients
+                .AsNoTracking()
+                .Where(patient =>
+                    patient.OrganizationId == organizationId &&
+                    !patient.IsDeleted &&
+                    patient.SourceBrigadeId == request.SourceBrigadeId.Value &&
+                    patient.LocalPatientId == localPatientId)
+                .OrderBy(patient => patient.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        return null;
+    }
+
+    private static string? NormalizeOptionalText(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? null
+            : value.Trim();
+    }
+
+    private static void ValidateCreateRequest(CreatePatientRequest request)
+    {
+        var hasIdentitySignal =
+            !string.IsNullOrWhiteSpace(request.PatientFolio) ||
+            !string.IsNullOrWhiteSpace(request.FirstName) ||
+            !string.IsNullOrWhiteSpace(request.PaternalLastName) ||
+            !string.IsNullOrWhiteSpace(request.MaternalLastName) ||
+            !string.IsNullOrWhiteSpace(request.Curp) ||
+            !string.IsNullOrWhiteSpace(request.Phone) ||
+            !string.IsNullOrWhiteSpace(request.LocalPatientId) ||
+            !string.IsNullOrWhiteSpace(request.ClientOperationId);
+
+        if (!hasIdentitySignal)
+        {
+            throw new DomainException("At least one patient identity field is required.");
+        }
+
+        if (request.IsPartialRecord && string.IsNullOrWhiteSpace(request.PartialRecordReason))
+        {
+            throw new DomainException("Partial record reason is required when patient record is marked as partial.");
+        }
+
+        if (request.SourceBrigadeId.HasValue && request.SourceBrigadeId.Value == Guid.Empty)
+        {
+            throw new DomainException("Source brigade id cannot be empty.");
+        }
+    }
+    private static PatientSummaryDto ToSummary(Patient patient)
+    {
         return new PatientSummaryDto
         {
             Id = patient.Id,
@@ -119,7 +417,13 @@ public sealed class PatientWriteRepository : IPatientWriteRepository
             IsPartialRecord = patient.IsPartialRecord,
             PartialRecordReason = patient.PartialRecordReason,
             Status = patient.Status,
-            IsActive = patient.IsActive
+            IsActive = patient.IsActive,
+            SourceBrigadeId = patient.SourceBrigadeId,
+            LocalPatientId = patient.LocalPatientId,
+            ClientOperationId = patient.ClientOperationId,
+            IdempotencyKey = patient.IdempotencyKey,
+            SyncStatus = patient.SyncStatus,
+            DataCaptureSource = patient.DataCaptureSource
         };
     }
 
