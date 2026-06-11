@@ -60,6 +60,27 @@ function Read-RepoText {
     return [System.IO.File]::ReadAllText($AbsolutePath)
 }
 
+function Read-RepoDirectoryText {
+    param(
+        [string]$DirectoryRelativePath,
+        [string]$Filter
+    )
+
+    $DirectoryPath = Resolve-RepoPath -RelativePath $DirectoryRelativePath
+
+    if (-not (Test-Path $DirectoryPath)) {
+        throw "Cannot read missing directory: $DirectoryRelativePath"
+    }
+
+    $Text = ""
+
+    foreach ($File in Get-ChildItem $DirectoryPath -Filter $Filter -File) {
+        $Text += [System.IO.File]::ReadAllText($File.FullName) + "`n"
+    }
+
+    return $Text
+}
+
 function Assert-ContainsToken {
     param(
         [string]$Content,
@@ -101,9 +122,6 @@ $RequiredFiles = @(
     "docs/qa/P5_10_PATIENT_MODULE_CLOSURE_MATRIX.md",
     "docs/runbooks/P5_10_PATIENT_MODULE_CLOSURE_RUNBOOK.md",
     "scripts/verify-p5-10-patient-module-closure.ps1",
-    "services/api-dotnet/src/Caritas.Brigadas.Contracts/Patients/CreatePatientRequest.cs",
-    "services/api-dotnet/src/Caritas.Brigadas.Contracts/Patients/PatientSummaryDto.cs",
-    "services/api-dotnet/src/Caritas.Brigadas.Contracts/Patients/PatientClinicalRecordDto.cs",
     "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Patients/PatientWriteRepository.cs",
     "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Patients/PatientReadRepository.cs",
     "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Persistence/CaritasDbContext.cs",
@@ -147,9 +165,7 @@ $ClosureContent = Read-RepoText -RelativePath "docs/implementation/P5_10_PATIENT
 $MatrixContent = Read-RepoText -RelativePath "docs/qa/P5_10_PATIENT_MODULE_CLOSURE_MATRIX.md"
 $RunbookContent = Read-RepoText -RelativePath "docs/runbooks/P5_10_PATIENT_MODULE_CLOSURE_RUNBOOK.md"
 
-$CreateRequestContent = Read-RepoText -RelativePath "services/api-dotnet/src/Caritas.Brigadas.Contracts/Patients/CreatePatientRequest.cs"
-$SummaryContent = Read-RepoText -RelativePath "services/api-dotnet/src/Caritas.Brigadas.Contracts/Patients/PatientSummaryDto.cs"
-$ClinicalRecordContent = Read-RepoText -RelativePath "services/api-dotnet/src/Caritas.Brigadas.Contracts/Patients/PatientClinicalRecordDto.cs"
+$PatientContractsContent = Read-RepoDirectoryText -DirectoryRelativePath "services/api-dotnet/src/Caritas.Brigadas.Contracts/Patients" -Filter "*.cs"
 
 $WriteRepositoryContent = Read-RepoText -RelativePath "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Patients/PatientWriteRepository.cs"
 $ReadRepositoryContent = Read-RepoText -RelativePath "services/api-dotnet/src/Caritas.Brigadas.Infrastructure/Patients/PatientReadRepository.cs"
@@ -174,8 +190,7 @@ foreach ($MigrationFile in $MigrationFiles) {
 }
 
 $DocsContent = $ClosureContent + "`n" + $MatrixContent + "`n" + $RunbookContent
-$ContractsContent = $CreateRequestContent + "`n" + $SummaryContent + "`n" + $ClinicalRecordContent
-$TimelineImplementationContent = $ClinicalRecordContent + "`n" + $ReadRepositoryContent
+$TimelineImplementationContent = $PatientContractsContent + "`n" + $ReadRepositoryContent
 $AuditImplementationContent = $AuditMapperContent + "`n" + $AuditFilterContent
 $PersistenceImplementationContent = $DbContextContent + "`n" + $MigrationContent
 $WriteImplementationContent = $WriteRepositoryContent
@@ -206,7 +221,7 @@ Assert-Tokens -Content $DocsContent -EvidenceLabel "P5.10 docs" -Tokens @(
     "Real environment SQL Server migration execution"
 )
 
-Assert-Tokens -Content $ContractsContent -EvidenceLabel "patient contract files" -Tokens @(
+Assert-Tokens -Content $PatientContractsContent -EvidenceLabel "patient contract files" -Tokens @(
     "SourceBrigadeId",
     "LocalPatientId",
     "ClientOperationId",
@@ -242,7 +257,7 @@ Assert-Tokens -Content $PersistenceImplementationContent -EvidenceLabel "patient
     "IX_patients_OrganizationId_SourceBrigadeId_LocalPatientId_UQ",
     "CREATE UNIQUE INDEX [IX_patients_OrganizationId_IdempotencyKey_UQ]",
     "CREATE UNIQUE INDEX [IX_patients_OrganizationId_ClientOperationId_UQ]",
-    "CREATE UNIQUE INDEX [IX_patients_OrganizationId_SourceBrigadeId_LocalPatientId_UQ",
+    "CREATE UNIQUE INDEX [IX_patients_OrganizationId_SourceBrigadeId_LocalPatientId_UQ]",
     "WHERE [IdempotencyKey] IS NOT NULL AND [IsDeleted] = 0",
     "WHERE [ClientOperationId] IS NOT NULL AND [IsDeleted] = 0",
     "WHERE [SourceBrigadeId] IS NOT NULL AND [LocalPatientId] IS NOT NULL AND [IsDeleted] = 0"
@@ -281,7 +296,7 @@ $ForbiddenTokens = @(
 )
 
 $AllContentForForbiddenTokens = $DocsContent + "`n" +
-    $ContractsContent + "`n" +
+    $PatientContractsContent + "`n" +
     $WriteImplementationContent + "`n" +
     $PersistenceImplementationContent + "`n" +
     $TimelineImplementationContent + "`n" +
