@@ -34,7 +34,9 @@ The patient API boundary must preserve:
 
 ## Hardening added
 
-P5.5 replaces the literal create Location response with CreatedAtAction against GetByIdAsync. This keeps the 201 Created response linked to the actual canonical patient read endpoint instead of relying on a manually formatted URL string.
+P5.5 replaces the literal create Location response with CreatedAtAction against the routed action name GetById.
+
+This avoids relying on nameof(GetByIdAsync), because MVC action-name resolution can suppress the Async suffix and fail route generation during successful POST response execution.
 
 ## Boundary
 

@@ -92,7 +92,7 @@ $ControllerTokens = @(
     "DatabaseNotConfigured",
     "database_not_configured",
     "CreatedAtAction(",
-    "nameof(GetByIdAsync)",
+    """GetById""",
     "BadRequest(error)",
     "NotFound(error)",
     "Conflict(error)"
@@ -103,6 +103,7 @@ foreach ($Token in $ControllerTokens) {
 }
 
 Assert-DoesNotContainToken -Content $ControllerContent -Token 'return Created($"/api/v1/organizations/{organizationId}/patients/{patient.Id}", response);'
+Assert-DoesNotContainToken -Content $ControllerContent -Token "nameof(GetByIdAsync)"
 
 $DocumentationTokens = @(
     "P5.5 Patient API Endpoint Hardening",
