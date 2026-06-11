@@ -295,8 +295,18 @@ public sealed class CaritasDbContext : DbContext
             entity.HasIndex(x => new { x.OrganizationId, x.FullNameNormalized });
             entity.HasIndex(x => new { x.OrganizationId, x.SourceBrigadeId });
             entity.HasIndex(x => new { x.OrganizationId, x.LocalPatientId });
-            entity.HasIndex(x => new { x.OrganizationId, x.ClientOperationId });
-            entity.HasIndex(x => new { x.OrganizationId, x.IdempotencyKey });
+            entity.HasIndex(x => new { x.OrganizationId, x.ClientOperationId })
+                .HasDatabaseName("IX_patients_OrganizationId_ClientOperationId_UQ")
+                .IsUnique()
+                .HasFilter("[ClientOperationId] IS NOT NULL AND [IsDeleted] = 0");
+            entity.HasIndex(x => new { x.OrganizationId, x.IdempotencyKey })
+                .HasDatabaseName("IX_patients_OrganizationId_IdempotencyKey_UQ")
+                .IsUnique()
+                .HasFilter("[IdempotencyKey] IS NOT NULL AND [IsDeleted] = 0");
+            entity.HasIndex(x => new { x.OrganizationId, x.SourceBrigadeId, x.LocalPatientId })
+                .HasDatabaseName("IX_patients_OrganizationId_SourceBrigadeId_LocalPatientId_UQ")
+                .IsUnique()
+                .HasFilter("[SourceBrigadeId] IS NOT NULL AND [LocalPatientId] IS NOT NULL AND [IsDeleted] = 0");
             entity.HasIndex(x => new { x.OrganizationId, x.SyncStatus });
 
             entity.HasOne<Organization>()

@@ -4,12 +4,20 @@ using Caritas.Brigadas.Domain.Common;
 using Caritas.Brigadas.Domain.Entities;
 using Caritas.Brigadas.Domain.Enums;
 using Caritas.Brigadas.Infrastructure.Persistence;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace Caritas.Brigadas.Infrastructure.Patients;
 
 public sealed class PatientWriteRepository : IPatientWriteRepository
 {
+    private static readonly string[] PatientCreateIdempotencyUniqueIndexNames =
+    [
+        "IX_patients_OrganizationId_IdempotencyKey_UQ",
+        "IX_patients_OrganizationId_ClientOperationId_UQ",
+        "IX_patients_OrganizationId_SourceBrigadeId_LocalPatientId_UQ"
+    ];
+
     private readonly CaritasDbContext _dbContext;
 
     public PatientWriteRepository(CaritasDbContext dbContext)
@@ -139,12 +147,64 @@ public sealed class PatientWriteRepository : IPatientWriteRepository
 
         _dbContext.Patients.Add(patient);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (IsPatientCreateIdempotencyUniqueViolation(exception))
+        {
+            var replayedPatient = await FindExistingIdempotentPatientAsync(
+                organizationId,
+                request,
+                cancellationToken);
+
+            if (replayedPatient is not null)
+            {
+                return ToSummary(replayedPatient);
+            }
+
+            throw;
+        }
 
         return ToSummary(patient);
     }
 
 
+
+
+    private static bool IsPatientCreateIdempotencyUniqueViolation(DbUpdateException exception)
+    {
+        if (exception.InnerException is not SqlException sqlException)
+        {
+            return false;
+        }
+
+        var isUniqueViolation = false;
+
+        foreach (SqlError error in sqlException.Errors)
+        {
+            if (error.Number is 2601 or 2627)
+            {
+                isUniqueViolation = true;
+                break;
+            }
+        }
+
+        if (!isUniqueViolation)
+        {
+            return false;
+        }
+
+        foreach (var indexName in PatientCreateIdempotencyUniqueIndexNames)
+        {
+            if (sqlException.Message.Contains(indexName, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private async Task<Patient?> FindExistingIdempotentPatientAsync(
         Guid organizationId,
