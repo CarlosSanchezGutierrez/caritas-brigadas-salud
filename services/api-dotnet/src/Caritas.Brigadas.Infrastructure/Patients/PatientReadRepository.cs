@@ -385,12 +385,24 @@ public sealed class PatientReadRepository : IPatientReadRepository
         };
     }
     public async Task<PatientSummaryDto?> GetByIdAsync(
+        Guid organizationId,
         Guid patientId,
         CancellationToken cancellationToken = default)
     {
+        if (organizationId == Guid.Empty)
+        {
+            throw new ArgumentException("Organization id is required.", nameof(organizationId));
+        }
+
+        if (patientId == Guid.Empty)
+        {
+            throw new ArgumentException("Patient id is required.", nameof(patientId));
+        }
+
         return await _dbContext.Patients
             .AsNoTracking()
             .Where(patient =>
+                patient.OrganizationId == organizationId &&
                 patient.Id == patientId &&
                 !patient.IsDeleted)
             .Select(patient => new PatientSummaryDto
