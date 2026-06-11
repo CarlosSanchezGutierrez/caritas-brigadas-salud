@@ -176,9 +176,15 @@ public sealed class PatientsController : ControllerBase
                 patient,
                 HttpContext.GetCorrelationId(),
                 "Patient created successfully.");
-
-            return Created($"/api/v1/organizations/{organizationId}/patients/{patient.Id}", response);
-        }
+            return CreatedAtAction(
+                "GetById",
+                new
+                {
+                    organizationId,
+                    patientId = patient.Id
+                },
+                response);
+}
         catch (KeyNotFoundException exception)
         {
             var error = ApiErrorResponse.Create(
