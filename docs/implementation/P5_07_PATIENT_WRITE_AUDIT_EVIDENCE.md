@@ -4,20 +4,21 @@ Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE
 
 ## Purpose
 
-P5.7 connects patient creation to the existing operational write audit surface.
+P5.7 documents and verifies patient creation audit evidence through the existing clinical write audit surface.
 
-The repository already has a general operational write audit filter, audit logger contract, HTTP audit logger implementation, audit action codes, and audit log write repository boundary. P5.7 makes patient creation explicitly auditable through that existing path.
+The repository already contains a clinical write audit mapper, clinical write audit filter, audit logger contract, HTTP audit logger implementation, audit action codes, and audit log write repository boundary.
 
 ## Scope
 
-P5.7 adds or validates:
+P5.7 validates:
 
-- POST /api/v1/organizations/{organizationId:guid}/patients is mapped to patients.create.
+- POST /api/v1/organizations/{organizationId:guid}/patients is mapped by ClinicalWriteAuditActionMapper.
 - Patient creation audit uses AuditActionCodes.PatientCreate.
 - Patient creation audit uses entity name Patient.
-- Successful CreatedAtAction results remain auditable as successful 201 responses.
-- Patient entity id is extracted from ApiResponse Data.Id by the operational write audit filter.
-- Organization id is extracted from route/action/result data by the operational write audit filter.
+- Patient creation is not also mapped by OperationalWriteAuditActionMapper.
+- Successful CreatedAtAction results remain auditable as successful 201 responses through the clinical audit filter.
+- Patient entity id is extracted from ApiResponse Data.Id by the clinical audit filter.
+- Organization id is extracted from route or action arguments by the clinical audit filter.
 - Existing audit logger path remains responsible for correlation id, user id, ip address, user agent, and occurred timestamp.
 - P5.7 implementation documentation.
 - P5.7 acceptance matrix.
@@ -26,11 +27,13 @@ P5.7 adds or validates:
 
 ## Required behavior
 
-Successful patient creation must produce an operational write audit event through the existing audit pipeline.
+Successful patient creation must produce one patient create audit event through the clinical write audit pipeline.
 
 The audit action must be patients.create.
 
 The audited entity name must be Patient.
+
+Patient creation must not be mapped by both clinical and operational audit mappers.
 
 The audited entity id must be the created patient id when available from the response.
 
@@ -51,7 +54,7 @@ P5.7 does not close:
 - Analytics.
 - Production readiness.
 
-P5.7 does not add a new audit table or alternate audit runtime. It uses the existing operational write audit surface.
+P5.7 does not add a new audit table or alternate audit runtime. It uses the existing audit surface.
 
 ## Guardrails
 

@@ -95,14 +95,7 @@ public static class OperationalWriteAuditActionMapper
             entityName = "BrigadeService";
             return true;
         }
-
-        if (normalizedPath.EndsWith("/patients", StringComparison.OrdinalIgnoreCase))
-        {
-            action = AuditActionCodes.PatientCreate;
-            entityName = "Patient";
-            return true;
-        }
-        if (normalizedPath.EndsWith("/sync-batches", StringComparison.OrdinalIgnoreCase))
+if (normalizedPath.EndsWith("/sync-batches", StringComparison.OrdinalIgnoreCase))
         {
             action = AuditActionCodes.SyncBatchCreate;
             entityName = "SyncBatch";

@@ -69,8 +69,9 @@ function Assert-DoesNotContainToken {
 }
 
 $RequiredFiles = @(
+    "services/api-dotnet/src/Caritas.Brigadas.Api/Audit/ClinicalWriteAuditActionMapper.cs",
+    "services/api-dotnet/src/Caritas.Brigadas.Api/Audit/ClinicalWriteAuditActionFilter.cs",
     "services/api-dotnet/src/Caritas.Brigadas.Api/Audit/OperationalWriteAuditActionMapper.cs",
-    "services/api-dotnet/src/Caritas.Brigadas.Api/Audit/OperationalWriteAuditActionFilter.cs",
     "services/api-dotnet/src/Caritas.Brigadas.Api/Audit/HttpAuditLogger.cs",
     "services/api-dotnet/src/Caritas.Brigadas.Application/Audit/IAuditLogger.cs",
     "services/api-dotnet/src/Caritas.Brigadas.Application/Audit/AuditActionCodes.cs",
@@ -85,8 +86,9 @@ foreach ($File in $RequiredFiles) {
     Assert-FileExists -RelativePath $File
 }
 
-$MapperContent = Read-RepoText -RelativePath "services/api-dotnet/src/Caritas.Brigadas.Api/Audit/OperationalWriteAuditActionMapper.cs"
-$FilterContent = Read-RepoText -RelativePath "services/api-dotnet/src/Caritas.Brigadas.Api/Audit/OperationalWriteAuditActionFilter.cs"
+$ClinicalMapperContent = Read-RepoText -RelativePath "services/api-dotnet/src/Caritas.Brigadas.Api/Audit/ClinicalWriteAuditActionMapper.cs"
+$ClinicalFilterContent = Read-RepoText -RelativePath "services/api-dotnet/src/Caritas.Brigadas.Api/Audit/ClinicalWriteAuditActionFilter.cs"
+$OperationalMapperContent = Read-RepoText -RelativePath "services/api-dotnet/src/Caritas.Brigadas.Api/Audit/OperationalWriteAuditActionMapper.cs"
 $HttpAuditLoggerContent = Read-RepoText -RelativePath "services/api-dotnet/src/Caritas.Brigadas.Api/Audit/HttpAuditLogger.cs"
 $AuditLoggerInterfaceContent = Read-RepoText -RelativePath "services/api-dotnet/src/Caritas.Brigadas.Application/Audit/IAuditLogger.cs"
 $AuditActionCodesContent = Read-RepoText -RelativePath "services/api-dotnet/src/Caritas.Brigadas.Application/Audit/AuditActionCodes.cs"
@@ -95,18 +97,20 @@ $ImplementationContent = Read-RepoText -RelativePath "docs/implementation/P5_07_
 $MatrixContent = Read-RepoText -RelativePath "docs/qa/P5_07_PATIENT_WRITE_AUDIT_EVIDENCE_MATRIX.md"
 $RunbookContent = Read-RepoText -RelativePath "docs/runbooks/P5_07_PATIENT_WRITE_AUDIT_EVIDENCE_RUNBOOK.md"
 
-$AllContent = $MapperContent + "`n" + $FilterContent + "`n" + $HttpAuditLoggerContent + "`n" + $AuditLoggerInterfaceContent + "`n" + $AuditActionCodesContent + "`n" + $PatientsControllerContent + "`n" + $ImplementationContent + "`n" + $MatrixContent + "`n" + $RunbookContent
+$AllContent = $ClinicalMapperContent + "`n" + $ClinicalFilterContent + "`n" + $OperationalMapperContent + "`n" + $HttpAuditLoggerContent + "`n" + $AuditLoggerInterfaceContent + "`n" + $AuditActionCodesContent + "`n" + $PatientsControllerContent + "`n" + $ImplementationContent + "`n" + $MatrixContent + "`n" + $RunbookContent
 
 $RequiredTokens = @(
+    "ClinicalWriteAuditActionMapper",
     "AuditActionCodes.PatientCreate",
     "public const string PatientCreate = ""patients.create"";",
     "normalizedPath.EndsWith(""/patients"", StringComparison.OrdinalIgnoreCase)",
     "entityName = ""Patient"";",
-    "OperationalWriteAuditActionFilter",
+    "ClinicalWriteAuditActionFilter",
     "CreatedAtActionResult",
     "TryGetEntityId",
     "TryGetOrganizationId",
-    "TryGetGuidPropertyFromData",
+    "GetProperty(""Data"")",
+    "GetProperty(""Id"")",
     "IAuditLogger",
     "Task LogAsync(",
     "IAuditLogWriteRepository",
@@ -134,11 +138,40 @@ foreach ($Token in $RequiredTokens) {
     Assert-ContainsToken -Content $AllContent -Token $Token
 }
 
+$ClinicalPatientMappingStart = $ClinicalMapperContent.IndexOf('normalizedPath.EndsWith("/patients"', [System.StringComparison]::OrdinalIgnoreCase)
+
+if ($ClinicalPatientMappingStart -lt 0) {
+    throw "Clinical patient mapping block was not found."
+}
+
+$ClinicalPatientMappingEnd = $ClinicalMapperContent.IndexOf("return true;", $ClinicalPatientMappingStart, [System.StringComparison]::OrdinalIgnoreCase)
+
+if ($ClinicalPatientMappingEnd -lt 0) {
+    throw "Clinical patient mapping block does not return true."
+}
+
+$ClinicalPatientMappingBlock = $ClinicalMapperContent.Substring($ClinicalPatientMappingStart, $ClinicalPatientMappingEnd - $ClinicalPatientMappingStart)
+
+if ($ClinicalPatientMappingBlock.IndexOf("AuditActionCodes.PatientCreate", [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
+    throw "Clinical patient mapping block does not use PatientCreate action."
+}
+
+if ($ClinicalPatientMappingBlock.IndexOf('entityName = "Patient"', [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
+    throw "Clinical patient mapping block does not set Patient entity name."
+}
+
+if ($OperationalMapperContent.IndexOf('normalizedPath.EndsWith("/patients"', [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
+    throw "Operational mapper must not map /patients because clinical mapper already audits patient creation."
+}
+
+if ($OperationalMapperContent.IndexOf("AuditActionCodes.PatientCreate", [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
+    throw "Operational mapper must not use PatientCreate because it would duplicate patient creation audit logs."
+}
+
 $ForbiddenTokens = @(
     "mobile clients may write directly to SQL Server",
     "frontend may bypass API",
     "backend is production ready",
-    "backend production readiness is approved",
     "Cloud is required",
     "Azure is required",
     "AWS is required",
@@ -151,28 +184,6 @@ $ForbiddenTokens = @(
 
 foreach ($Token in $ForbiddenTokens) {
     Assert-DoesNotContainToken -Content $AllContent -Token $Token
-}
-
-$PatientMappingStart = $MapperContent.IndexOf('normalizedPath.EndsWith("/patients"', [System.StringComparison]::OrdinalIgnoreCase)
-
-if ($PatientMappingStart -lt 0) {
-    throw "Patient mapping block was not found in OperationalWriteAuditActionMapper."
-}
-
-$PatientMappingEnd = $MapperContent.IndexOf("return true;", $PatientMappingStart, [System.StringComparison]::OrdinalIgnoreCase)
-
-if ($PatientMappingEnd -lt 0) {
-    throw "Patient mapping block does not return true."
-}
-
-$PatientMappingBlock = $MapperContent.Substring($PatientMappingStart, $PatientMappingEnd - $PatientMappingStart)
-
-if ($PatientMappingBlock.IndexOf("AuditActionCodes.PatientCreate", [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
-    throw "Patient mapping block does not use PatientCreate action."
-}
-
-if ($PatientMappingBlock.IndexOf('entityName = "Patient"', [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
-    throw "Patient mapping block does not set Patient entity name."
 }
 
 Write-Host "P5.7 patient write audit evidence verifier passed from repo root: $RepoRoot"

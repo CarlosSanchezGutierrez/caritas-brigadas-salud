@@ -4,7 +4,7 @@ Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE
 
 ## Purpose
 
-Validate that successful patient creation is wired into the existing operational write audit surface.
+Validate that successful patient creation is wired into the existing clinical write audit surface without duplicate operational audit rows.
 
 ## Validation command
 
@@ -20,11 +20,12 @@ Run from repository root:
 
 ## Expected behavior
 
-- POST /api/v1/organizations/{organizationId:guid}/patients maps to patients.create.
+- POST /api/v1/organizations/{organizationId:guid}/patients maps to patients.create in ClinicalWriteAuditActionMapper.
 - Audit entity name is Patient.
+- OperationalWriteAuditActionMapper does not also map patient creation.
 - CreatedAtActionResult is considered a successful write response.
-- The audit filter extracts the created patient id from Data.Id when present.
-- The audit filter resolves organization id from route/action/result data.
+- The clinical audit filter extracts the created patient id from Data.Id when present.
+- The clinical audit filter resolves organization id from route or action data.
 - HttpAuditLogger persists through IAuditLogWriteRepository.
 - Audit logging failures are warning-only and do not leak sensitive details.
 
