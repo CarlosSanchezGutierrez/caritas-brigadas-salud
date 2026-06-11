@@ -30,9 +30,10 @@ Run from repository root:
 
 - Clinical record response includes Timeline.
 - Timeline entries are derived from existing clinical record read model collections.
-- Timeline entries are ordered newest first.
+- Timeline entries with known timestamps are ordered newest first.
+- Timeline preserves unknown-time visits and encounters instead of dropping them.
 - Existing clinical record collections remain intact.
-- Summary includes timeline count and first/last timeline timestamps.
+- Summary includes timeline count and first/last known timeline timestamps.
 
 ## Guardrails
 

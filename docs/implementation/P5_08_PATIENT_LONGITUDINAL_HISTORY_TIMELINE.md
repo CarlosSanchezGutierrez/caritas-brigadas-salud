@@ -14,16 +14,16 @@ P5.8 adds or validates:
 
 - PatientClinicalRecordDto exposes Timeline.
 - Timeline entries are derived from existing clinical record collections.
-- Timeline entries include occurred time, event type, entity id, organization id, patient id, visit id, encounter id, label, status, offline flag, device id, and sync status where available.
-- Timeline includes visits.
-- Timeline includes service encounters.
+- Timeline entries include occurred time when known, event type, entity id, organization id, patient id, visit id, encounter id, label, status, offline flag, device id, and sync status where available.
+- Timeline includes visits, including visits without arrival time.
+- Timeline includes service encounters, including encounters without started time.
 - Timeline includes vital signs.
 - Timeline includes form responses.
 - Timeline includes consent documents.
 - Timeline includes medical referrals.
 - Timeline includes medication deliveries.
 - Summary includes TimelineEventCount, FirstTimelineEventAt, and LastTimelineEventAt.
-- Timeline is ordered descending by occurred time.
+- Timeline orders known-time events first, newest first, and preserves unknown-time events after known-time events.
 - Existing clinical-record collections remain available.
 - P5.8 implementation documentation.
 - P5.8 acceptance matrix.
@@ -37,6 +37,10 @@ The clinical record response must preserve the existing typed collections and ad
 The timeline must not replace visits, encounters, vital signs, form responses, consent documents, medical referrals, or medication deliveries.
 
 The timeline must be scoped to the same organization and patient as the clinical record.
+
+The timeline must preserve visits and encounters even when their event timestamp is not yet known.
+
+Events with unknown occurred time must remain in the timeline and be ordered after events with known timestamps.
 
 The timeline must be generated server-side from SQL Server-backed data already returned by the patient clinical record query.
 

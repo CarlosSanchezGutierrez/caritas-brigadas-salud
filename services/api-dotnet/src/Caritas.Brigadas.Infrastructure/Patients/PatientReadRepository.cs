@@ -340,7 +340,9 @@ public sealed class PatientReadRepository : IPatientReadRepository
                 Status = entity.Status,
                 CreatedAt = entity.CreatedAt
             })
-            .ToArrayAsync(cancellationToken);        var timeline = BuildTimeline(
+            .ToArrayAsync(cancellationToken);
+
+        var timeline = BuildTimeline(
             organizationId,
             patientId,
             visits,
@@ -375,12 +377,14 @@ public sealed class PatientReadRepository : IPatientReadRepository
                 MedicationDeliveryCount = medicationDeliveries.Length,
                 TimelineEventCount = timeline.Count,
                 FirstTimelineEventAt = timeline
+                    .Where(item => item.OccurredAt.HasValue)
                     .OrderBy(item => item.OccurredAt)
-                    .Select(item => (DateTimeOffset?)item.OccurredAt)
+                    .Select(item => item.OccurredAt)
                     .FirstOrDefault(),
                 LastTimelineEventAt = timeline
+                    .Where(item => item.OccurredAt.HasValue)
                     .OrderByDescending(item => item.OccurredAt)
-                    .Select(item => (DateTimeOffset?)item.OccurredAt)
+                    .Select(item => item.OccurredAt)
                     .FirstOrDefault(),
                 FirstVisitAt = visits
                     .Where(visit => visit.ArrivalTime.HasValue)
@@ -413,11 +417,11 @@ public sealed class PatientReadRepository : IPatientReadRepository
     {
         var timeline = new List<PatientClinicalRecordTimelineEventDto>();
 
-        foreach (var visit in visits.Where(visit => visit.ArrivalTime.HasValue))
+        foreach (var visit in visits)
         {
             timeline.Add(new PatientClinicalRecordTimelineEventDto
             {
-                OccurredAt = visit.ArrivalTime.Value,
+                OccurredAt = visit.ArrivalTime ?? visit.ClosedAt,
                 EventType = "visit",
                 EntityId = visit.Id,
                 OrganizationId = organizationId,
@@ -431,11 +435,11 @@ public sealed class PatientReadRepository : IPatientReadRepository
             });
         }
 
-        foreach (var encounter in encounters.Where(encounter => encounter.StartedAt.HasValue))
+        foreach (var encounter in encounters)
         {
             timeline.Add(new PatientClinicalRecordTimelineEventDto
             {
-                OccurredAt = encounter.StartedAt.Value,
+                OccurredAt = encounter.StartedAt ?? encounter.CompletedAt,
                 EventType = "service-encounter",
                 EntityId = encounter.Id,
                 OrganizationId = organizationId,
@@ -543,7 +547,8 @@ public sealed class PatientReadRepository : IPatientReadRepository
         }
 
         return timeline
-            .OrderByDescending(item => item.OccurredAt)
+            .OrderByDescending(item => item.OccurredAt.HasValue)
+            .ThenByDescending(item => item.OccurredAt)
             .ThenBy(item => item.EventType)
             .ThenBy(item => item.EntityId)
             .ToArray();

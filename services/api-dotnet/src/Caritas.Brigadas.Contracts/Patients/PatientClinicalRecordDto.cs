@@ -59,7 +59,7 @@ public sealed record PatientClinicalRecordSummaryDto
 
 public sealed record PatientClinicalRecordTimelineEventDto
 {
-    public DateTimeOffset OccurredAt { get; init; }
+    public DateTimeOffset? OccurredAt { get; init; }
 
     public string EventType { get; init; } = string.Empty;
 
