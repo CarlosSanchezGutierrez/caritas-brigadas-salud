@@ -286,8 +286,28 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Curp).HasMaxLength(30);
             entity.Property(x => x.Phone).HasMaxLength(50);
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.OrganizationId, x.PatientFolio }).IsUnique();
             entity.HasIndex(x => new { x.OrganizationId, x.FullNameNormalized });
+            entity.HasIndex(x => new { x.OrganizationId, x.SourceBrigadeId });
+            entity.HasIndex(x => new { x.OrganizationId, x.LocalPatientId });
+            entity.HasIndex(x => new { x.OrganizationId, x.ClientOperationId })
+                .HasDatabaseName("IX_patients_OrganizationId_ClientOperationId_UQ")
+                .IsUnique()
+                .HasFilter("[ClientOperationId] IS NOT NULL AND [IsDeleted] = 0");
+            entity.HasIndex(x => new { x.OrganizationId, x.IdempotencyKey })
+                .HasDatabaseName("IX_patients_OrganizationId_IdempotencyKey_UQ")
+                .IsUnique()
+                .HasFilter("[IdempotencyKey] IS NOT NULL AND [IsDeleted] = 0");
+            entity.HasIndex(x => new { x.OrganizationId, x.SourceBrigadeId, x.LocalPatientId })
+                .HasDatabaseName("IX_patients_OrganizationId_SourceBrigadeId_LocalPatientId_UQ")
+                .IsUnique()
+                .HasFilter("[SourceBrigadeId] IS NOT NULL AND [LocalPatientId] IS NOT NULL AND [IsDeleted] = 0");
+            entity.HasIndex(x => new { x.OrganizationId, x.SyncStatus });
 
             entity.HasOne<Organization>()
                 .WithMany()

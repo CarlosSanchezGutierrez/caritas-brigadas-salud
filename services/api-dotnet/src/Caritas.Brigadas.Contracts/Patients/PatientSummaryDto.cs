@@ -1,4 +1,4 @@
-﻿namespace Caritas.Brigadas.Contracts.Patients;
+namespace Caritas.Brigadas.Contracts.Patients;
 
 public sealed record PatientSummaryDto
 {
@@ -43,4 +43,16 @@ public sealed record PatientSummaryDto
     public string Status { get; init; } = string.Empty;
 
     public bool IsActive { get; init; }
+
+    public Guid? SourceBrigadeId { get; init; }
+
+    public string? LocalPatientId { get; init; }
+
+    public string? ClientOperationId { get; init; }
+
+    public string? IdempotencyKey { get; init; }
+
+    public string? SyncStatus { get; init; }
+
+    public string? DataCaptureSource { get; init; }
 }

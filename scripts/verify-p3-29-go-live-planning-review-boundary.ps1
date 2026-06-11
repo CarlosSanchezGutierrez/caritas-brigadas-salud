@@ -1,0 +1,149 @@
+$ErrorActionPreference = "Stop"
+
+$ScriptPath = if (-not [string]::IsNullOrWhiteSpace($PSCommandPath)) { $PSCommandPath } elseif ($MyInvocation.MyCommand.Path) { $MyInvocation.MyCommand.Path } else { throw "Unable to resolve script path." }
+$ScriptDirectory = Split-Path -Parent $ScriptPath
+$RepoRoot = Resolve-Path (Join-Path $ScriptDirectory "..")
+
+function Resolve-RepoPath { param([string]$RelativePath) return Join-Path -Path $RepoRoot -ChildPath $RelativePath }
+function Assert-FileExists { param([string]$RelativePath) $AbsolutePath = Resolve-RepoPath -RelativePath $RelativePath; if (-not (Test-Path $AbsolutePath)) { throw "Missing required file: $RelativePath resolved to $AbsolutePath" } }
+function Read-RepoText { param([string]$RelativePath) $AbsolutePath = Resolve-RepoPath -RelativePath $RelativePath; if (-not (Test-Path $AbsolutePath)) { throw "Cannot read missing file: $RelativePath resolved to $AbsolutePath" }; return [System.IO.File]::ReadAllText($AbsolutePath) }
+function Assert-ContainsToken { param([string]$Content, [string]$Token) if ($Content.IndexOf($Token, [System.StringComparison]::OrdinalIgnoreCase) -lt 0) { throw "Missing required token: $Token" } }
+function Assert-DoesNotContainToken { param([string]$Content, [string]$Token) if ($Content.IndexOf($Token, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) { throw "Forbidden token found: $Token" } }
+
+$RequiredFiles = @(
+    "docs/release/P3_29_GO_LIVE_PLANNING_REVIEW_BOUNDARY.md",
+    "docs/web/P3_29_WEB_GO_LIVE_PLANNING_REVIEW.md",
+    "docs/mobile/P3_29_IOS_GO_LIVE_PLANNING_REVIEW.md",
+    "docs/mobile/P3_29_ANDROID_GO_LIVE_PLANNING_REVIEW.md",
+    "docs/operations/P3_29_GO_LIVE_OPERATIONAL_CUTOVER_AND_COMMUNICATIONS_BOUNDARY.md",
+    "docs/security/P3_29_GO_LIVE_SECURITY_PRIVACY_FINAL_CHECK_BOUNDARY.md",
+    "docs/qa/P3_29_GO_LIVE_PLANNING_DECISION_MATRIX.md",
+    "docs/runbooks/P3_29_GO_LIVE_PLANNING_REVIEW_RUNBOOK.md",
+    "docs/operations/templates/P3_29_GO_LIVE_PLANNING_REVIEW_TEMPLATE.md",
+    "scripts/verify-p3-29-go-live-planning-review-boundary.ps1"
+)
+
+foreach ($File in $RequiredFiles) { Assert-FileExists -RelativePath $File }
+
+$DocumentationFiles = $RequiredFiles | Where-Object { $_ -like "docs/*" }
+$AllDocumentationContent = ""
+foreach ($File in $DocumentationFiles) { $AllDocumentationContent += "`n--- FILE: $File ---`n"; $AllDocumentationContent += Read-RepoText -RelativePath $File }
+
+$RequiredTokens = @(
+    "Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE",
+    "SQL Server is the operational source of truth",
+    "Go Live Planning Review Boundary",
+    "Web go live planning review",
+    "iOS go live planning review",
+    "Android go live planning review",
+    "Go live operational cutover communications boundary",
+    "Go live security privacy final check boundary",
+    "Go live planning decision matrix",
+    "approved production readiness review execution reference",
+    "approved production readiness review entry reference",
+    "approved pilot evidence review reference",
+    "approved release candidate reference",
+    "production readiness decision evidence",
+    "artifact reference",
+    "deployed commit SHA",
+    "environment name",
+    "API contract version",
+    "OpenAPI artifact reference",
+    "cutover plan",
+    "deployment window",
+    "deployment owner assignment",
+    "rollback owner assignment",
+    "support owner assignment",
+    "security owner assignment",
+    "privacy owner assignment",
+    "data owner assignment",
+    "communication plan",
+    "stakeholder notification plan",
+    "training completion evidence",
+    "support staffing plan",
+    "hypercare plan",
+    "final backup checkpoint plan",
+    "rollback checkpoint plan",
+    "incident command plan",
+    "mobile release channel plan",
+    "device rollout plan",
+    "offline queue drain plan",
+    "sync reconciliation checkpoint plan",
+    "go live risk register",
+    "go live readiness blockers",
+    "final go live decision evidence",
+    "go live planning review state",
+    "request id",
+    "correlation id",
+    "organization id",
+    "audit trail reference",
+    "device id",
+    "idempotency key",
+    "client operation id",
+    "sync status",
+    "server acknowledgment",
+    "conflict id",
+    "evidence sanitization status",
+    "No secrets in repository",
+    "No direct mobile write to SQL Server",
+    "No cloud dependency"
+)
+
+foreach ($Token in $RequiredTokens) { Assert-ContainsToken -Content $AllDocumentationContent -Token $Token }
+
+$ForbiddenTokens = @(
+    "ConnectionStrings__CaritasDatabase",
+    "password=",
+    "User ID=sa",
+    "Cloud is required",
+    "Azure is required",
+    "AWS is required",
+    "mobile clients may write directly to SQL Server",
+    "frontend may bypass API",
+    "repository intentionally stores secrets",
+    "real patient data is committed intentionally",
+    "mocked data is production evidence",
+    "undocumented endpoints are allowed",
+    "conflicts may be silently overwritten",
+    "contract tests may be skipped",
+    "go live planning review is deployment approval",
+    "production deployment is approved"
+)
+
+foreach ($Token in $ForbiddenTokens) { Assert-DoesNotContainToken -Content $AllDocumentationContent -Token $Token }
+
+
+# P3.29 file-specific regression checks
+$P329FileSpecificTokens = @{
+    "docs/qa/P3_29_GO_LIVE_PLANNING_DECISION_MATRIX.md" = @(
+        "approved production readiness review entry reference",
+        "approved pilot evidence review reference",
+        "approved release candidate reference"
+    );
+    "docs/web/P3_29_WEB_GO_LIVE_PLANNING_REVIEW.md" = @(
+        "security owner assignment",
+        "privacy owner assignment",
+        "data owner assignment",
+        "go live risk register"
+    );
+    "docs/mobile/P3_29_IOS_GO_LIVE_PLANNING_REVIEW.md" = @(
+        "security owner assignment",
+        "privacy owner assignment",
+        "data owner assignment",
+        "go live risk register"
+    );
+    "docs/mobile/P3_29_ANDROID_GO_LIVE_PLANNING_REVIEW.md" = @(
+        "security owner assignment",
+        "privacy owner assignment",
+        "data owner assignment",
+        "go live risk register"
+    )
+}
+
+foreach ($Entry in $P329FileSpecificTokens.GetEnumerator()) {
+    $FileContent = Read-RepoText -RelativePath $Entry.Key
+    foreach ($Token in $Entry.Value) {
+        Assert-ContainsToken -Content $FileContent -Token $Token
+    }
+}
+Write-Host "P3.29 go live planning review boundary verifier passed from repo root: $RepoRoot"
