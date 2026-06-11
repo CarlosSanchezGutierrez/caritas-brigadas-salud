@@ -104,6 +104,7 @@ foreach ($Token in $ControllerTokens) {
 
 Assert-DoesNotContainToken -Content $ControllerContent -Token 'return Created($"/api/v1/organizations/{organizationId}/patients/{patient.Id}", response);'
 Assert-DoesNotContainToken -Content $ControllerContent -Token "nameof(GetByIdAsync)"
+Assert-DoesNotContainToken -Content $ControllerContent -Token 
 
 $DocumentationTokens = @(
     "P5.5 Patient API Endpoint Hardening",
