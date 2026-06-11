@@ -22,6 +22,8 @@ public sealed record PatientClinicalRecordDto
 
     public IReadOnlyCollection<PatientClinicalRecordMedicationDeliveryDto> MedicationDeliveries { get; init; } = Array.Empty<PatientClinicalRecordMedicationDeliveryDto>();
 
+    public IReadOnlyCollection<PatientClinicalRecordTimelineEventDto> Timeline { get; init; } = Array.Empty<PatientClinicalRecordTimelineEventDto>();
+
     public PatientClinicalRecordSummaryDto Summary { get; init; } = new();
 }
 
@@ -41,11 +43,45 @@ public sealed record PatientClinicalRecordSummaryDto
 
     public int MedicationDeliveryCount { get; init; }
 
+    public int TimelineEventCount { get; init; }
+
+    public DateTimeOffset? FirstTimelineEventAt { get; init; }
+
+    public DateTimeOffset? LastTimelineEventAt { get; init; }
+
     public DateTimeOffset? FirstVisitAt { get; init; }
 
     public DateTimeOffset? LastVisitAt { get; init; }
 
     public DateTimeOffset? LastVitalSignsMeasuredAt { get; init; }
+}
+
+
+public sealed record PatientClinicalRecordTimelineEventDto
+{
+    public DateTimeOffset OccurredAt { get; init; }
+
+    public string EventType { get; init; } = string.Empty;
+
+    public Guid EntityId { get; init; }
+
+    public Guid OrganizationId { get; init; }
+
+    public Guid PatientId { get; init; }
+
+    public Guid? VisitId { get; init; }
+
+    public Guid? EncounterId { get; init; }
+
+    public string? DisplayLabel { get; init; }
+
+    public string? Status { get; init; }
+
+    public bool CreatedOffline { get; init; }
+
+    public Guid? DeviceId { get; init; }
+
+    public string? SyncStatus { get; init; }
 }
 
 public sealed record PatientClinicalRecordVisitDto

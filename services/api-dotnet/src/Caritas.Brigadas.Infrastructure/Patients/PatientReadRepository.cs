@@ -340,7 +340,17 @@ public sealed class PatientReadRepository : IPatientReadRepository
                 Status = entity.Status,
                 CreatedAt = entity.CreatedAt
             })
-            .ToArrayAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);        var timeline = BuildTimeline(
+            organizationId,
+            patientId,
+            visits,
+            encounters,
+            vitalSigns,
+            formResponses,
+            consentDocuments,
+            medicalReferrals,
+            medicationDeliveries);
+
         return new PatientClinicalRecordDto
         {
             OrganizationId = organizationId,
@@ -353,6 +363,7 @@ public sealed class PatientReadRepository : IPatientReadRepository
             ConsentDocuments = consentDocuments,
             MedicalReferrals = medicalReferrals,
             MedicationDeliveries = medicationDeliveries,
+            Timeline = timeline,
             Summary = new PatientClinicalRecordSummaryDto
             {
                 VisitCount = visits.Length,
@@ -362,6 +373,15 @@ public sealed class PatientReadRepository : IPatientReadRepository
                 ConsentDocumentCount = consentDocuments.Length,
                 MedicalReferralCount = medicalReferrals.Length,
                 MedicationDeliveryCount = medicationDeliveries.Length,
+                TimelineEventCount = timeline.Count,
+                FirstTimelineEventAt = timeline
+                    .OrderBy(item => item.OccurredAt)
+                    .Select(item => (DateTimeOffset?)item.OccurredAt)
+                    .FirstOrDefault(),
+                LastTimelineEventAt = timeline
+                    .OrderByDescending(item => item.OccurredAt)
+                    .Select(item => (DateTimeOffset?)item.OccurredAt)
+                    .FirstOrDefault(),
                 FirstVisitAt = visits
                     .Where(visit => visit.ArrivalTime.HasValue)
                     .OrderBy(visit => visit.ArrivalTime)
@@ -379,6 +399,156 @@ public sealed class PatientReadRepository : IPatientReadRepository
             }
         };
     }
+
+    private static IReadOnlyCollection<PatientClinicalRecordTimelineEventDto> BuildTimeline(
+        Guid organizationId,
+        Guid patientId,
+        IReadOnlyCollection<PatientClinicalRecordVisitDto> visits,
+        IReadOnlyCollection<PatientClinicalRecordEncounterDto> encounters,
+        IReadOnlyCollection<PatientClinicalRecordVitalSignsDto> vitalSigns,
+        IReadOnlyCollection<PatientClinicalRecordFormResponseDto> formResponses,
+        IReadOnlyCollection<PatientClinicalRecordConsentDocumentDto> consentDocuments,
+        IReadOnlyCollection<PatientClinicalRecordMedicalReferralDto> medicalReferrals,
+        IReadOnlyCollection<PatientClinicalRecordMedicationDeliveryDto> medicationDeliveries)
+    {
+        var timeline = new List<PatientClinicalRecordTimelineEventDto>();
+
+        foreach (var visit in visits.Where(visit => visit.ArrivalTime.HasValue))
+        {
+            timeline.Add(new PatientClinicalRecordTimelineEventDto
+            {
+                OccurredAt = visit.ArrivalTime.Value,
+                EventType = "visit",
+                EntityId = visit.Id,
+                OrganizationId = organizationId,
+                PatientId = patientId,
+                VisitId = visit.Id,
+                DisplayLabel = visit.VisitFolio,
+                Status = visit.VisitStatus,
+                CreatedOffline = visit.CreatedOffline,
+                DeviceId = visit.DeviceId,
+                SyncStatus = visit.SyncStatus
+            });
+        }
+
+        foreach (var encounter in encounters.Where(encounter => encounter.StartedAt.HasValue))
+        {
+            timeline.Add(new PatientClinicalRecordTimelineEventDto
+            {
+                OccurredAt = encounter.StartedAt.Value,
+                EventType = "service-encounter",
+                EntityId = encounter.Id,
+                OrganizationId = organizationId,
+                PatientId = patientId,
+                VisitId = encounter.VisitId,
+                EncounterId = encounter.Id,
+                DisplayLabel = encounter.EncounterFolio,
+                Status = encounter.Status,
+                CreatedOffline = encounter.CreatedOffline,
+                DeviceId = encounter.DeviceId,
+                SyncStatus = encounter.SyncStatus
+            });
+        }
+
+        foreach (var vitalSign in vitalSigns)
+        {
+            timeline.Add(new PatientClinicalRecordTimelineEventDto
+            {
+                OccurredAt = vitalSign.MeasuredAt,
+                EventType = "vital-signs",
+                EntityId = vitalSign.Id,
+                OrganizationId = organizationId,
+                PatientId = patientId,
+                VisitId = vitalSign.VisitId,
+                EncounterId = vitalSign.EncounterId,
+                DisplayLabel = vitalSign.Source,
+                Status = null,
+                CreatedOffline = vitalSign.CreatedOffline,
+                DeviceId = vitalSign.DeviceId,
+                SyncStatus = vitalSign.SyncStatus
+            });
+        }
+
+        foreach (var formResponse in formResponses)
+        {
+            var occurredAt = formResponse.CompletedAt ?? formResponse.SubmittedAt ?? formResponse.CapturedAt;
+
+            if (!occurredAt.HasValue)
+            {
+                continue;
+            }
+
+            timeline.Add(new PatientClinicalRecordTimelineEventDto
+            {
+                OccurredAt = occurredAt.Value,
+                EventType = "form-response",
+                EntityId = formResponse.Id,
+                OrganizationId = organizationId,
+                PatientId = patientId,
+                EncounterId = formResponse.EncounterId,
+                DisplayLabel = formResponse.ResponseHash,
+                Status = formResponse.Status,
+                CreatedOffline = formResponse.CreatedOffline,
+                DeviceId = formResponse.DeviceId,
+                SyncStatus = formResponse.SyncStatus
+            });
+        }
+
+        foreach (var consentDocument in consentDocuments)
+        {
+            timeline.Add(new PatientClinicalRecordTimelineEventDto
+            {
+                OccurredAt = consentDocument.SignedAt,
+                EventType = "consent-document",
+                EntityId = consentDocument.Id,
+                OrganizationId = organizationId,
+                PatientId = patientId,
+                VisitId = consentDocument.VisitId,
+                DisplayLabel = consentDocument.ConsentType,
+                Status = consentDocument.HasSignature ? "signed" : "unsigned",
+                CreatedOffline = consentDocument.CreatedOffline,
+                DeviceId = consentDocument.DeviceId,
+                SyncStatus = consentDocument.SyncStatus
+            });
+        }
+
+        foreach (var referral in medicalReferrals)
+        {
+            timeline.Add(new PatientClinicalRecordTimelineEventDto
+            {
+                OccurredAt = referral.CreatedAt,
+                EventType = "medical-referral",
+                EntityId = referral.Id,
+                OrganizationId = organizationId,
+                PatientId = patientId,
+                EncounterId = referral.EncounterId,
+                DisplayLabel = referral.ReferralFolio,
+                Status = referral.Status
+            });
+        }
+
+        foreach (var medicationDelivery in medicationDeliveries)
+        {
+            timeline.Add(new PatientClinicalRecordTimelineEventDto
+            {
+                OccurredAt = medicationDelivery.CreatedAt,
+                EventType = "medication-delivery",
+                EntityId = medicationDelivery.Id,
+                OrganizationId = organizationId,
+                PatientId = patientId,
+                EncounterId = medicationDelivery.EncounterId,
+                DisplayLabel = medicationDelivery.MedicationName,
+                Status = medicationDelivery.Status
+            });
+        }
+
+        return timeline
+            .OrderByDescending(item => item.OccurredAt)
+            .ThenBy(item => item.EventType)
+            .ThenBy(item => item.EntityId)
+            .ToArray();
+    }
+
     public async Task<PatientSummaryDto?> GetByIdAsync(
         Guid organizationId,
         Guid patientId,
