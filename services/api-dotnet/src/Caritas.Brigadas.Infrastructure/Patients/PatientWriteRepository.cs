@@ -31,6 +31,16 @@ public sealed class PatientWriteRepository : IPatientWriteRepository
 
         ValidateCreateRequest(request);
 
+        var existingIdempotentPatient = await FindExistingIdempotentPatientAsync(
+            organizationId,
+            request,
+            cancellationToken);
+
+        if (existingIdempotentPatient is not null)
+        {
+            return ToSummary(existingIdempotentPatient);
+        }
+
         var organizationExists = await _dbContext.Organizations
             .AsNoTracking()
             .AnyAsync(
@@ -134,6 +144,65 @@ public sealed class PatientWriteRepository : IPatientWriteRepository
         return ToSummary(patient);
     }
 
+
+
+    private async Task<Patient?> FindExistingIdempotentPatientAsync(
+        Guid organizationId,
+        CreatePatientRequest request,
+        CancellationToken cancellationToken)
+    {
+        var idempotencyKey = NormalizeOptionalText(request.IdempotencyKey);
+
+        if (!string.IsNullOrWhiteSpace(idempotencyKey))
+        {
+            return await _dbContext.Patients
+                .AsNoTracking()
+                .Where(patient =>
+                    patient.OrganizationId == organizationId &&
+                    !patient.IsDeleted &&
+                    patient.IdempotencyKey == idempotencyKey)
+                .OrderBy(patient => patient.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        var clientOperationId = NormalizeOptionalText(request.ClientOperationId);
+
+        if (!string.IsNullOrWhiteSpace(clientOperationId))
+        {
+            return await _dbContext.Patients
+                .AsNoTracking()
+                .Where(patient =>
+                    patient.OrganizationId == organizationId &&
+                    !patient.IsDeleted &&
+                    patient.ClientOperationId == clientOperationId)
+                .OrderBy(patient => patient.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        var localPatientId = NormalizeOptionalText(request.LocalPatientId);
+
+        if (!string.IsNullOrWhiteSpace(localPatientId) && request.SourceBrigadeId.HasValue)
+        {
+            return await _dbContext.Patients
+                .AsNoTracking()
+                .Where(patient =>
+                    patient.OrganizationId == organizationId &&
+                    !patient.IsDeleted &&
+                    patient.SourceBrigadeId == request.SourceBrigadeId.Value &&
+                    patient.LocalPatientId == localPatientId)
+                .OrderBy(patient => patient.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        return null;
+    }
+
+    private static string? NormalizeOptionalText(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? null
+            : value.Trim();
+    }
 
     private static void ValidateCreateRequest(CreatePatientRequest request)
     {
