@@ -22,6 +22,15 @@ public sealed class PatientWriteRepository : IPatientWriteRepository
         CreatePatientRequest request,
         CancellationToken cancellationToken = default)
     {
+        if (organizationId == Guid.Empty)
+        {
+            throw new DomainException("Organization id is required.");
+        }
+
+        ArgumentNullException.ThrowIfNull(request);
+
+        ValidateCreateRequest(request);
+
         var organizationExists = await _dbContext.Organizations
             .AsNoTracking()
             .AnyAsync(
@@ -33,6 +42,23 @@ public sealed class PatientWriteRepository : IPatientWriteRepository
         if (!organizationExists)
         {
             throw new KeyNotFoundException("Organization was not found.");
+        }
+
+        if (request.SourceBrigadeId.HasValue)
+        {
+            var sourceBrigadeExists = await _dbContext.Brigades
+                .AsNoTracking()
+                .AnyAsync(
+                    brigade =>
+                        brigade.Id == request.SourceBrigadeId.Value &&
+                        brigade.OrganizationId == organizationId &&
+                        !brigade.IsDeleted,
+                    cancellationToken);
+
+            if (!sourceBrigadeExists)
+            {
+                throw new KeyNotFoundException("Source brigade was not found for the organization.");
+            }
         }
 
         var patientFolio = string.IsNullOrWhiteSpace(request.PatientFolio)
@@ -108,6 +134,34 @@ public sealed class PatientWriteRepository : IPatientWriteRepository
         return ToSummary(patient);
     }
 
+
+    private static void ValidateCreateRequest(CreatePatientRequest request)
+    {
+        var hasIdentitySignal =
+            !string.IsNullOrWhiteSpace(request.PatientFolio) ||
+            !string.IsNullOrWhiteSpace(request.FirstName) ||
+            !string.IsNullOrWhiteSpace(request.PaternalLastName) ||
+            !string.IsNullOrWhiteSpace(request.MaternalLastName) ||
+            !string.IsNullOrWhiteSpace(request.Curp) ||
+            !string.IsNullOrWhiteSpace(request.Phone) ||
+            !string.IsNullOrWhiteSpace(request.LocalPatientId) ||
+            !string.IsNullOrWhiteSpace(request.ClientOperationId);
+
+        if (!hasIdentitySignal)
+        {
+            throw new DomainException("At least one patient identity field is required.");
+        }
+
+        if (request.IsPartialRecord && string.IsNullOrWhiteSpace(request.PartialRecordReason))
+        {
+            throw new DomainException("Partial record reason is required when patient record is marked as partial.");
+        }
+
+        if (request.SourceBrigadeId.HasValue && request.SourceBrigadeId.Value == Guid.Empty)
+        {
+            throw new DomainException("Source brigade id cannot be empty.");
+        }
+    }
     private static PatientSummaryDto ToSummary(Patient patient)
     {
         return new PatientSummaryDto

@@ -74,6 +74,7 @@ public sealed class PatientsController : ControllerBase
         }
 
         var patient = await repository.GetByIdAsync(
+            organizationId,
             patientId,
             cancellationToken);
 
@@ -87,15 +88,6 @@ public sealed class PatientsController : ControllerBase
             return NotFound(error);
         }
 
-        if (patient.OrganizationId != organizationId)
-        {
-            var error = ApiErrorResponse.Create(
-                ApiErrorCodes.NotFound,
-                "Patient was not found.",
-                HttpContext.GetCorrelationId());
-
-            return NotFound(error);
-        }
 
         return Ok(ApiResponse<PatientSummaryDto>.Ok(
             patient,
@@ -184,7 +176,7 @@ public sealed class PatientsController : ControllerBase
                     patientId = patient.Id
                 },
                 response);
-}
+        }
         catch (KeyNotFoundException exception)
         {
             var error = ApiErrorResponse.Create(
