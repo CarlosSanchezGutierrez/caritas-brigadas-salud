@@ -1,6 +1,15 @@
 $ErrorActionPreference = "Stop"
 
-$ScriptPath = if (-not [string]::IsNullOrWhiteSpace($PSCommandPath)) { $PSCommandPath } elseif ($MyInvocation.MyCommand.Path) { $MyInvocation.MyCommand.Path } else { throw "Unable to resolve script path." }
+$ScriptPath = if (-not [string]::IsNullOrWhiteSpace($PSCommandPath)) {
+    $PSCommandPath
+}
+elseif ($MyInvocation.MyCommand.Path) {
+    $MyInvocation.MyCommand.Path
+}
+else {
+    throw "Unable to resolve script path."
+}
+
 $RepoRootText = git -C (Split-Path -Parent $ScriptPath) rev-parse --show-toplevel
 
 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($RepoRootText)) {
@@ -38,7 +47,10 @@ function Read-RepoText {
 }
 
 function Assert-ContainsToken {
-    param([string]$Content, [string]$Token)
+    param(
+        [string]$Content,
+        [string]$Token
+    )
 
     if ($Content.IndexOf($Token, [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
         throw "Missing required token: $Token"
@@ -46,7 +58,10 @@ function Assert-ContainsToken {
 }
 
 function Assert-DoesNotContainToken {
-    param([string]$Content, [string]$Token)
+    param(
+        [string]$Content,
+        [string]$Token
+    )
 
     if ($Content.IndexOf($Token, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
         throw "Forbidden token found: $Token"
@@ -82,6 +97,8 @@ $RequiredTokens = @(
     "Task<PatientSummaryDto?> GetByIdAsync(",
     "Guid organizationId,",
     "patient.OrganizationId == organizationId",
+    "if (organizationId == Guid.Empty || patientId == Guid.Empty)",
+    "return null;",
     "repository.GetByIdAsync(",
     "ArgumentNullException.ThrowIfNull(request);",
     "ValidateCreateRequest(request);",
@@ -123,6 +140,32 @@ $ForbiddenTokens = @(
 
 foreach ($Token in $ForbiddenTokens) {
     Assert-DoesNotContainToken -Content $AllContent -Token $Token
+}
+
+$GetByIdStart = $ReadRepositoryContent.IndexOf("public async Task<PatientSummaryDto?> GetByIdAsync(", [System.StringComparison]::OrdinalIgnoreCase)
+
+if ($GetByIdStart -lt 0) {
+    throw "GetByIdAsync was not found in PatientReadRepository."
+}
+
+$GetClinicalRecordStart = $ReadRepositoryContent.IndexOf("public async Task<PatientClinicalRecordDto?> GetClinicalRecordAsync(", $GetByIdStart, [System.StringComparison]::OrdinalIgnoreCase)
+
+if ($GetClinicalRecordStart -lt 0) {
+    $GetClinicalRecordStart = $ReadRepositoryContent.Length
+}
+
+$GetByIdContent = $ReadRepositoryContent.Substring($GetByIdStart, $GetClinicalRecordStart - $GetByIdStart)
+
+if ($GetByIdContent.IndexOf("throw new ArgumentException", [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
+    throw "GetByIdAsync must not throw ArgumentException for empty route ids."
+}
+
+if ($GetByIdContent.IndexOf("return null;", [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
+    throw "GetByIdAsync must return null for empty route ids."
+}
+
+if ($GetByIdContent.IndexOf("patient.OrganizationId == organizationId", [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
+    throw "GetByIdAsync must be organization scoped."
 }
 
 Write-Host "P5.6 patient validation and organization authorization verifier passed from repo root: $RepoRoot"

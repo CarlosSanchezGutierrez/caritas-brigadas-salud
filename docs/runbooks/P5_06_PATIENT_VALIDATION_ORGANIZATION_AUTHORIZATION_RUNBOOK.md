@@ -21,6 +21,7 @@ Run from repository root:
 ## Expected behavior
 
 - Patient GetById lookup is organization-scoped at repository query level.
+- Empty route IDs return NotFound through the controller path instead of throwing unhandled repository exceptions.
 - Controller passes organizationId into GetByIdAsync.
 - Create validates organization id.
 - Create validates request is not null.

@@ -28,6 +28,8 @@ P5.6 adds or validates:
 
 Patient reads must not return a record outside the route organization.
 
+Empty GUID route values for patient reads return null from the repository so the controller preserves the existing NotFound response instead of surfacing an unhandled server error.
+
 Patient creation must reject requests that have no meaningful identity signal.
 
 Patient creation must reject empty organization ids.
