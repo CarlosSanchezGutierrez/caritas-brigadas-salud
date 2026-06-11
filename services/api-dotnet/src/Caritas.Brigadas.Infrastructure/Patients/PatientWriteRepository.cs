@@ -11,11 +11,15 @@ namespace Caritas.Brigadas.Infrastructure.Patients;
 
 public sealed class PatientWriteRepository : IPatientWriteRepository
 {
+    private const string IdempotencyKeyUniqueIndexName = "IX_patients_OrganizationId_IdempotencyKey_UQ";
+    private const string ClientOperationIdUniqueIndexName = "IX_patients_OrganizationId_ClientOperationId_UQ";
+    private const string LocalPatientUniqueIndexName = "IX_patients_OrganizationId_SourceBrigadeId_LocalPatientId_UQ";
+
     private static readonly string[] PatientCreateIdempotencyUniqueIndexNames =
     [
-        "IX_patients_OrganizationId_IdempotencyKey_UQ",
-        "IX_patients_OrganizationId_ClientOperationId_UQ",
-        "IX_patients_OrganizationId_SourceBrigadeId_LocalPatientId_UQ"
+        IdempotencyKeyUniqueIndexName,
+        ClientOperationIdUniqueIndexName,
+        LocalPatientUniqueIndexName
     ];
 
     private readonly CaritasDbContext _dbContext;
@@ -153,9 +157,10 @@ public sealed class PatientWriteRepository : IPatientWriteRepository
         }
         catch (DbUpdateException exception) when (IsPatientCreateIdempotencyUniqueViolation(exception))
         {
-            var replayedPatient = await FindExistingIdempotentPatientAsync(
+            var replayedPatient = await FindExistingIdempotentPatientForUniqueViolationAsync(
                 organizationId,
                 request,
+                exception,
                 cancellationToken);
 
             if (replayedPatient is not null)
@@ -172,11 +177,109 @@ public sealed class PatientWriteRepository : IPatientWriteRepository
 
 
 
+    private async Task<Patient?> FindExistingIdempotentPatientForUniqueViolationAsync(
+        Guid organizationId,
+        CreatePatientRequest request,
+        DbUpdateException exception,
+        CancellationToken cancellationToken)
+    {
+        var violatedIndexName = GetPatientCreateIdempotencyUniqueIndexName(exception);
+
+        return violatedIndexName switch
+        {
+            IdempotencyKeyUniqueIndexName => await FindExistingPatientByIdempotencyKeyAsync(
+                organizationId,
+                request,
+                cancellationToken),
+            ClientOperationIdUniqueIndexName => await FindExistingPatientByClientOperationIdAsync(
+                organizationId,
+                request,
+                cancellationToken),
+            LocalPatientUniqueIndexName => await FindExistingPatientByLocalPatientIdAsync(
+                organizationId,
+                request,
+                cancellationToken),
+            _ => null
+        };
+    }
+
+    private async Task<Patient?> FindExistingPatientByIdempotencyKeyAsync(
+        Guid organizationId,
+        CreatePatientRequest request,
+        CancellationToken cancellationToken)
+    {
+        var idempotencyKey = NormalizeOptionalText(request.IdempotencyKey);
+
+        if (string.IsNullOrWhiteSpace(idempotencyKey))
+        {
+            return null;
+        }
+
+        return await _dbContext.Patients
+            .AsNoTracking()
+            .Where(patient =>
+                patient.OrganizationId == organizationId &&
+                !patient.IsDeleted &&
+                patient.IdempotencyKey == idempotencyKey)
+            .OrderBy(patient => patient.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    private async Task<Patient?> FindExistingPatientByClientOperationIdAsync(
+        Guid organizationId,
+        CreatePatientRequest request,
+        CancellationToken cancellationToken)
+    {
+        var clientOperationId = NormalizeOptionalText(request.ClientOperationId);
+
+        if (string.IsNullOrWhiteSpace(clientOperationId))
+        {
+            return null;
+        }
+
+        return await _dbContext.Patients
+            .AsNoTracking()
+            .Where(patient =>
+                patient.OrganizationId == organizationId &&
+                !patient.IsDeleted &&
+                patient.ClientOperationId == clientOperationId)
+            .OrderBy(patient => patient.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    private async Task<Patient?> FindExistingPatientByLocalPatientIdAsync(
+        Guid organizationId,
+        CreatePatientRequest request,
+        CancellationToken cancellationToken)
+    {
+        var localPatientId = NormalizeOptionalText(request.LocalPatientId);
+
+        if (string.IsNullOrWhiteSpace(localPatientId) || !request.SourceBrigadeId.HasValue)
+        {
+            return null;
+        }
+
+        return await _dbContext.Patients
+            .AsNoTracking()
+            .Where(patient =>
+                patient.OrganizationId == organizationId &&
+                !patient.IsDeleted &&
+                patient.SourceBrigadeId == request.SourceBrigadeId.Value &&
+                patient.LocalPatientId == localPatientId)
+            .OrderBy(patient => patient.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     private static bool IsPatientCreateIdempotencyUniqueViolation(DbUpdateException exception)
+    {
+        return GetPatientCreateIdempotencyUniqueIndexName(exception) is not null;
+    }
+
+    private static string? GetPatientCreateIdempotencyUniqueIndexName(DbUpdateException exception)
     {
         if (exception.InnerException is not SqlException sqlException)
         {
-            return false;
+            return null;
         }
 
         var isUniqueViolation = false;
@@ -192,20 +295,19 @@ public sealed class PatientWriteRepository : IPatientWriteRepository
 
         if (!isUniqueViolation)
         {
-            return false;
+            return null;
         }
 
         foreach (var indexName in PatientCreateIdempotencyUniqueIndexNames)
         {
             if (sqlException.Message.Contains(indexName, StringComparison.OrdinalIgnoreCase))
             {
-                return true;
+                return indexName;
             }
         }
 
-        return false;
+        return null;
     }
-
     private async Task<Patient?> FindExistingIdempotentPatientAsync(
         Guid organizationId,
         CreatePatientRequest request,
