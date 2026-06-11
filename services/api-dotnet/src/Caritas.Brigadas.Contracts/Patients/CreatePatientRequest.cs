@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Caritas.Brigadas.Contracts.Patients;
 
@@ -51,4 +51,21 @@ public sealed record CreatePatientRequest
 
     [MaxLength(1000)]
     public string? NotesAdmin { get; init; }
+
+    public Guid? SourceBrigadeId { get; init; }
+
+    [MaxLength(100)]
+    public string? LocalPatientId { get; init; }
+
+    [MaxLength(100)]
+    public string? ClientOperationId { get; init; }
+
+    [MaxLength(100)]
+    public string? IdempotencyKey { get; init; }
+
+    [MaxLength(50)]
+    public string? SyncStatus { get; init; }
+
+    [MaxLength(100)]
+    public string? DataCaptureSource { get; init; }
 }
