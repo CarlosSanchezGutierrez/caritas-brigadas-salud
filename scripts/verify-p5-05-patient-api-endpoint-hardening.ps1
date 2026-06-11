@@ -72,7 +72,7 @@ $RunbookContent = Read-RepoText -RelativePath "docs/runbooks/P5_05_PATIENT_API_E
 
 $AllContent = $ControllerContent + "`n" + $ImplementationContent + "`n" + $MatrixContent + "`n" + $RunbookContent
 
-$ControllerTokens = @(
+$ControllerRequiredTokens = @(
     "[ApiController]",
     "[Produces(""application/json"")]",
     "[HttpGet(""api/v1/organizations/{organizationId:guid}/patients"")]",
@@ -98,15 +98,20 @@ $ControllerTokens = @(
     "Conflict(error)"
 )
 
-foreach ($Token in $ControllerTokens) {
+foreach ($Token in $ControllerRequiredTokens) {
     Assert-ContainsToken -Content $ControllerContent -Token $Token
 }
 
-Assert-DoesNotContainToken -Content $ControllerContent -Token 'return Created($"/api/v1/organizations/{organizationId}/patients/{patient.Id}", response);'
-Assert-DoesNotContainToken -Content $ControllerContent -Token "nameof(GetByIdAsync)"
-Assert-DoesNotContainToken -Content $ControllerContent -Token 
+$ControllerForbiddenTokens = @(
+    'return Created($"/api/v1/organizations/{organizationId}/patients/{patient.Id}", response);',
+    "nameof(GetByIdAsync)"
+)
 
-$DocumentationTokens = @(
+foreach ($Token in $ControllerForbiddenTokens) {
+    Assert-DoesNotContainToken -Content $ControllerContent -Token $Token
+}
+
+$DocumentationRequiredTokens = @(
     "P5.5 Patient API Endpoint Hardening",
     "Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE",
     "GET /api/v1/organizations/{organizationId:guid}/patients",
@@ -130,11 +135,11 @@ $DocumentationTokens = @(
     "SQL Server remains the operational source of truth"
 )
 
-foreach ($Token in $DocumentationTokens) {
+foreach ($Token in $DocumentationRequiredTokens) {
     Assert-ContainsToken -Content $AllContent -Token $Token
 }
 
-$ForbiddenTokens = @(
+$GeneralForbiddenTokens = @(
     "User ID=sa",
     "Password=",
     "Pwd=",
@@ -148,7 +153,7 @@ $ForbiddenTokens = @(
     "AWS is required"
 )
 
-foreach ($Token in $ForbiddenTokens) {
+foreach ($Token in $GeneralForbiddenTokens) {
     Assert-DoesNotContainToken -Content $AllContent -Token $Token
 }
 
