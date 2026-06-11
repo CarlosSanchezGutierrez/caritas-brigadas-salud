@@ -637,6 +637,12 @@ BEGIN
         [IsPartialRecord] bit NOT NULL,
         [PartialRecordReason] nvarchar(max) NULL,
         [NotesAdmin] nvarchar(max) NULL,
+        [SourceBrigadeId] uniqueidentifier NULL,
+        [LocalPatientId] nvarchar(100) NULL,
+        [ClientOperationId] nvarchar(100) NULL,
+        [IdempotencyKey] nvarchar(100) NULL,
+        [SyncStatus] nvarchar(50) NULL,
+        [DataCaptureSource] nvarchar(100) NULL,
         [Status] nvarchar(50) NOT NULL,
         [IsDeleted] bit NOT NULL,
         [DeletedAt] datetimeoffset NULL,
@@ -1304,6 +1310,75 @@ BEGIN
     CREATE INDEX [IX_users_OrganizationId_Username] ON [core].[users] ([OrganizationId], [Username]);
 END;
 
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260504184935_InitialCreate'
+)
+BEGIN
+    CREATE INDEX [IX_patients_OrganizationId_ClientOperationId] ON [clinical].[patients] ([OrganizationId], [ClientOperationId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260504184935_InitialCreate'
+)
+BEGIN
+    CREATE INDEX [IX_patients_OrganizationId_IdempotencyKey] ON [clinical].[patients] ([OrganizationId], [IdempotencyKey]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260504184935_InitialCreate'
+)
+BEGIN
+    CREATE INDEX [IX_patients_OrganizationId_LocalPatientId] ON [clinical].[patients] ([OrganizationId], [LocalPatientId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260504184935_InitialCreate'
+)
+BEGIN
+    CREATE INDEX [IX_patients_OrganizationId_SourceBrigadeId] ON [clinical].[patients] ([OrganizationId], [SourceBrigadeId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260504184935_InitialCreate'
+)
+BEGIN
+    CREATE INDEX [IX_patients_OrganizationId_SyncStatus] ON [clinical].[patients] ([OrganizationId], [SyncStatus]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260504184935_InitialCreate'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_patients_OrganizationId_ClientOperationId_UQ]
+    ON [clinical].[patients] ([OrganizationId], [ClientOperationId])
+    WHERE [ClientOperationId] IS NOT NULL AND [IsDeleted] = 0;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260504184935_InitialCreate'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_patients_OrganizationId_IdempotencyKey_UQ]
+    ON [clinical].[patients] ([OrganizationId], [IdempotencyKey])
+    WHERE [IdempotencyKey] IS NOT NULL AND [IsDeleted] = 0;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260504184935_InitialCreate'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_patients_OrganizationId_SourceBrigadeId_LocalPatientId_UQ]
+    ON [clinical].[patients] ([OrganizationId], [SourceBrigadeId], [LocalPatientId])
+    WHERE [SourceBrigadeId] IS NOT NULL AND [LocalPatientId] IS NOT NULL AND [IsDeleted] = 0;
+END;
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
     WHERE [MigrationId] = N'20260504184935_InitialCreate'

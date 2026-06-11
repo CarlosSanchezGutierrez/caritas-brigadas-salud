@@ -1,4 +1,4 @@
-﻿using Caritas.Brigadas.Domain.Common;
+using Caritas.Brigadas.Domain.Common;
 using Caritas.Brigadas.Domain.Enums;
 
 namespace Caritas.Brigadas.Domain.Entities;
@@ -16,6 +16,11 @@ public sealed class Patient : AuditableEntity
     private const int MaxCommunityLength = 200;
     private const int MaxPartialRecordReasonLength = 500;
     private const int MaxAdminNotesLength = 1000;
+    private const int MaxLocalPatientIdLength = 100;
+    private const int MaxClientOperationIdLength = 100;
+    private const int MaxIdempotencyKeyLength = 100;
+    private const int MaxSyncStatusLength = 50;
+    private const int MaxDataCaptureSourceLength = 100;
 
     private Patient()
     {
@@ -86,6 +91,18 @@ public sealed class Patient : AuditableEntity
 
     public string Status { get; private set; }
 
+    public Guid? SourceBrigadeId { get; private set; }
+
+    public string? LocalPatientId { get; private set; }
+
+    public string? ClientOperationId { get; private set; }
+
+    public string? IdempotencyKey { get; private set; }
+
+    public string? SyncStatus { get; private set; }
+
+    public string? DataCaptureSource { get; private set; }
+
     public bool IsActive => Status == PatientStatus.Active;
 
     public void UpdateIdentity(
@@ -138,6 +155,27 @@ public sealed class Patient : AuditableEntity
         Municipality = NormalizeOptional(municipality, nameof(municipality), MaxMunicipalityLength);
         Colony = NormalizeOptional(colony, nameof(colony), MaxColonyLength);
         Community = NormalizeOptional(community, nameof(community), MaxCommunityLength);
+    }
+
+    public void UpdateOfflineSourceMetadata(
+        Guid? sourceBrigadeId,
+        string? localPatientId,
+        string? clientOperationId,
+        string? idempotencyKey,
+        string? syncStatus,
+        string? dataCaptureSource)
+    {
+        if (sourceBrigadeId.HasValue && sourceBrigadeId.Value == Guid.Empty)
+        {
+            throw new DomainException("Source brigade id cannot be empty.");
+        }
+
+        SourceBrigadeId = sourceBrigadeId;
+        LocalPatientId = NormalizeOptional(localPatientId, nameof(localPatientId), MaxLocalPatientIdLength);
+        ClientOperationId = NormalizeOptional(clientOperationId, nameof(clientOperationId), MaxClientOperationIdLength);
+        IdempotencyKey = NormalizeOptional(idempotencyKey, nameof(idempotencyKey), MaxIdempotencyKeyLength);
+        SyncStatus = NormalizeOptional(syncStatus, nameof(syncStatus), MaxSyncStatusLength);
+        DataCaptureSource = NormalizeOptional(dataCaptureSource, nameof(dataCaptureSource), MaxDataCaptureSourceLength);
     }
 
     public void MarkAsMigrant()

@@ -11,6 +11,7 @@ public interface IPatientReadRepository
         CancellationToken cancellationToken = default);
 
     Task<PatientSummaryDto?> GetByIdAsync(
+        Guid organizationId,
         Guid patientId,
         CancellationToken cancellationToken = default);
 
