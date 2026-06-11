@@ -4,7 +4,7 @@ Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE
 
 ## Purpose
 
-Validate that patient contracts now include offline-first and longitudinal-readiness fields.
+Validate that patient contracts include offline-first and longitudinal-readiness fields.
 
 ## Validation command
 
@@ -14,16 +14,7 @@ Run from repository root:
 powershell -ExecutionPolicy Bypass -File "scripts/verify-p5-03-patient-contract-hardening.ps1"
 Expected contract fields
 
-CreatePatientRequest must include:
-
-SourceBrigadeId
-LocalPatientId
-ClientOperationId
-IdempotencyKey
-SyncStatus
-DataCaptureSource
-
-PatientSummaryDto must include:
+CreatePatientRequest and PatientSummaryDto must include:
 
 SourceBrigadeId
 LocalPatientId
@@ -33,7 +24,7 @@ SyncStatus
 DataCaptureSource
 Next implementation
 
-After P5.3, continue with persistence and endpoint behavior:
+After P5.3, continue with:
 
 P5.4 patient persistence and migration.
 P5.5 patient API endpoint hardening.

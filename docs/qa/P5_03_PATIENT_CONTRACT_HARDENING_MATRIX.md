@@ -12,17 +12,9 @@ Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE
 | Longitudinal contract | SourceBrigadeId and PatientFolio remain contract-visible | Yes | No |
 | Readiness marker | PatientContractReadiness exists | Yes | No |
 | Build | contracts project builds | Yes | No |
+| API build | API project builds against updated contracts | Yes | No |
 | Validation chain | P4 and P5 verifiers pass | Yes | No |
 
 ## Rejection criteria
 
-Reject P5.3 if:
-
-- patient contract removes existing patient fields.
-- offline-first fields are missing.
-- longitudinal linkage fields are missing.
-- backend readiness authorization is granted.
-- SQL Server blocker is hidden.
-- direct SQL access from clients is allowed.
-- API bypass is allowed.
-- cloud is made mandatory.
+Reject P5.3 if patient contract removes existing patient fields, offline-first fields are missing, longitudinal linkage fields are missing, backend readiness authorization is granted, SQL Server blocker is hidden, direct SQL access from clients is allowed, API bypass is allowed, or cloud is made mandatory.
