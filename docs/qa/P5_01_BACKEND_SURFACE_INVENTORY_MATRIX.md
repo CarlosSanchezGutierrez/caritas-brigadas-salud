@@ -45,7 +45,7 @@ Reject P5.1 if:
 - Evidence is fabricated.
 - Secret values are printed.
 - Real patient data is committed.
-- Backend production readiness is approved.
+- Backend readiness authorization is granted.
 - SQL Server blocker is hidden.
 - Client direct SQL access is allowed.
 - API bypass is allowed.

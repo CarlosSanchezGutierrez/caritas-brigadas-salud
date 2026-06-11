@@ -24,4 +24,4 @@ Patient core is not complete until the backend has create patient endpoint, get 
 
 ## Rejection criteria
 
-Reject P5.2 if evidence is fabricated, patient core is declared complete without implementation evidence, backend production readiness is approved, SQL Server blocker is hidden, offline-first is treated as optional, longitudinal history is treated as optional, dashboards or analytics are treated as optional, client direct SQL access is allowed, API bypass is allowed, or cloud is made mandatory.
+Reject P5.2 if evidence is fabricated, patient core is declared complete without implementation evidence, backend readiness authorization is granted, SQL Server blocker is hidden, offline-first is treated as optional, longitudinal history is treated as optional, dashboards or analytics are treated as optional, client direct SQL access is allowed, API bypass is allowed, or cloud is made mandatory.

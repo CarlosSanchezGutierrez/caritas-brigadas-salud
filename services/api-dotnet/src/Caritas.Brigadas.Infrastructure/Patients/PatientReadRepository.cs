@@ -65,7 +65,13 @@ public sealed class PatientReadRepository : IPatientReadRepository
                 IsPartialRecord = patient.IsPartialRecord,
                 PartialRecordReason = patient.PartialRecordReason,
                 Status = patient.Status,
-                IsActive = patient.IsActive
+                IsActive = patient.IsActive,
+                SourceBrigadeId = patient.SourceBrigadeId,
+                LocalPatientId = patient.LocalPatientId,
+                ClientOperationId = patient.ClientOperationId,
+                IdempotencyKey = patient.IdempotencyKey,
+                SyncStatus = patient.SyncStatus,
+                DataCaptureSource = patient.DataCaptureSource
             })
             .ToArrayAsync(cancellationToken);
 
@@ -122,7 +128,13 @@ public sealed class PatientReadRepository : IPatientReadRepository
                 IsPartialRecord = entity.IsPartialRecord,
                 PartialRecordReason = entity.PartialRecordReason,
                 Status = entity.Status.ToString(),
-                IsActive = entity.IsActive
+                IsActive = entity.IsActive,
+                SourceBrigadeId = entity.SourceBrigadeId,
+                LocalPatientId = entity.LocalPatientId,
+                ClientOperationId = entity.ClientOperationId,
+                IdempotencyKey = entity.IdempotencyKey,
+                SyncStatus = entity.SyncStatus,
+                DataCaptureSource = entity.DataCaptureSource
             })
             .SingleOrDefaultAsync(cancellationToken);
 
@@ -403,7 +415,13 @@ public sealed class PatientReadRepository : IPatientReadRepository
                 IsPartialRecord = patient.IsPartialRecord,
                 PartialRecordReason = patient.PartialRecordReason,
                 Status = patient.Status,
-                IsActive = patient.IsActive
+                IsActive = patient.IsActive,
+                SourceBrigadeId = patient.SourceBrigadeId,
+                LocalPatientId = patient.LocalPatientId,
+                ClientOperationId = patient.ClientOperationId,
+                IdempotencyKey = patient.IdempotencyKey,
+                SyncStatus = patient.SyncStatus,
+                DataCaptureSource = patient.DataCaptureSource
             })
             .SingleOrDefaultAsync(cancellationToken);
     }

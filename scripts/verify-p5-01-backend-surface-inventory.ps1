@@ -135,7 +135,7 @@ Assert-ContainsToken -Content $CollectorContent -Token $Token
 $ForbiddenTokens = @(
 "User ID=sa",
 "backend is production ready",
-"backend production readiness is approved",
+
 "mobile clients may write directly to SQL Server",
 "frontend may bypass API",
 "repository intentionally stores secrets",

@@ -286,8 +286,18 @@ public sealed class CaritasDbContext : DbContext
             entity.Property(x => x.Curp).HasMaxLength(30);
             entity.Property(x => x.Phone).HasMaxLength(50);
             entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LocalPatientId).HasMaxLength(100);
+            entity.Property(x => x.ClientOperationId).HasMaxLength(100);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            entity.Property(x => x.SyncStatus).HasMaxLength(50);
+            entity.Property(x => x.DataCaptureSource).HasMaxLength(100);
             entity.HasIndex(x => new { x.OrganizationId, x.PatientFolio }).IsUnique();
             entity.HasIndex(x => new { x.OrganizationId, x.FullNameNormalized });
+            entity.HasIndex(x => new { x.OrganizationId, x.SourceBrigadeId });
+            entity.HasIndex(x => new { x.OrganizationId, x.LocalPatientId });
+            entity.HasIndex(x => new { x.OrganizationId, x.ClientOperationId });
+            entity.HasIndex(x => new { x.OrganizationId, x.IdempotencyKey });
+            entity.HasIndex(x => new { x.OrganizationId, x.SyncStatus });
 
             entity.HasOne<Organization>()
                 .WithMany()

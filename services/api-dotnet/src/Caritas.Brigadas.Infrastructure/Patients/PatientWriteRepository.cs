@@ -1,4 +1,4 @@
-﻿using Caritas.Brigadas.Application.Patients;
+using Caritas.Brigadas.Application.Patients;
 using Caritas.Brigadas.Contracts.Patients;
 using Caritas.Brigadas.Domain.Common;
 using Caritas.Brigadas.Domain.Entities;
@@ -93,10 +93,23 @@ public sealed class PatientWriteRepository : IPatientWriteRepository
 
         patient.UpdateAdminNotes(request.NotesAdmin);
 
+        patient.UpdateOfflineSourceMetadata(
+            request.SourceBrigadeId,
+            request.LocalPatientId,
+            request.ClientOperationId,
+            request.IdempotencyKey,
+            request.SyncStatus,
+            request.DataCaptureSource);
+
         _dbContext.Patients.Add(patient);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        return ToSummary(patient);
+    }
+
+    private static PatientSummaryDto ToSummary(Patient patient)
+    {
         return new PatientSummaryDto
         {
             Id = patient.Id,
@@ -119,7 +132,13 @@ public sealed class PatientWriteRepository : IPatientWriteRepository
             IsPartialRecord = patient.IsPartialRecord,
             PartialRecordReason = patient.PartialRecordReason,
             Status = patient.Status,
-            IsActive = patient.IsActive
+            IsActive = patient.IsActive,
+            SourceBrigadeId = patient.SourceBrigadeId,
+            LocalPatientId = patient.LocalPatientId,
+            ClientOperationId = patient.ClientOperationId,
+            IdempotencyKey = patient.IdempotencyKey,
+            SyncStatus = patient.SyncStatus,
+            DataCaptureSource = patient.DataCaptureSource
         };
     }
 
