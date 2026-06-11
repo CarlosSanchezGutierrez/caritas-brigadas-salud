@@ -8,6 +8,7 @@ Backend production readiness: BLOCKED_PENDING_REAL_EVIDENCE
 |---|---|---:|---:|
 | Organization-scoped get | GetByIdAsync receives organizationId and patientId | Yes | No |
 | Query scoping | Patient read query filters by OrganizationId before returning | Yes | No |
+| Empty route ids | Empty organizationId or patientId returns null for controller-level NotFound handling | Yes | No |
 | Controller boundary | Controller calls organization-scoped GetByIdAsync | Yes | No |
 | No post-query mismatch workaround | Controller does not rely on patient.OrganizationId mismatch after broad lookup | Yes | No |
 | Create request guard | Write repository rejects null create request | Yes | No |

@@ -90,14 +90,9 @@ public sealed class PatientReadRepository : IPatientReadRepository
         Guid patientId,
         CancellationToken cancellationToken = default)
     {
-        if (organizationId == Guid.Empty)
+        if (organizationId == Guid.Empty || patientId == Guid.Empty)
         {
-            throw new ArgumentException("Organization id is required.", nameof(organizationId));
-        }
-
-        if (patientId == Guid.Empty)
-        {
-            throw new ArgumentException("Patient id is required.", nameof(patientId));
+            return null;
         }
 
         var patient = await _dbContext.Patients
@@ -389,14 +384,9 @@ public sealed class PatientReadRepository : IPatientReadRepository
         Guid patientId,
         CancellationToken cancellationToken = default)
     {
-        if (organizationId == Guid.Empty)
+        if (organizationId == Guid.Empty || patientId == Guid.Empty)
         {
-            throw new ArgumentException("Organization id is required.", nameof(organizationId));
-        }
-
-        if (patientId == Guid.Empty)
-        {
-            throw new ArgumentException("Patient id is required.", nameof(patientId));
+            return null;
         }
 
         return await _dbContext.Patients
