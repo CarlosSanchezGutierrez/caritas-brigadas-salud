@@ -1,4 +1,4 @@
-﻿using Caritas.Brigadas.Application.Audit;
+using Caritas.Brigadas.Application.Audit;
 
 namespace Caritas.Brigadas.Api.Audit;
 
@@ -95,8 +95,7 @@ public static class OperationalWriteAuditActionMapper
             entityName = "BrigadeService";
             return true;
         }
-
-        if (normalizedPath.EndsWith("/sync-batches", StringComparison.OrdinalIgnoreCase))
+if (normalizedPath.EndsWith("/sync-batches", StringComparison.OrdinalIgnoreCase))
         {
             action = AuditActionCodes.SyncBatchCreate;
             entityName = "SyncBatch";
